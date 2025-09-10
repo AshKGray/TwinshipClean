@@ -1,0 +1,43 @@
+{
+  "projectName": "Twinship",
+  "projectType": "mobile-app",
+  "framework": "react-native-expo",
+  "version": "4.42.1",
+  "ide": ["claude-code"],
+  "features": {
+    "build": true,
+    "measure": true,
+    "analyze": true,
+    "deploy": true
+  },
+  "metrics": {
+    "performance": {
+      "enabled": true,
+      "thresholds": {
+        "loadTime": 3000,
+        "renderTime": 16,
+        "memoryUsage": 150
+      }
+    },
+    "userEngagement": {
+      "enabled": true,
+      "tracking": ["sessions", "interactions", "retention"]
+    },
+    "quality": {
+      "enabled": true,
+      "rules": ["eslint", "typescript", "testing"]
+    }
+  },
+  "navigation": {
+    "tracking": true,
+    "analytics": true,
+    "errorBoundaries": true
+  },
+  "agents": [
+    "mobile-dev",
+    "performance-analyzer",
+    "ux-optimizer",
+    "test-automation",
+    "deployment-manager"
+  ]
+}

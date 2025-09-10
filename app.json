@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "twinship",
+    "slug": "twinship",
+    "scheme": "twinship",
+    "version": "1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.twinship.app",
+      "infoPlist": {
+        "NSCalendarsUsageDescription": "This app uses your calendar to sync twin events and special dates.",
+        "NSCalendarsFullAccessUsageDescription": "This app needs full access to your calendar to create and manage twin events.",
+        "NSContactsUsageDescription": "This app accesses your contacts to help you find and connect with your twin.",
+        "NSCameraUsageDescription": "This app uses the camera for profile photos and sharing moments with your twin.",
+        "NSPhotoLibraryUsageDescription": "This app accesses your photos to let you share memories with your twin.",
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to show distance from your twin and for location-based features.",
+        "NSMicrophoneUsageDescription": "This app uses the microphone for voice messages and audio recording."
+      }
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "package": "com.twinship.app"
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-mail-composer",
+      "expo-secure-store",
+      "expo-web-browser"
+    ]
+  }
+}

@@ -1,0 +1,1131 @@
+{
+  "version": "1.0.0",
+  "totalItems": 210,
+  "categories": {
+    "identity_fusion": {
+      "description": "Measures the degree to which twins merge their identities",
+      "items": [
+        {
+          "id": "IF001",
+          "question": "I feel incomplete without my twin",
+          "category": "identity_fusion",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "IF002",
+          "question": "My twin and I are basically the same person",
+          "category": "identity_fusion",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "IF003",
+          "question": "I have my own identity separate from my twin",
+          "category": "identity_fusion",
+          "reverseScored": true,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "IF004",
+          "question": "When my twin is hurt, I feel physical pain",
+          "category": "identity_fusion",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "IF005",
+          "question": "I can't imagine life without my twin",
+          "category": "identity_fusion",
+          "reverseScored": false,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "IF006",
+          "question": "My twin's achievements feel like my own",
+          "category": "identity_fusion",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "IF007",
+          "question": "I enjoy having different interests from my twin",
+          "category": "identity_fusion",
+          "reverseScored": true,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "IF008",
+          "question": "People often can't tell us apart emotionally",
+          "category": "identity_fusion",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "IF009",
+          "question": "I feel anxious when separated from my twin",
+          "category": "identity_fusion",
+          "reverseScored": false,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "IF010",
+          "question": "My twin and I share the same dreams and goals",
+          "category": "identity_fusion",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        }
+      ]
+    },
+    "autonomy": {
+      "description": "Measures independence and self-direction in the twin relationship",
+      "items": [
+        {
+          "id": "AU001",
+          "question": "I make important decisions without consulting my twin",
+          "category": "autonomy",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "AU002",
+          "question": "I need my twin's approval before trying new things",
+          "category": "autonomy",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "AU003",
+          "question": "I pursue my own hobbies independently",
+          "category": "autonomy",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "AU004",
+          "question": "My twin and I support each other's individual goals",
+          "category": "autonomy",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "AU005",
+          "question": "I feel guilty when I succeed without my twin",
+          "category": "autonomy",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "AU006",
+          "question": "I can be happy even when my twin is sad",
+          "category": "autonomy",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "AU007",
+          "question": "My career choices are influenced by my twin's opinions",
+          "category": "autonomy",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "AU008",
+          "question": "I maintain friendships that don't include my twin",
+          "category": "autonomy",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "AU009",
+          "question": "I check with my twin before making plans",
+          "category": "autonomy",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "AU010",
+          "question": "I'm comfortable traveling without my twin",
+          "category": "autonomy",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        }
+      ]
+    },
+    "boundaries": {
+      "description": "Assesses healthy emotional and physical boundaries",
+      "items": [
+        {
+          "id": "BO001",
+          "question": "My twin and I respect each other's privacy",
+          "category": "boundaries",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "BO002",
+          "question": "We share everything, including passwords",
+          "category": "boundaries",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "BO003",
+          "question": "I can say no to my twin without feeling guilty",
+          "category": "boundaries",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "BO004",
+          "question": "My twin gets upset when I need alone time",
+          "category": "boundaries",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "BO005",
+          "question": "We have separate friend groups",
+          "category": "boundaries",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "BO006",
+          "question": "I feel obligated to share all my experiences with my twin",
+          "category": "boundaries",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "BO007",
+          "question": "My twin respects my romantic relationships",
+          "category": "boundaries",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "BO008",
+          "question": "We read each other's messages without asking",
+          "category": "boundaries",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "BO009",
+          "question": "I can keep secrets from my twin",
+          "category": "boundaries",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "BO010",
+          "question": "My twin expects to be included in all my activities",
+          "category": "boundaries",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        }
+      ]
+    },
+    "communication": {
+      "description": "Evaluates communication patterns and effectiveness",
+      "items": [
+        {
+          "id": "CO001",
+          "question": "My twin and I communicate openly about our feelings",
+          "category": "communication",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "CO002",
+          "question": "We often communicate without words",
+          "category": "communication",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "CO003",
+          "question": "I avoid difficult conversations with my twin",
+          "category": "communication",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "CO004",
+          "question": "We resolve conflicts constructively",
+          "category": "communication",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "CO005",
+          "question": "I hide my true feelings to protect my twin",
+          "category": "communication",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "CO006",
+          "question": "We can discuss our differences calmly",
+          "category": "communication",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "CO007",
+          "question": "My twin gets defensive when I express concerns",
+          "category": "communication",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "CO008",
+          "question": "We listen to each other without judgment",
+          "category": "communication",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "CO009",
+          "question": "I feel like I'm walking on eggshells around my twin",
+          "category": "communication",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "CO010",
+          "question": "We can apologize and forgive each other easily",
+          "category": "communication",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        }
+      ]
+    },
+    "codependency": {
+      "description": "Measures unhealthy emotional dependence",
+      "items": [
+        {
+          "id": "CD001",
+          "question": "I prioritize my twin's needs over my own",
+          "category": "codependency",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "CD002",
+          "question": "I feel responsible for my twin's emotions",
+          "category": "codependency",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "CD003",
+          "question": "My mood depends on my twin's mood",
+          "category": "codependency",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "CD004",
+          "question": "I sacrifice my own happiness for my twin",
+          "category": "codependency",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "CD005",
+          "question": "I can't enjoy activities unless my twin enjoys them too",
+          "category": "codependency",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "CD006",
+          "question": "I feel worthless when my twin doesn't need me",
+          "category": "codependency",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "CD007",
+          "question": "My self-esteem comes from helping my twin",
+          "category": "codependency",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "CD008",
+          "question": "I neglect my own problems to focus on my twin's",
+          "category": "codependency",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "CD009",
+          "question": "I feel anxious when my twin is independent",
+          "category": "codependency",
+          "reverseScored": false,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "CD010",
+          "question": "My twin's problems become my problems",
+          "category": "codependency",
+          "reverseScored": false,
+          "compositeIndices": ["CI"]
+        }
+      ]
+    },
+    "differentiation": {
+      "description": "Assesses ability to maintain individual identity",
+      "items": [
+        {
+          "id": "DI001",
+          "question": "I have interests my twin doesn't share",
+          "category": "differentiation",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "DI002",
+          "question": "People see us as individuals, not just as twins",
+          "category": "differentiation",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "DI003",
+          "question": "I feel pressure to be similar to my twin",
+          "category": "differentiation",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "DI004",
+          "question": "I celebrate what makes me different from my twin",
+          "category": "differentiation",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "DI005",
+          "question": "We dress differently to express our individuality",
+          "category": "differentiation",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "DI006",
+          "question": "I feel threatened when my twin develops new traits",
+          "category": "differentiation",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "DI007",
+          "question": "We have different career paths",
+          "category": "differentiation",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "DI008",
+          "question": "I compare myself constantly to my twin",
+          "category": "differentiation",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "DI009",
+          "question": "We have different political or religious views",
+          "category": "differentiation",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "DI010",
+          "question": "I feel lost when people don't mention my twin",
+          "category": "differentiation",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        }
+      ]
+    },
+    "attachment": {
+      "description": "Evaluates attachment patterns in twin relationship",
+      "items": [
+        {
+          "id": "AT001",
+          "question": "I trust my twin completely",
+          "category": "attachment",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "AT002",
+          "question": "I worry my twin will abandon me",
+          "category": "attachment",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "AT003",
+          "question": "Our bond feels secure and stable",
+          "category": "attachment",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "AT004",
+          "question": "I'm clingy with my twin",
+          "category": "attachment",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        },
+        {
+          "id": "AT005",
+          "question": "We give each other space when needed",
+          "category": "attachment",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "AT006",
+          "question": "I panic when I can't reach my twin",
+          "category": "attachment",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "AT007",
+          "question": "Our relationship feels balanced",
+          "category": "attachment",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "AT008",
+          "question": "I'm jealous of my twin's other relationships",
+          "category": "attachment",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "AT009",
+          "question": "We can be apart without anxiety",
+          "category": "attachment",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "AT010",
+          "question": "I feel possessive of my twin",
+          "category": "attachment",
+          "reverseScored": true,
+          "compositeIndices": ["CI"]
+        }
+      ]
+    },
+    "conflict_resolution": {
+      "description": "Assesses ability to handle disagreements",
+      "items": [
+        {
+          "id": "CR001",
+          "question": "We resolve conflicts quickly and fairly",
+          "category": "conflict_resolution",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "CR002",
+          "question": "Our fights escalate quickly",
+          "category": "conflict_resolution",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "CR003",
+          "question": "We can agree to disagree",
+          "category": "conflict_resolution",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "CR004",
+          "question": "I hold grudges against my twin",
+          "category": "conflict_resolution",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "CR005",
+          "question": "We find compromises that work for both of us",
+          "category": "conflict_resolution",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "CR006",
+          "question": "One of us always has to win arguments",
+          "category": "conflict_resolution",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "CR007",
+          "question": "We take breaks during heated discussions",
+          "category": "conflict_resolution",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "CR008",
+          "question": "We bring up past conflicts during new arguments",
+          "category": "conflict_resolution",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "CR009",
+          "question": "We seek to understand each other's perspective",
+          "category": "conflict_resolution",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "CR010",
+          "question": "Silent treatment is common after disagreements",
+          "category": "conflict_resolution",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        }
+      ]
+    },
+    "partner_inclusion": {
+      "description": "Measures how romantic partners affect twin dynamic",
+      "items": [
+        {
+          "id": "PI001",
+          "question": "My twin accepts my romantic partners",
+          "category": "partner_inclusion",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "PI002",
+          "question": "Romantic relationships threaten our twin bond",
+          "category": "partner_inclusion",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "PI003",
+          "question": "We include partners in twin activities appropriately",
+          "category": "partner_inclusion",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "PI004",
+          "question": "I feel jealous when my twin dates",
+          "category": "partner_inclusion",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "PI005",
+          "question": "We maintain our bond despite romantic relationships",
+          "category": "partner_inclusion",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "PI006",
+          "question": "My twin sabotages my romantic relationships",
+          "category": "partner_inclusion",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "PI007",
+          "question": "Partners understand our twin connection",
+          "category": "partner_inclusion",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "PI008",
+          "question": "I have to choose between my twin and my partner",
+          "category": "partner_inclusion",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "PI009",
+          "question": "We respect each other's romantic boundaries",
+          "category": "partner_inclusion",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "PI010",
+          "question": "My twin competes with my romantic partner",
+          "category": "partner_inclusion",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        }
+      ]
+    },
+    "power_dynamics": {
+      "description": "Evaluates balance of power in relationship",
+      "items": [
+        {
+          "id": "PD001",
+          "question": "We make decisions together as equals",
+          "category": "power_dynamics",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "PD002",
+          "question": "One twin dominates the relationship",
+          "category": "power_dynamics",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "PD003",
+          "question": "We take turns being the leader",
+          "category": "power_dynamics",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "PD004",
+          "question": "I feel inferior to my twin",
+          "category": "power_dynamics",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "PD005",
+          "question": "We respect each other's strengths",
+          "category": "power_dynamics",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "PD006",
+          "question": "My twin makes all the important decisions",
+          "category": "power_dynamics",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "PD007",
+          "question": "Our relationship feels balanced",
+          "category": "power_dynamics",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "PD008",
+          "question": "I'm always the one who compromises",
+          "category": "power_dynamics",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        },
+        {
+          "id": "PD009",
+          "question": "We both have equal say in our relationship",
+          "category": "power_dynamics",
+          "reverseScored": false,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "PD010",
+          "question": "My twin controls our social life",
+          "category": "power_dynamics",
+          "reverseScored": true,
+          "compositeIndices": ["CI", "TRS"]
+        }
+      ]
+    },
+    "openness": {
+      "description": "Big Five trait adapted for twin context",
+      "items": [
+        {
+          "id": "OP001",
+          "question": "My twin and I explore new ideas together",
+          "category": "openness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "OP002",
+          "question": "We're open to different perspectives",
+          "category": "openness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "OP003",
+          "question": "We resist change in our relationship",
+          "category": "openness",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "OP004",
+          "question": "We enjoy intellectual discussions",
+          "category": "openness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "OP005",
+          "question": "We're curious about each other's experiences",
+          "category": "openness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "OP006",
+          "question": "We prefer routine over adventure",
+          "category": "openness",
+          "reverseScored": true,
+          "compositeIndices": []
+        },
+        {
+          "id": "OP007",
+          "question": "We appreciate art and beauty together",
+          "category": "openness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "OP008",
+          "question": "We're imaginative in solving problems",
+          "category": "openness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "OP009",
+          "question": "We avoid philosophical discussions",
+          "category": "openness",
+          "reverseScored": true,
+          "compositeIndices": []
+        },
+        {
+          "id": "OP010",
+          "question": "We embrace new experiences together",
+          "category": "openness",
+          "reverseScored": false,
+          "compositeIndices": []
+        }
+      ]
+    },
+    "conscientiousness": {
+      "description": "Big Five trait adapted for twin context",
+      "items": [
+        {
+          "id": "CN001",
+          "question": "We keep our commitments to each other",
+          "category": "conscientiousness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "CN002",
+          "question": "We're organized in our shared activities",
+          "category": "conscientiousness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "CN003",
+          "question": "We procrastinate on twin responsibilities",
+          "category": "conscientiousness",
+          "reverseScored": true,
+          "compositeIndices": []
+        },
+        {
+          "id": "CN004",
+          "question": "We plan our future together carefully",
+          "category": "conscientiousness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "CN005",
+          "question": "We follow through on our promises",
+          "category": "conscientiousness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "CN006",
+          "question": "We're careless with each other's belongings",
+          "category": "conscientiousness",
+          "reverseScored": true,
+          "compositeIndices": []
+        },
+        {
+          "id": "CN007",
+          "question": "We work diligently on shared goals",
+          "category": "conscientiousness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "CN008",
+          "question": "We're reliable for each other",
+          "category": "conscientiousness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "CN009",
+          "question": "We're impulsive in our decisions",
+          "category": "conscientiousness",
+          "reverseScored": true,
+          "compositeIndices": []
+        },
+        {
+          "id": "CN010",
+          "question": "We maintain structure in our relationship",
+          "category": "conscientiousness",
+          "reverseScored": false,
+          "compositeIndices": []
+        }
+      ]
+    },
+    "extraversion": {
+      "description": "Big Five trait adapted for twin context",
+      "items": [
+        {
+          "id": "EX001",
+          "question": "We're social butterflies together",
+          "category": "extraversion",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "EX002",
+          "question": "We energize each other",
+          "category": "extraversion",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "EX003",
+          "question": "We prefer quiet time over social events",
+          "category": "extraversion",
+          "reverseScored": true,
+          "compositeIndices": []
+        },
+        {
+          "id": "EX004",
+          "question": "We're the life of the party together",
+          "category": "extraversion",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "EX005",
+          "question": "We seek excitement and adventure",
+          "category": "extraversion",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "EX006",
+          "question": "We're reserved around others",
+          "category": "extraversion",
+          "reverseScored": true,
+          "compositeIndices": []
+        },
+        {
+          "id": "EX007",
+          "question": "We express ourselves openly",
+          "category": "extraversion",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "EX008",
+          "question": "We enjoy meeting new people together",
+          "category": "extraversion",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "EX009",
+          "question": "We avoid being the center of attention",
+          "category": "extraversion",
+          "reverseScored": true,
+          "compositeIndices": []
+        },
+        {
+          "id": "EX010",
+          "question": "We're enthusiastic and optimistic",
+          "category": "extraversion",
+          "reverseScored": false,
+          "compositeIndices": []
+        }
+      ]
+    },
+    "agreeableness": {
+      "description": "Big Five trait adapted for twin context",
+      "items": [
+        {
+          "id": "AG001",
+          "question": "We're compassionate with each other",
+          "category": "agreeableness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "AG002",
+          "question": "We cooperate well together",
+          "category": "agreeableness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "AG003",
+          "question": "We're competitive rather than supportive",
+          "category": "agreeableness",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "AG004",
+          "question": "We trust each other deeply",
+          "category": "agreeableness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "AG005",
+          "question": "We're considerate of each other's feelings",
+          "category": "agreeableness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "AG006",
+          "question": "We're critical and judgmental",
+          "category": "agreeableness",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "AG007",
+          "question": "We forgive each other easily",
+          "category": "agreeableness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "AG008",
+          "question": "We're helpful and unselfish",
+          "category": "agreeableness",
+          "reverseScored": false,
+          "compositeIndices": []
+        },
+        {
+          "id": "AG009",
+          "question": "We hold grudges against each other",
+          "category": "agreeableness",
+          "reverseScored": true,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "AG010",
+          "question": "We're warm and caring",
+          "category": "agreeableness",
+          "reverseScored": false,
+          "compositeIndices": []
+        }
+      ]
+    },
+    "neuroticism": {
+      "description": "Big Five trait adapted for twin context",
+      "items": [
+        {
+          "id": "NE001",
+          "question": "Our relationship causes me anxiety",
+          "category": "neuroticism",
+          "reverseScored": false,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "NE002",
+          "question": "We handle stress well together",
+          "category": "neuroticism",
+          "reverseScored": true,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "NE003",
+          "question": "I worry constantly about our twin bond",
+          "category": "neuroticism",
+          "reverseScored": false,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "NE004",
+          "question": "We remain calm during conflicts",
+          "category": "neuroticism",
+          "reverseScored": true,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "NE005",
+          "question": "Our relationship is emotionally volatile",
+          "category": "neuroticism",
+          "reverseScored": false,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "NE006",
+          "question": "We're emotionally stable together",
+          "category": "neuroticism",
+          "reverseScored": true,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "NE007",
+          "question": "I feel insecure about our twin connection",
+          "category": "neuroticism",
+          "reverseScored": false,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "NE008",
+          "question": "We bounce back quickly from setbacks",
+          "category": "neuroticism",
+          "reverseScored": true,
+          "compositeIndices": ["ARI"]
+        },
+        {
+          "id": "NE009",
+          "question": "Small issues become major problems for us",
+          "category": "neuroticism",
+          "reverseScored": false,
+          "compositeIndices": ["TRS"]
+        },
+        {
+          "id": "NE010",
+          "question": "We maintain emotional equilibrium",
+          "category": "neuroticism",
+          "reverseScored": true,
+          "compositeIndices": ["ARI"]
+        }
+      ]
+    }
+  }
+}
