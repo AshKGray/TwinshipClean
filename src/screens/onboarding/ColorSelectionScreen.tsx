@@ -135,7 +135,7 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
           <View className="flex-row items-center justify-between pt-4 pb-8 px-8">
             <Pressable
               onPress={onBack}
-              className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
+              className="w-10 h-10 rounded-full bg-black/80 items-center justify-center"
             >
               <Ionicons name="chevron-back" size={20} color="white" />
             </Pressable>
@@ -147,7 +147,7 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
                   <View 
                     key={i} 
                     className={`h-1 w-8 rounded-full ${
-                      i <= 3 ? 'bg-white' : 'bg-white/20'
+                      i <= 3 ? 'bg-white' : 'bg-black/80'
                     }`} 
                   />
                 ))}
@@ -198,7 +198,7 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
               {/* Live Preview */}
               <Animated.View 
                 style={{ transform: [{ scale: previewAnim }] }}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20"
+                className="bg-black/80 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20"
               >
                 <Text className="text-white text-lg font-semibold text-center mb-4">
                   Live Preview
@@ -214,7 +214,7 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
               />
 
               {/* Color Meaning */}
-              <View className="bg-white/5 rounded-xl p-6 mt-8 mb-8 border border-white/10">
+              <View className="bg-black/70 rounded-xl p-6 mt-8 mb-8 border border-white/10">
                 <View className="flex-row items-center mb-3">
                   <View 
                     className="w-6 h-6 rounded-full mr-3"
@@ -230,7 +230,7 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
               </View>
 
               {/* Color Note */}
-              <View className="bg-white/5 rounded-xl p-6 mb-8 border border-white/10">
+              <View className="bg-black/70 rounded-xl p-6 mb-8 border border-white/10">
                 <View className="flex-row items-start">
                   <Ionicons name="sparkles" size={20} color="#ffd700" className="mr-3 mt-1" />
                   <View className="flex-1">

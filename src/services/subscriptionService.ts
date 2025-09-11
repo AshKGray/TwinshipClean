@@ -1,11 +1,24 @@
 import { Platform } from "react-native";
-import Purchases, { 
-  PurchasesOfferings, 
-  CustomerInfo,
-  PurchasesPackage,
-  PurchasesStoreProduct,
-  LOG_LEVEL
-} from "react-native-purchases";
+// Safe import for react-native-purchases
+let Purchases: any;
+let PurchasesOfferings: any;
+let CustomerInfo: any;
+let PurchasesPackage: any;
+let PurchasesStoreProduct: any;
+let LOG_LEVEL: any;
+
+// Dynamically import react-native-purchases to avoid NativeEventEmitter issues
+try {
+  const purchasesModule = require('react-native-purchases');
+  Purchases = purchasesModule.default;
+  PurchasesOfferings = purchasesModule.PurchasesOfferings;
+  CustomerInfo = purchasesModule.CustomerInfo;
+  PurchasesPackage = purchasesModule.PurchasesPackage;
+  PurchasesStoreProduct = purchasesModule.PurchasesStoreProduct;
+  LOG_LEVEL = purchasesModule.LOG_LEVEL;
+} catch (error) {
+  console.warn('react-native-purchases not available, using mock data only:', error);
+}
 import { SubscriptionProduct, PurchaseResult, RestorePurchasesResult, SUBSCRIPTION_PRODUCTS } from "../types/premium/subscription";
 import { SubscriptionErrorHandler, SubscriptionErrorCode } from "../utils/subscriptionErrorHandler";
 
@@ -19,7 +32,7 @@ import { SubscriptionErrorHandler, SubscriptionErrorCode } from "../utils/subscr
 class SubscriptionService {
   private isInitialized: boolean = false;
   private mockProducts: SubscriptionProduct[] = SUBSCRIPTION_PRODUCTS;
-  private useMockData: boolean = __DEV__ && !process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;
+  private useMockData: boolean = __DEV__ && (!process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || !Purchases);
 
   /**
    * Initialize the subscription service
@@ -35,15 +48,15 @@ class SubscriptionService {
       }
       
       const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;
-      if (!apiKey) {
-        console.warn("RevenueCat API key not found, using mock data");
+      if (!apiKey || !Purchases) {
+        console.warn("RevenueCat not available (missing API key or SDK), using mock data");
         this.useMockData = true;
         this.isInitialized = true;
         return true;
       }
       
       // Configure RevenueCat
-      if (__DEV__) {
+      if (__DEV__ && LOG_LEVEL) {
         Purchases.setLogLevel(LOG_LEVEL.DEBUG);
       }
       

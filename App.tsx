@@ -2,10 +2,10 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppNavigator } from "./src/navigation/AppNavigator";
-import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 import { deepLinkManager } from "./src/utils/deepLinking";
-import { invitationService } from "./src/services/invitationService";
+// Re-enable subscription service with safe imports
+// import { invitationService } from "./src/services/invitationService";
 import { subscriptionService } from "./src/services/subscriptionService";
 
 /*
@@ -31,26 +31,42 @@ const openai_api_key = Constants.expoConfig.extra.apikey;
 
 export default function App() {
   useEffect(() => {
-    // Setup notifications
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
-    });
+    // Setup notifications (safely handle expo-notifications)
+    const setupNotifications = async () => {
+      try {
+        const Notifications = await import('expo-notifications');
+        Notifications.setNotificationHandler({
+          handleNotification: async () => ({
+            shouldShowAlert: true,
+            shouldPlaySound: false,
+            shouldSetBadge: false,
+            shouldShowBanner: true,
+            shouldShowList: true,
+          }),
+        });
+      } catch (error) {
+        console.warn('Notifications not available in this environment:', error);
+      }
+    };
+    
+    setupNotifications();
 
-    // Initialize deep linking, invitation service, and subscription service
+    // Initialize deep linking and other services
     const initializeServices = async () => {
       try {
-        await Promise.all([
-          deepLinkManager.initialize(),
-          invitationService.initialize(),
-          subscriptionService.initialize(), // Initialize RevenueCat on app start
-        ]);
-        console.log('App services initialized successfully');
+        await deepLinkManager.initialize();
+        console.log('Core app services initialized successfully');
+        
+        // Re-enable subscription service with safe imports
+        try {
+          await subscriptionService.initialize();
+          console.log('Subscription service initialized');
+        } catch (error) {
+          console.warn('Subscription service failed to initialize:', error);
+        }
+        
+        // TODO: Re-enable invitation service with safe imports
+        // await invitationService.initialize();
       } catch (error) {
         console.error('Failed to initialize app services:', error);
       }

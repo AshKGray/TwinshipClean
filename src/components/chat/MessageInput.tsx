@@ -9,9 +9,11 @@ import {
   ScrollView,
   Text,
   Modal,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { useTwinStore } from '../../state/twinStore';
 import { useChatStore } from '../../state/chatStore';
 import { chatService } from '../../services/chatService';
@@ -22,10 +24,13 @@ import * as Location from 'expo-location';
 
 interface MessageInputProps {
   onSendMessage?: (text: string) => void;
+  onTypingChange?: (isTyping: boolean) => void;
+  simplified?: boolean;
 }
 
-export const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
+export const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onTypingChange, simplified = false }) => {
   const navigation = useNavigation<any>();
+  const isFocused = useIsFocused();
   const userProfile = useTwinStore((state) => state.userProfile);
   const twinProfile = useTwinStore((state) => state.twinProfile);
   const twintuitionMoments = useChatStore((state) => state.twintuitionMoments);
@@ -37,6 +42,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => 
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [twinLocation, setTwinLocation] = useState(null);
   const [isSending, setIsSending] = useState(false);
+  const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const textInputRef = useRef<TextInput>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scaleValue = new Animated.Value(1);
@@ -44,11 +51,25 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => 
   const accentColor = userProfile?.accentColor || 'neon-purple';
   const neonColor = getNeonAccentColor(accentColor);
 
+  // App state monitoring
   useEffect(() => {
-    // Handle typing indicator
-    if (inputText.length > 0 && !isTyping) {
+    const subscription = AppState.addEventListener('change', setAppState);
+    return () => subscription?.remove();
+  }, []);
+
+  // Enhanced typing logic with app state and focus detection
+  useEffect(() => {
+    const isActiveAndFocused = appState === 'active' && isFocused && isInputFocused;
+    const shouldShowTyping = inputText.length > 0 && isActiveAndFocused;
+
+    if (shouldShowTyping && !isTyping) {
       setIsTyping(true);
+      onTypingChange?.(true);
       chatService.sendTypingIndicator(true);
+    } else if (!shouldShowTyping && isTyping) {
+      setIsTyping(false);
+      onTypingChange?.(false);
+      chatService.sendTypingIndicator(false);
     }
 
     // Clear previous timeout
@@ -56,20 +77,32 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => 
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Set new timeout to stop typing indicator
-    typingTimeoutRef.current = setTimeout(() => {
-      if (isTyping) {
-        setIsTyping(false);
-        chatService.sendTypingIndicator(false);
-      }
-    }, 1000);
+    // Set new timeout to stop typing indicator after 2 seconds of no typing
+    if (shouldShowTyping) {
+      typingTimeoutRef.current = setTimeout(() => {
+        if (isTyping) {
+          setIsTyping(false);
+          onTypingChange?.(false);
+          chatService.sendTypingIndicator(false);
+        }
+      }, 2000);
+    }
 
     return () => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, [inputText, isTyping]);
+  }, [inputText, isTyping, onTypingChange, appState, isFocused, isInputFocused]);
+
+  // Stop typing when app goes background or screen loses focus
+  useEffect(() => {
+    if ((appState !== 'active' || !isFocused) && isTyping) {
+      setIsTyping(false);
+      onTypingChange?.(false);
+      chatService.sendTypingIndicator(false);
+    }
+  }, [appState, isFocused, isTyping, onTypingChange]);
 
   const handleSendMessage = async () => {
     if (!inputText.trim() || !userProfile || isSending) return;
@@ -202,7 +235,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => 
               key={response.id}
               onPress={() => handleQuickResponse(response.text)}
               style={{
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(0,0,0,0.7)',
                 borderColor: neonColor,
                 borderWidth: 1,
               }}
@@ -239,111 +272,158 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => 
       )}
 
       {/* Main Input Area */}
-      <View className="flex-row items-end px-4 py-3 space-x-3">
-        {/* Twintuition Button */}
-        <Pressable
-          onPress={() => navigation.navigate('Twintuition')}
-          className="bg-white/10 rounded-full p-3 relative"
-        >
-          <Ionicons name="flash" size={20} color={neonColor} />
-          {twintuitionMoments.length > 0 && (
-            <View 
-              style={{ backgroundColor: neonColor }}
-              className="absolute -top-1 -right-1 w-4 h-4 rounded-full items-center justify-center"
+      {simplified ? (
+        // Simplified mode - only text input and send button
+        <View className="flex-row items-end px-4 py-3 space-x-3">
+          {/* Text Input Container */}
+          <View className="flex-1 bg-black/80 rounded-2xl px-4 py-2 min-h-[44px] max-h-[120px]">
+            <TextInput
+              ref={textInputRef}
+              value={inputText}
+              onChangeText={setInputText}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
+              placeholder="Type your message..."
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              className="text-white text-base flex-1"
+              multiline
+              maxLength={1000}
+              style={{
+                textAlignVertical: 'center',
+              }}
+            />
+          </View>
+
+          {/* Send Button */}
+          <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+            <Pressable
+              onPress={handleSendMessage}
+              onPressIn={animateButton}
+              disabled={isSending || !inputText.trim()}
+              style={{
+                backgroundColor: inputText.trim() ? neonColor : 'rgba(0,0,0,0.7)',
+                opacity: isSending ? 0.7 : 1,
+              }}
+              className="w-12 h-12 rounded-full items-center justify-center"
             >
-              <Text className="text-black text-xs font-bold">
-                {twintuitionMoments.length > 9 ? '9+' : twintuitionMoments.length}
-              </Text>
-            </View>
-          )}
-        </Pressable>
-
-        {/* Location Button */}
-        <Pressable
-          onPress={handleViewTwinLocation}
-          onLongPress={handleLocationShare}
-          className="bg-white/10 rounded-full p-3"
-        >
-          <Ionicons name="location" size={20} color="white" />
-        </Pressable>
-
-        {/* Quick Actions Button */}
-        <Pressable
-          onPress={() => {
-            animateButton();
-            setShowQuickResponses(!showQuickResponses);
-            setShowEmojiPicker(false);
-          }}
-          className="bg-white/10 w-10 h-10 rounded-full items-center justify-center"
-        >
-          <Ionicons 
-            name={showQuickResponses ? "close" : "flash"} 
-            size={20} 
-            color={showQuickResponses ? neonColor : "white"} 
-          />
-        </Pressable>
-
-        {/* Text Input Container */}
-        <View className="flex-1 bg-white/10 rounded-2xl px-4 py-2 min-h-[44px] max-h-[120px]">
-          <TextInput
-            ref={textInputRef}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Type your message..."
-            placeholderTextColor="rgba(255,255,255,0.5)"
-            className="text-white text-base flex-1"
-            multiline
-            maxLength={1000}
-            style={{
-              textAlignVertical: 'center',
-            }}
-          />
+              <Ionicons
+                name={isSending ? "hourglass" : "send"}
+                size={20}
+                color="white"
+              />
+            </Pressable>
+          </Animated.View>
         </View>
-
-        {/* Emoji Button */}
-        <Pressable
-          onPress={() => {
-            animateButton();
-            setShowEmojiPicker(!showEmojiPicker);
-            setShowQuickResponses(false);
-          }}
-          className="bg-white/10 w-10 h-10 rounded-full items-center justify-center"
-        >
-          <Ionicons 
-            name={showEmojiPicker ? "close" : "happy-outline"} 
-            size={20} 
-            color={showEmojiPicker ? neonColor : "white"} 
-          />
-        </Pressable>
-
-        {/* Voice/Send Button */}
-        <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+      ) : (
+        // Full mode - with all buttons
+        <View className="flex-row items-end px-4 py-3 space-x-3">
+          {/* Twintuition Button */}
           <Pressable
-            onPress={inputText.trim() ? handleSendMessage : handleVoiceRecord}
-            onPressIn={animateButton}
-            disabled={isSending}
-            style={{
-              backgroundColor: inputText.trim() || isVoiceRecording ? neonColor : 'rgba(255,255,255,0.2)',
-              opacity: isSending ? 0.7 : 1,
-            }}
-            className="w-12 h-12 rounded-full items-center justify-center"
+            onPress={() => navigation.navigate('Twintuition')}
+            className="bg-white/10 rounded-full p-3 relative"
           >
-            <Ionicons
-              name={
-                isSending
-                  ? "hourglass"
-                  : inputText.trim() 
-                    ? "send" 
-                    : isVoiceRecording 
-                      ? "stop" 
-                      : "mic"
-              }
-              size={20}
-              color="white"
+            <Ionicons name="flash" size={20} color={neonColor} />
+            {twintuitionMoments.length > 0 && (
+              <View 
+                style={{ backgroundColor: neonColor }}
+                className="absolute -top-1 -right-1 w-4 h-4 rounded-full items-center justify-center"
+              >
+                <Text className="text-black text-xs font-bold">
+                  {twintuitionMoments.length > 9 ? '9+' : twintuitionMoments.length}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+
+          {/* Location Button */}
+          <Pressable
+            onPress={handleViewTwinLocation}
+            onLongPress={handleLocationShare}
+            className="bg-white/10 rounded-full p-3"
+          >
+            <Ionicons name="location" size={20} color="white" />
+          </Pressable>
+
+          {/* Quick Actions Button */}
+          <Pressable
+            onPress={() => {
+              animateButton();
+              setShowQuickResponses(!showQuickResponses);
+              setShowEmojiPicker(false);
+            }}
+            className="bg-white/10 w-10 h-10 rounded-full items-center justify-center"
+          >
+            <Ionicons 
+              name={showQuickResponses ? "close" : "flash"} 
+              size={20} 
+              color={showQuickResponses ? neonColor : "white"} 
             />
           </Pressable>
-        </Animated.View>
-      </View>
+
+          {/* Text Input Container */}
+          <View className="flex-1 bg-white/10 rounded-2xl px-4 py-2 min-h-[44px] max-h-[120px]">
+            <TextInput
+              ref={textInputRef}
+              value={inputText}
+              onChangeText={setInputText}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
+              placeholder="Type your message..."
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              className="text-white text-base flex-1"
+              multiline
+              maxLength={1000}
+              style={{
+                textAlignVertical: 'center',
+              }}
+            />
+          </View>
+
+          {/* Emoji Button */}
+          <Pressable
+            onPress={() => {
+              animateButton();
+              setShowEmojiPicker(!showEmojiPicker);
+              setShowQuickResponses(false);
+            }}
+            className="bg-white/10 w-10 h-10 rounded-full items-center justify-center"
+          >
+            <Ionicons 
+              name={showEmojiPicker ? "close" : "happy-outline"} 
+              size={20} 
+              color={showEmojiPicker ? neonColor : "white"} 
+            />
+          </Pressable>
+
+          {/* Voice/Send Button */}
+          <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+            <Pressable
+              onPress={inputText.trim() ? handleSendMessage : handleVoiceRecord}
+              onPressIn={animateButton}
+              disabled={isSending}
+              style={{
+                backgroundColor: inputText.trim() || isVoiceRecording ? neonColor : 'rgba(0,0,0,0.7)',
+                opacity: isSending ? 0.7 : 1,
+              }}
+              className="w-12 h-12 rounded-full items-center justify-center"
+            >
+              <Ionicons
+                name={
+                  isSending
+                    ? "hourglass"
+                    : inputText.trim() 
+                      ? "send" 
+                      : isVoiceRecording 
+                        ? "stop" 
+                        : "mic"
+                }
+                size={20}
+                color="white"
+              />
+            </Pressable>
+          </Animated.View>
+        </View>
+      )}
 
       {/* Voice Recording Indicator */}
       {isVoiceRecording && (

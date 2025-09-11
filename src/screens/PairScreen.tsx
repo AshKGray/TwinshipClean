@@ -5,6 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useTwinStore, useTempTwinStore, TwinProfile, TwinType, ThemeColor } from "../state/twinStore";
+import { useAuth } from "../state/authStore";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { v4 as uuidv4 } from "uuid";
@@ -14,6 +15,7 @@ export const PairScreen = () => {
   const navigation = useNavigation<any>();
   const { themeColor, shareCode, setShareCode, paired, setPaired, userProfile, twinProfile } = useTwinStore();
   const { setConnectionStatus } = useTempTwinStore();
+  const { user, logout } = useAuth();
   const [enteredCode, setEnteredCode] = useState("");
   const [statusText, setStatusText] = useState("");
   

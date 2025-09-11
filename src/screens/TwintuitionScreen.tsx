@@ -31,7 +31,7 @@ export const TwintuitionScreen = () => {
       await Notifications.requestPermissionsAsync();
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: "Twintuition sent",
+          title: "Twincidence logged",
           body: `Shared with ${twinProfile?.name || "your twin"}`,
         },
         trigger: null,
@@ -84,19 +84,19 @@ export const TwintuitionScreen = () => {
               <Pressable onPress={() => setShowCreateAlert(false)}>
                 <Ionicons name="arrow-back" size={24} color="white" />
               </Pressable>
-              <Text className="text-white text-xl font-semibold">New Twintuition</Text>
+              <Text className="text-white text-xl font-semibold">New Twincidence</Text>
               <View className="w-6" />
             </View>
 
             <ScrollView className="flex-1">
               {/* Type Selection */}
               <View className="mb-6">
-                <Text className="text-white text-lg font-semibold mb-4">What type of connection?</Text>
+                <Text className="text-white text-lg font-semibold mb-4">What type of twincidence?</Text>
                 <View className="space-y-3">
                   {[
-                    { key: "feeling" as const, name: "Feeling", icon: "heart", description: "Emotional connection" },
-                    { key: "thought" as const, name: "Thought", icon: "bulb", description: "Mental synchronicity" },
-                    { key: "action" as const, name: "Action", icon: "flash", description: "Behavioral mirroring" },
+                    { key: "feeling" as const, name: "Sync Moment", icon: "flash", description: "Simultaneous actions or thoughts" },
+                    { key: "thought" as const, name: "Story", icon: "book", description: "Shared experience or memory" },
+                    { key: "action" as const, name: "Coincidence", icon: "refresh", description: "Unexpected parallel event" },
                   ].map((type) => (
                     <Pressable
                       key={type.key}
@@ -128,12 +128,12 @@ export const TwintuitionScreen = () => {
 
               {/* Message Input */}
               <View className="mb-6">
-                <Text className="text-white text-lg font-semibold mb-4">Describe your twintuition</Text>
+                <Text className="text-white text-lg font-semibold mb-4">Describe your twincidence</Text>
                 <View className="bg-white/10 rounded-xl p-4">
                   <TextInput
                     value={alertMessage}
                     onChangeText={setAlertMessage}
-                    placeholder="I have a feeling that my twin is..."
+                    placeholder="Today my twin and I both..."
                     placeholderTextColor="rgba(255,255,255,0.5)"
                     className="text-white text-base"
                     multiline
@@ -155,7 +155,7 @@ export const TwintuitionScreen = () => {
                 disabled={!alertMessage.trim()}
               >
                 <Text className="text-white text-lg font-semibold">
-                  Send Twintuition Alert
+                  Log Twincidence
                 </Text>
               </Pressable>
             </ScrollView>
@@ -174,7 +174,7 @@ export const TwintuitionScreen = () => {
             <Pressable onPress={() => navigation.goBack()} className="w-10 h-10 rounded-full bg-white/10 items-center justify-center">
               <Ionicons name="chevron-back" size={20} color="white" />
             </Pressable>
-            <Text className="text-white text-2xl font-bold">Twintuition</Text>
+            <Text className="text-white text-2xl font-bold">Twincidence Log</Text>
             <Pressable
               onPress={() => setShowCreateAlert(true)}
               className="bg-purple-500 rounded-full p-2"
@@ -184,7 +184,7 @@ export const TwintuitionScreen = () => {
           </View>
 
           <Text className="text-white/70 text-center mb-6">
-            Feel your twin's energy across any distance
+            Log and track your special twin moments
           </Text>
 
           {/* Alerts List */}
@@ -193,10 +193,10 @@ export const TwintuitionScreen = () => {
               <View className="bg-white/5 rounded-xl p-8 items-center mt-8">
                 <Ionicons name="flash-outline" size={64} color="rgba(255,255,255,0.3)" />
                 <Text className="text-white/70 text-lg text-center mt-4">
-                  No twintuition alerts yet
+                  No twincidences logged yet
                 </Text>
                 <Text className="text-white/50 text-center mt-2">
-                  Create your first alert to start sensing your twin's energy
+                  Log your first twin moment or coincidence
                 </Text>
               </View>
             ) : (

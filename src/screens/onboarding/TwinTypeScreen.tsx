@@ -99,7 +99,7 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
           <View className="flex-row items-center justify-between pt-4 pb-8 px-8">
             <Pressable
               onPress={onBack}
-              className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
+              className="w-10 h-10 rounded-full bg-black/80 items-center justify-center"
             >
               <Ionicons name="chevron-back" size={20} color="white" />
             </Pressable>
@@ -111,7 +111,7 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
                   <View 
                     key={i} 
                     className={`h-1 w-8 rounded-full ${
-                      i <= 2 ? 'bg-white' : 'bg-white/20'
+                      i <= 2 ? 'bg-white' : 'bg-black/80'
                     }`} 
                   />
                 ))}
@@ -120,7 +120,7 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
             
             <Pressable
               onPress={() => setShowInfo(!showInfo)}
-              className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
+              className="w-10 h-10 rounded-full bg-black/80 items-center justify-center"
             >
               <Ionicons name="information-circle" size={20} color="white" />
             </Pressable>
@@ -133,8 +133,8 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
                 <View className="relative">
                   <View className="w-20 h-20 rounded-full border-2 border-white/30 items-center justify-center">
                     <View className="flex-row">
-                      <View className="w-6 h-6 rounded-full bg-white/50 mr-1" />
-                      <View className="w-6 h-6 rounded-full bg-white/50" />
+                      <View className="w-6 h-6 rounded-full bg-black/700 mr-1" />
+                      <View className="w-6 h-6 rounded-full bg-black/700" />
                     </View>
                   </View>
                   <View className="absolute -inset-1 w-22 h-22 rounded-full border border-white/10" />
@@ -151,7 +151,7 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
 
               {/* Information Panel */}
               {showInfo && (
-                <Animated.View className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
+                <Animated.View className="bg-black/80 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
                   <Text className="text-white text-lg font-semibold mb-4">
                     🧬 Twin Science Made Simple
                   </Text>
@@ -185,7 +185,7 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
                     onChangeText={setOtherTypeDescription}
                     placeholder="e.g., Semi-identical twins, twins with different fathers, etc."
                     placeholderTextColor="rgba(255,255,255,0.4)"
-                    className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-4 text-white text-base border border-white/20"
+                    className="bg-black/80 backdrop-blur-sm rounded-xl px-4 py-4 text-white text-base border border-white/20"
                     multiline
                     numberOfLines={3}
                     textAlignVertical="top"
@@ -195,14 +195,14 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
               )}
 
               {/* Deceased Twin Option - Very Sensitive */}
-              <View className="bg-white/5 rounded-xl p-6 mb-8 border border-white/10">
+              <View className="bg-black/70 rounded-xl p-6 mb-8 border border-white/10">
                 <Pressable
                   onPress={() => setTwinDeceased(!twinDeceased)}
                   className="flex-row items-start"
                 >
                   <View className={`w-6 h-6 rounded border-2 mr-4 mt-0.5 items-center justify-center ${
                     twinDeceased 
-                      ? 'bg-white/20 border-white/50' 
+                      ? 'bg-black/80 border-white/50' 
                       : 'border-white/30'
                   }`}>
                     {twinDeceased && (
@@ -229,7 +229,7 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
               </View>
 
               {/* Reassurance */}
-              <View className="bg-white/5 rounded-xl p-6 mb-8 border border-white/10">
+              <View className="bg-black/70 rounded-xl p-6 mb-8 border border-white/10">
                 <View className="flex-row items-start">
                   <Ionicons name="heart" size={20} color="#ff69b4" className="mr-3 mt-1" />
                   <View className="flex-1">
@@ -252,8 +252,8 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
               disabled={!selectedType || (selectedType === "other" && !otherTypeDescription.trim())}
               className={`rounded-full py-4 items-center border ${
                 selectedType && !(selectedType === "other" && !otherTypeDescription.trim())
-                  ? 'bg-white/20 border-white/30' 
-                  : 'bg-white/5 border-white/10'
+                  ? 'bg-black/80 border-white/30' 
+                  : 'bg-black/70 border-white/10'
               }`}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.8 : 1,

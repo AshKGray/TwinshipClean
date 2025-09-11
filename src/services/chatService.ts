@@ -4,9 +4,10 @@ import * as Notifications from 'expo-notifications';
 import { ChatMessage, TypingIndicator, TwintuitionMoment } from '../types/chat';
 import { useChatStore } from '../state/chatStore';
 import { useTwinStore } from '../state/twinStore';
+import { websocketService } from './websocketService';
 
-// Mock WebSocket implementation for real-time communication
-// In production, replace with Firebase Realtime Database or Socket.io
+// Mock WebSocket implementation for development and testing
+// Production uses Socket.io via websocketService
 class MockWebSocket extends EventEmitter {
   private connected = false;
   private reconnectAttempts = 0;
@@ -54,18 +55,36 @@ class MockWebSocket extends EventEmitter {
 }
 
 class ChatService {
-  private ws: MockWebSocket;
+  private ws: MockWebSocket | null = null;
+  private useProductionWebSocket: boolean;
   private offlineQueue: ChatMessage[] = [];
   private typingTimeout: NodeJS.Timeout | null = null;
   private twintuitionTimer: NodeJS.Timeout | null = null;
 
   constructor() {
-    this.ws = new MockWebSocket();
-    this.setupEventListeners();
-    this.loadOfflineMessages();
+    // Use production WebSocket in production, MockWebSocket in development
+    this.useProductionWebSocket = !__DEV__;
+    
+    if (!this.useProductionWebSocket) {
+      this.ws = new MockWebSocket();
+      this.setupEventListeners();
+      this.loadOfflineMessages();
+    }
+  }
+
+  /**
+   * Initialize the chat service with user authentication
+   * In production mode, this initializes the WebSocket connection
+   */
+  async initialize(userId: string, twinPairId?: string) {
+    if (this.useProductionWebSocket) {
+      await websocketService.initialize(userId, twinPairId);
+    }
   }
 
   private setupEventListeners() {
+    if (!this.ws) return; // Only for MockWebSocket
+    
     this.ws.on('connected', () => {
       useChatStore.getState().setConnection({ status: 'connected' });
       this.processOfflineQueue();
@@ -94,16 +113,31 @@ class ChatService {
     });
   }
 
-  connect() {
-    useChatStore.getState().setConnection({ status: 'connecting' });
-    setTimeout(() => this.ws.connect(), 1000);
+  async connect() {
+    if (this.useProductionWebSocket) {
+      await websocketService.connect();
+    } else {
+      useChatStore.getState().setConnection({ status: 'connecting' });
+      setTimeout(() => this.ws?.connect(), 1000);
+    }
   }
 
-  disconnect() {
-    this.ws.disconnect();
+  async disconnect() {
+    if (this.useProductionWebSocket) {
+      await websocketService.disconnect();
+    } else {
+      this.ws?.disconnect();
+    }
   }
 
   async sendMessage(message: Omit<ChatMessage, 'id' | 'timestamp' | 'isDelivered' | 'isRead'>) {
+    if (this.useProductionWebSocket) {
+      // Use production WebSocket service
+      await websocketService.sendMessage(message);
+      return;
+    }
+
+    // Development mode - use MockWebSocket
     const chatStore = useChatStore.getState();
     const newMessage: ChatMessage = {
       ...message,
@@ -115,12 +149,10 @@ class ChatService {
     };
 
     // Add to store immediately (optimistic update)
-    chatStore.addMessage({
-      ...message,
-    });
+    chatStore.addMessage(newMessage);
 
     try {
-      if (this.ws.connected) {
+      if (this.ws?.connected) {
         this.ws.send({
           type: 'message',
           data: newMessage,
@@ -149,7 +181,13 @@ class ChatService {
   }
 
   sendTypingIndicator(isTyping: boolean) {
-    if (!this.ws.connected) return;
+    if (this.useProductionWebSocket) {
+      websocketService.sendTypingIndicator(isTyping);
+      return;
+    }
+
+    // Development mode - use MockWebSocket
+    if (!this.ws?.connected) return;
 
     const userProfile = useTwinStore.getState().userProfile;
     if (!userProfile) return;
@@ -174,13 +212,19 @@ class ChatService {
   }
 
   async sendReaction(messageId: string, emoji: string) {
+    if (this.useProductionWebSocket) {
+      await websocketService.sendReaction(messageId, emoji);
+      return;
+    }
+
+    // Development mode - use MockWebSocket
     const userProfile = useTwinStore.getState().userProfile;
     if (!userProfile) return;
 
     const chatStore = useChatStore.getState();
     chatStore.addReaction(messageId, emoji, userProfile.id, userProfile.name);
 
-    if (this.ws.connected) {
+    if (this.ws?.connected) {
       this.ws.send({
         type: 'reaction',
         data: {
@@ -198,9 +242,16 @@ class ChatService {
 
     switch (data.type) {
       case 'message':
-        chatStore.addMessage(data.data);
-        this.sendPushNotification(data.data);
-        chatStore.incrementUnreadCount();
+        // Only add message if it's not from the current user (to prevent duplicates)
+        const currentUserId = useTwinStore.getState().userProfile?.id;
+        if (data.data.senderId !== currentUserId) {
+          chatStore.addMessage(data.data);
+          this.sendPushNotification(data.data);
+          chatStore.incrementUnreadCount();
+        } else {
+          // For own messages, just mark as delivered/read
+          chatStore.markAsDelivered(data.data.id);
+        }
         break;
       
       case 'message_delivered':
@@ -448,6 +499,7 @@ class ChatService {
         senderName: twinProfile.name,
         timestamp: new Date().toISOString(),
         type: 'text',
+        accentColor: twinProfile.accentColor,
         isDelivered: true,
         isRead: false,
         reactions: [],
@@ -462,11 +514,18 @@ class ChatService {
     const chatStore = useChatStore.getState();
     const unreadMessages = chatStore.getUnreadMessages();
     
+    if (this.useProductionWebSocket) {
+      const messageIds = unreadMessages.map(message => message.id);
+      websocketService.markMessagesAsRead(messageIds);
+      return;
+    }
+
+    // Development mode - use MockWebSocket
     unreadMessages.forEach(message => {
       chatStore.markAsRead(message.id);
       
       // Notify twin that messages were read
-      if (this.ws.connected) {
+      if (this.ws?.connected) {
         this.ws.send({
           type: 'message_read',
           messageId: message.id,
@@ -481,5 +540,9 @@ class ChatService {
 // Singleton instance
 export const chatService = new ChatService();
 
-// Auto-connect when app starts
-chatService.connect();
+// Note: In production mode, call chatService.initialize(userId, twinPairId) 
+// before connecting. In development mode, auto-connect works immediately.
+if (!chatService['useProductionWebSocket']) {
+  // Auto-connect in development mode only
+  chatService.connect();
+}

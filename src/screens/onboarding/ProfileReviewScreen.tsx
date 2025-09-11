@@ -102,7 +102,7 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
           <View className="flex-row items-center justify-between pt-4 pb-8 px-8">
             <Pressable
               onPress={onBack}
-              className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
+              className="w-10 h-10 rounded-full bg-black/80 items-center justify-center"
               disabled={isCompleting}
             >
               <Ionicons name="chevron-back" size={20} color="white" />
@@ -173,7 +173,7 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
                 {profileSections.map((section, index) => (
                   <View 
                     key={index}
-                    className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+                    className="bg-black/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
                   >
                     <View className="flex-row items-center justify-between">
                       <View className="flex-row items-center flex-1">
@@ -199,7 +199,7 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
                       
                       <Pressable
                         onPress={() => onEdit(section.editStep)}
-                        className="w-8 h-8 rounded-full bg-white/10 items-center justify-center"
+                        className="w-8 h-8 rounded-full bg-black/80 items-center justify-center"
                         disabled={isCompleting}
                       >
                         <Ionicons name="pencil" size={14} color="rgba(255,255,255,0.6)" />
@@ -211,7 +211,7 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
 
               {/* Optional Information */}
               {(userProfile.sexualOrientation || userProfile.placeOfBirth || userProfile.timeOfBirth) && (
-                <View className="bg-white/5 rounded-2xl p-6 mb-8 border border-white/10">
+                <View className="bg-black/70 rounded-2xl p-6 mb-8 border border-white/10">
                   <Text className="text-white text-lg font-semibold mb-4">
                     ✨ Additional Details
                   </Text>
@@ -243,7 +243,7 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
               )}
 
               {/* Privacy Promise */}
-              <View className="bg-white/5 rounded-2xl p-6 mb-8 border border-white/10">
+              <View className="bg-black/70 rounded-2xl p-6 mb-8 border border-white/10">
                 <View className="flex-row items-start">
                   <Ionicons name="shield-checkmark" size={24} color="#4ade80" className="mr-4 mt-1" />
                   <View className="flex-1">

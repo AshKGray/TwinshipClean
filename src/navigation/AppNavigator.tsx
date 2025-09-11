@@ -4,6 +4,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useTwinStore } from "../state/twinStore";
+import { useAuthStore } from "../state/authStore";
+import { deepLinkService } from "../services/deepLinkService";
 import { BMadNavigationTracker } from "../../.bmad-mobile-app/navigation-tracker";
 import { MobilePerformanceAgent } from "../../.bmad-mobile-app/mobile-performance.agent";
 
@@ -20,6 +22,11 @@ import { TemporalDecisionSync } from "../screens/games/TemporalDecisionSync";
 import { ResearchScreen } from "../screens/ResearchScreen";
 import { SettingsScreen } from "../screens/SettingsScreen";
 
+// Authentication Screens
+import { LoginScreen } from "../screens/auth/LoginScreen";
+import { RegisterScreen } from "../screens/auth/RegisterScreen";
+import { ForgotPasswordScreen } from "../screens/auth/ForgotPasswordScreen";
+
 // Assessment Screens
 import { AssessmentIntroScreen } from "../screens/assessment/AssessmentIntroScreen";
 import { AssessmentSurveyScreen } from "../screens/assessment/AssessmentSurveyScreen";
@@ -28,10 +35,7 @@ import { AssessmentResultsScreen } from "../screens/assessment/AssessmentResults
 import { AssessmentRecommendationsScreen } from "../screens/assessment/AssessmentRecommendationsScreen";
 import { PairComparisonScreen } from "../screens/assessment/PairComparisonScreen";
 
-// Story Screens
-import { StoriesScreen } from "../screens/stories/StoriesScreen";
-import { CreateStoryScreen } from "../screens/stories/CreateStoryScreen";
-import { StoryDetailScreen } from "../screens/stories/StoryDetailScreen";
+// Story Screens removed - integrated into Twincidence Log
 
 // Research Screens
 import { ConsentScreen } from "../screens/research/ConsentScreen";
@@ -42,16 +46,22 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 type RootStackParamList = {
+  // Authentication screens
+  Login: undefined;
+  Register: undefined;
+  ForgotPassword: undefined;
+  
   Onboarding: undefined;
   Main: undefined;
   Twindex: undefined;
   Twinbox: undefined;
+  Twgames: undefined;
+  Twinalert: undefined;
   TwinTalk: undefined;
   Twintuition: undefined;
   Twingames: undefined;
   Twinquiry: undefined;
   Twinsettings: undefined;
-  Twinspirations: undefined;
   Twinvitation: undefined;
   // New invitation screens
   SendInvitation: undefined;
@@ -67,11 +77,7 @@ type RootStackParamList = {
   // Premium screens
   Premium: { feature?: string; source?: 'assessment' | 'settings' | 'dashboard' | 'onboarding' };
   PremiumFeatures: undefined;
-  // Story screens
-  Stories: undefined;
-  CreateStory: { draftId?: string };
-  StoryDetail: { storyId: string };
-  EditStory: { storyId: string };
+  // Story screens removed - integrated into Twincidence Log
   // Missing routes identified in navigation calls
   GameStats: undefined;
   Home: undefined;
@@ -124,6 +130,12 @@ const TabNavigator = () => {
 
           if (route.name === "Twinbox") {
             iconName = focused ? "chatbubbles" : "chatbubbles-outline";
+          } else if (route.name === "Twgames") {
+            iconName = focused ? "game-controller" : "game-controller-outline";
+          } else if (route.name === "Twinalert") {
+            iconName = "flash";
+          } else if (route.name === "Twintuition") {
+            iconName = focused ? "library" : "library-outline";
           } else if (route.name === "Twindex") {
             iconName = focused ? "grid" : "grid-outline";
           } else {
@@ -142,18 +154,28 @@ const TabNavigator = () => {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Twinbox" component={TwinTalkScreen} />
       <Tab.Screen name="Twindex" component={HomeScreen} />
+      <Tab.Screen name="Twgames" component={PsychicGamesHub} />
+      <Tab.Screen name="Twinalert" component={TwintuitionScreen} />
+      <Tab.Screen name="Twintuition" component={TwintuitionScreen} />
+      <Tab.Screen name="Twinbox" component={TwinTalkScreen} />
     </Tab.Navigator>
   );
 };
 
 export const AppNavigator = () => {
   const isOnboarded = useTwinStore((state) => state.isOnboarded);
+  const { isAuthenticated, isLoading, initializeAuth } = useAuthStore();
   const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
   const routeNameRef = useRef<string | undefined>(undefined);
   const bmadTracker = useRef(new BMadNavigationTracker());
   const performanceAgent = useRef(new MobilePerformanceAgent());
+
+  // Initialize authentication and deep links
+  useEffect(() => {
+    initializeAuth();
+    deepLinkService.initialize();
+  }, []);
 
   // BMAD Navigation Tracking
   useEffect(() => {
@@ -211,7 +233,15 @@ export const AppNavigator = () => {
         routeNameRef.current = currentRouteName;
       }}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isOnboarded ? (
+        {!isAuthenticated ? (
+          // Authentication Flow
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          </>
+        ) : !isOnboarded ? (
+          // Onboarding Flow  
           <Stack.Screen name="Onboarding">
             {(props) => (
               <OnboardingScreen
@@ -228,10 +258,7 @@ export const AppNavigator = () => {
             <Stack.Screen name="Twingames" component={PsychicGamesHub} />
             <Stack.Screen name="Twinquiry" component={ResearchScreen} />
             <Stack.Screen name="Twinsettings" component={SettingsScreen} />
-            <Stack.Screen name="Twinspirations" component={StoriesScreen} />
-            <Stack.Screen name="CreateStory" component={CreateStoryScreen} />
-            <Stack.Screen name="StoryDetail" component={StoryDetailScreen} />
-            <Stack.Screen name="EditStory" component={CreateStoryScreen} />
+            {/* Story screens removed - functionality integrated into Twincidence Log */}
             <Stack.Screen name="Twinvitation" component={require("../screens/PairScreen").PairScreen} />
             {/* New invitation screens */}
             <Stack.Screen 

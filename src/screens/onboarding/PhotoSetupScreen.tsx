@@ -134,7 +134,7 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
           <View className="flex-row items-center justify-between pt-4 pb-8">
             <Pressable
               onPress={onBack}
-              className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
+              className="w-10 h-10 rounded-full bg-black/80 items-center justify-center"
             >
               <Ionicons name="chevron-back" size={20} color="white" />
             </Pressable>
@@ -146,7 +146,7 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
                   <View 
                     key={i} 
                     className={`h-1 w-8 rounded-full ${
-                      i === 0 ? 'bg-white' : 'bg-white/20'
+                      i === 0 ? 'bg-white' : 'bg-black/80'
                     }`} 
                   />
                 ))}
@@ -203,14 +203,14 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
                 <Pressable
                   key={index}
                   onPress={option.onPress}
-                  className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+                  className="bg-black/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.8 : 1,
                     transform: [{ scale: pressed ? 0.98 : 1 }],
                   })}
                 >
                   <View className="flex-row items-center">
-                    <View className="w-12 h-12 rounded-full bg-white/10 items-center justify-center mr-4">
+                    <View className="w-12 h-12 rounded-full bg-black/80 items-center justify-center mr-4">
                       <Ionicons name={option.icon} size={24} color="white" />
                     </View>
                     <View className="flex-1">
@@ -244,8 +244,8 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
               disabled={!selectedImage}
               className={`rounded-full py-4 items-center border ${
                 selectedImage 
-                  ? 'bg-white/20 border-white/30' 
-                  : 'bg-white/5 border-white/10'
+                  ? 'bg-black/80 border-white/30' 
+                  : 'bg-black/70 border-white/10'
               }`}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.8 : 1,

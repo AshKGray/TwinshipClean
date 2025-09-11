@@ -51,7 +51,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
             key={response.id}
             onPress={() => handleQuickResponse(response.text)}
             style={{
-              backgroundColor: 'rgba(255,255,255,0.1)',
+              backgroundColor: 'rgba(0,0,0,0.7)',
               borderColor: neonColor,
               borderWidth: 1,
             }}
@@ -70,7 +70,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
           <Pressable
             onPress={onToggleEmoji}
             style={{
-              backgroundColor: showEmoji ? neonColor : 'rgba(255,255,255,0.1)',
+              backgroundColor: showEmoji ? neonColor : 'rgba(0,0,0,0.7)',
             }}
             className="w-10 h-10 rounded-full items-center justify-center"
           >
@@ -85,7 +85,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
           <Pressable
             onPress={handleVoiceToggle}
             style={{
-              backgroundColor: isRecording ? '#ff4444' : 'rgba(255,255,255,0.1)',
+              backgroundColor: isRecording ? '#ff4444' : 'rgba(0,0,0,0.7)',
             }}
             className="w-10 h-10 rounded-full items-center justify-center"
           >

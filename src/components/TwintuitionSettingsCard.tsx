@@ -382,14 +382,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     alignItems: 'center',
   },
   timeButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     alignItems: 'center',
   },
   levelButtonText: {
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   privacySection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     borderRadius: 10,
     padding: 15,
     marginTop: 10,

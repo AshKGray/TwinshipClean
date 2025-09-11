@@ -1,0 +1,1931 @@
+openapi: 3.0.3
+info:
+  title: Twinship API
+  description: |
+    RESTful API for Twinship - A specialized mobile platform for twins to strengthen their bond and connect through chat, games, assessments, and stories.
+    
+    This API provides endpoints for:
+    - User authentication and profile management
+    - Twin pairing and invitation system
+    - Real-time messaging and communication
+    - Assessment and research data collection
+    - Premium subscription management
+    - Research participation and telemetry
+    
+  version: 1.0.0
+  contact:
+    name: Twinship API Support
+    email: api@twinship.app
+  license:
+    name: Private
+    
+servers:
+  - url: https://api.twinship.app/v1
+    description: Production server
+  - url: https://staging-api.twinship.app/v1
+    description: Staging server
+  - url: http://localhost:3000/v1
+    description: Local development server
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      summary: Register new user
+      description: Create a new user account with email and password
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+                - birthDate
+                - twinType
+                - accentColor
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "jordan@example.com"
+                password:
+                  type: string
+                  minLength: 8
+                  example: "securePassword123!"
+                name:
+                  type: string
+                  minLength: 1
+                  example: "Jordan Smith"
+                age:
+                  type: integer
+                  minimum: 1
+                  maximum: 120
+                  example: 25
+                gender:
+                  type: string
+                  example: "female"
+                sexualOrientation:
+                  type: string
+                  example: "heterosexual"
+                showSexualOrientation:
+                  type: boolean
+                  default: false
+                birthDate:
+                  type: string
+                  format: date
+                  example: "1998-06-15"
+                placeOfBirth:
+                  type: string
+                  example: "San Francisco, CA"
+                timeOfBirth:
+                  type: string
+                  example: "14:30"
+                twinType:
+                  $ref: '#/components/schemas/TwinType'
+                otherTwinTypeDescription:
+                  type: string
+                  description: "Required if twinType is 'other'"
+                twinDeceased:
+                  type: boolean
+                  default: false
+                accentColor:
+                  $ref: '#/components/schemas/ThemeColor'
+                profilePicture:
+                  type: string
+                  format: uri
+                  description: "URL to profile picture"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User registered successfully"
+                  user:
+                    $ref: '#/components/schemas/UserProfile'
+                  tokens:
+                    $ref: '#/components/schemas/AuthTokens'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: Login user
+      description: Authenticate user with email and password
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                rememberMe:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/UserProfile'
+                  tokens:
+                    $ref: '#/components/schemas/AuthTokens'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      description: Generate new access token using refresh token
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  tokens:
+                    $ref: '#/components/schemas/AuthTokens'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      summary: Logout user
+      description: Invalidate current tokens and logout user
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+
+  # Twin Pairing Endpoints
+  /twins/pair:
+    post:
+      summary: Create or join twin pair using code
+      description: Pair with twin using invitation code or pair code
+      tags:
+        - Twin Pairing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  description: "Invitation token or pair code"
+                  example: "TEST"
+      responses:
+        '200':
+          description: Successfully paired with twin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Successfully paired with twin"
+                  twinProfile:
+                    $ref: '#/components/schemas/UserProfile'
+                  pairId:
+                    type: string
+                    example: "pair_123456789"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Invalid or expired code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /twins/invite:
+    post:
+      summary: Create twin invitation
+      description: Generate invitation to send to twin via email or SMS
+      tags:
+        - Twin Pairing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: "Twin's email address"
+                phone:
+                  type: string
+                  description: "Twin's phone number"
+                method:
+                  type: string
+                  enum: [email, sms, both]
+                  default: email
+              oneOf:
+                - required: [email]
+                - required: [phone]
+      responses:
+        '201':
+          description: Invitation created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  invitation:
+                    $ref: '#/components/schemas/Invitation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /twins/invitations:
+    get:
+      summary: Get invitation history
+      description: Retrieve user's invitation history and analytics
+      tags:
+        - Twin Pairing
+      responses:
+        '200':
+          description: Invitation history retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  analytics:
+                    $ref: '#/components/schemas/InvitationAnalytics'
+
+  # User Profile Endpoints
+  /users/profile:
+    get:
+      summary: Get user profile
+      description: Retrieve current user's profile information
+      tags:
+        - User Management
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  profile:
+                    $ref: '#/components/schemas/UserProfile'
+    
+    put:
+      summary: Update user profile
+      description: Update user profile information
+      tags:
+        - User Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  profile:
+                    $ref: '#/components/schemas/UserProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /users/settings:
+    get:
+      summary: Get user settings
+      description: Retrieve user's app settings and preferences
+      tags:
+        - User Management
+      responses:
+        '200':
+          description: Settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  settings:
+                    $ref: '#/components/schemas/UserSettings'
+    
+    put:
+      summary: Update user settings
+      description: Update user's app settings and preferences
+      tags:
+        - User Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+      responses:
+        '200':
+          description: Settings updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  settings:
+                    $ref: '#/components/schemas/UserSettings'
+
+  # Messaging Endpoints
+  /messages:
+    get:
+      summary: Get chat messages
+      description: Retrieve paginated chat messages between twin pair
+      tags:
+        - Messaging
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: before
+          in: query
+          description: "Get messages before this timestamp"
+          schema:
+            type: string
+            format: date-time
+        - name: after
+          in: query
+          description: "Get messages after this timestamp"
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChatMessage'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+    
+    post:
+      summary: Send chat message
+      description: Send a new message to twin
+      tags:
+        - Messaging
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+                - type
+              properties:
+                text:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+                type:
+                  type: string
+                  enum: [text, image, emoji, reaction]
+                  default: text
+                imageUrl:
+                  type: string
+                  format: uri
+                  description: "Required if type is 'image'"
+                replyTo:
+                  type: string
+                  description: "Message ID being replied to"
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    $ref: '#/components/schemas/ChatMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /messages/{messageId}/reactions:
+    post:
+      summary: Add reaction to message
+      description: Add emoji reaction to a specific message
+      tags:
+        - Messaging
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - emoji
+              properties:
+                emoji:
+                  type: string
+                  example: "👍"
+      responses:
+        '201':
+          description: Reaction added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  reaction:
+                    $ref: '#/components/schemas/MessageReaction'
+
+  /messages/{messageId}/read:
+    post:
+      summary: Mark message as read
+      description: Mark a specific message as read
+      tags:
+        - Messaging
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Message marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+
+  /messages/bulk-read:
+    post:
+      summary: Mark multiple messages as read
+      description: Mark multiple messages as read in a single request
+      tags:
+        - Messaging
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - messageIds
+              properties:
+                messageIds:
+                  type: array
+                  items:
+                    type: string
+                  maxItems: 100
+      responses:
+        '200':
+          description: Messages marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  updatedCount:
+                    type: integer
+
+  # Assessment Endpoints
+  /assessments:
+    get:
+      summary: Get user's assessment sessions
+      description: Retrieve user's assessment history
+      tags:
+        - Assessments
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in_progress, completed]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Assessment sessions retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AssessmentSession'
+    
+    post:
+      summary: Start new assessment session
+      description: Begin a new assessment session
+      tags:
+        - Assessments
+      responses:
+        '201':
+          description: Assessment session started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  session:
+                    $ref: '#/components/schemas/AssessmentSession'
+
+  /assessments/{sessionId}/responses:
+    post:
+      summary: Submit assessment responses
+      description: Submit responses for assessment items
+      tags:
+        - Assessments
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - responses
+              properties:
+                responses:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AssessmentResponse'
+                isComplete:
+                  type: boolean
+                  default: false
+                  description: "Whether this submission completes the assessment"
+      responses:
+        '200':
+          description: Responses submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  session:
+                    $ref: '#/components/schemas/AssessmentSession'
+                  results:
+                    $ref: '#/components/schemas/AssessmentResults'
+                    description: "Only included if assessment is complete"
+
+  /assessments/{sessionId}/results:
+    get:
+      summary: Get assessment results
+      description: Retrieve detailed results for a completed assessment
+      tags:
+        - Assessments
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assessment results retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  results:
+                    $ref: '#/components/schemas/AssessmentResults'
+        '404':
+          description: Assessment session not found or not completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Research Endpoints
+  /research/studies:
+    get:
+      summary: Get available research studies
+      description: Retrieve list of available research studies user can join
+      tags:
+        - Research
+      responses:
+        '200':
+          description: Research studies retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  studies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ResearchStudy'
+
+  /research/studies/{studyId}/consent:
+    post:
+      summary: Record consent for research study
+      description: Record user's informed consent for participating in research
+      tags:
+        - Research
+      parameters:
+        - name: studyId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - consentItems
+              properties:
+                consentItems:
+                  type: object
+                  properties:
+                    dataCollection:
+                      type: boolean
+                    dataSharing:
+                      type: boolean
+                    longTermStorage:
+                      type: boolean
+                    contactForFollowup:
+                      type: boolean
+                ipAddress:
+                  type: string
+                  description: "User's IP address for consent verification"
+      responses:
+        '201':
+          description: Consent recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  consentRecord:
+                    $ref: '#/components/schemas/ConsentRecord'
+
+  /research/participation:
+    get:
+      summary: Get user's research participation
+      description: Retrieve user's research participation status and history
+      tags:
+        - Research
+      responses:
+        '200':
+          description: Participation data retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  participation:
+                    $ref: '#/components/schemas/ResearchParticipation'
+
+  /research/telemetry:
+    post:
+      summary: Submit telemetry data
+      description: Submit anonymized telemetry data for research purposes
+      tags:
+        - Research
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - eventType
+                - data
+              properties:
+                eventType:
+                  type: string
+                  enum: [app_usage, game_interaction, assessment_behavior, communication_pattern]
+                data:
+                  type: object
+                  description: "Anonymized event data"
+                timestamp:
+                  type: string
+                  format: date-time
+                  description: "When the event occurred"
+                sessionId:
+                  type: string
+                  description: "Session identifier for grouping related events"
+      responses:
+        '201':
+          description: Telemetry data submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Telemetry data recorded"
+
+  # Premium/Subscription Endpoints
+  /subscriptions:
+    get:
+      summary: Get subscription status
+      description: Retrieve user's current subscription status and available plans
+      tags:
+        - Subscriptions
+      responses:
+        '200':
+          description: Subscription status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  subscription:
+                    $ref: '#/components/schemas/SubscriptionStatus'
+                  availablePlans:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubscriptionPlan'
+
+  /subscriptions/purchase:
+    post:
+      summary: Process subscription purchase
+      description: Process subscription purchase through RevenueCat
+      tags:
+        - Subscriptions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - productId
+                - purchaseToken
+                - platform
+              properties:
+                productId:
+                  type: string
+                  enum: [twinship_monthly, twinship_yearly]
+                purchaseToken:
+                  type: string
+                  description: "Platform-specific purchase token"
+                platform:
+                  type: string
+                  enum: [ios, android]
+                receiptData:
+                  type: string
+                  description: "Base64-encoded receipt data (iOS)"
+      responses:
+        '200':
+          description: Subscription activated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  subscription:
+                    $ref: '#/components/schemas/SubscriptionStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          description: Payment required or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # WebSocket Connection Info
+  /ws/info:
+    get:
+      summary: Get WebSocket connection info
+      description: Get WebSocket server URL and authentication token for real-time features
+      tags:
+        - WebSocket
+      responses:
+        '200':
+          description: WebSocket info retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  wsUrl:
+                    type: string
+                    format: uri
+                    example: "wss://ws.twinship.app/v1"
+                  token:
+                    type: string
+                    description: "JWT token for WebSocket authentication"
+                  channels:
+                    type: array
+                    items:
+                      type: string
+                    example: ["chat", "twintuition", "presence"]
+
+  # Health Check
+  /health:
+    get:
+      summary: API health check
+      description: Check API server health and status
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        example: "healthy"
+                      redis:
+                        type: string
+                        example: "healthy"
+                      websocket:
+                        type: string
+                        example: "healthy"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    # Core User Types
+    TwinType:
+      type: string
+      enum: [identical, fraternal, other]
+      example: "identical"
+    
+    ThemeColor:
+      type: string
+      enum: [neon-pink, neon-blue, neon-green, neon-yellow, neon-purple, neon-orange, neon-cyan, neon-red]
+      example: "neon-purple"
+    
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "user_123456789"
+        name:
+          type: string
+          example: "Jordan Smith"
+        age:
+          type: integer
+          example: 25
+        gender:
+          type: string
+          example: "female"
+        sexualOrientation:
+          type: string
+          example: "heterosexual"
+        showSexualOrientation:
+          type: boolean
+          example: false
+        twinType:
+          $ref: '#/components/schemas/TwinType'
+        otherTwinTypeDescription:
+          type: string
+        twinDeceased:
+          type: boolean
+          example: false
+        birthDate:
+          type: string
+          format: date
+          example: "1998-06-15"
+        zodiacSign:
+          type: string
+          example: "Gemini"
+        placeOfBirth:
+          type: string
+          example: "San Francisco, CA"
+        timeOfBirth:
+          type: string
+          example: "14:30"
+        profilePicture:
+          type: string
+          format: uri
+        accentColor:
+          $ref: '#/components/schemas/ThemeColor'
+        isConnected:
+          type: boolean
+          example: true
+        lastSeen:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    UserProfileUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        age:
+          type: integer
+        gender:
+          type: string
+        sexualOrientation:
+          type: string
+        showSexualOrientation:
+          type: boolean
+        placeOfBirth:
+          type: string
+        timeOfBirth:
+          type: string
+        profilePicture:
+          type: string
+          format: uri
+        accentColor:
+          $ref: '#/components/schemas/ThemeColor'
+    
+    UserSettings:
+      type: object
+      properties:
+        researchParticipation:
+          type: boolean
+          example: true
+        notificationsEnabled:
+          type: boolean
+          example: true
+        pushNotifications:
+          type: object
+          properties:
+            messages:
+              type: boolean
+              example: true
+            twintuition:
+              type: boolean
+              example: true
+            assessments:
+              type: boolean
+              example: false
+            research:
+              type: boolean
+              example: false
+        privacy:
+          type: object
+          properties:
+            profileVisible:
+              type: boolean
+              example: true
+            shareUsageData:
+              type: boolean
+              example: false
+            allowResearchContact:
+              type: boolean
+              example: true
+    
+    # Authentication Types
+    AuthTokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: "JWT access token (expires in 1 hour)"
+        refreshToken:
+          type: string
+          description: "Refresh token (expires in 30 days)"
+        expiresIn:
+          type: integer
+          description: "Access token expiration time in seconds"
+          example: 3600
+        tokenType:
+          type: string
+          example: "Bearer"
+    
+    # Invitation Types
+    Invitation:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "inv_123456789"
+        inviterName:
+          type: string
+          example: "Jordan Smith"
+        recipientEmail:
+          type: string
+          format: email
+        recipientPhone:
+          type: string
+        token:
+          type: string
+          example: "ABC123DEF456"
+        status:
+          type: string
+          enum: [pending, sent, delivered, accepted, declined, expired]
+          example: "sent"
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        twinType:
+          $ref: '#/components/schemas/TwinType'
+        accentColor:
+          $ref: '#/components/schemas/ThemeColor'
+        deepLink:
+          type: string
+          format: uri
+        attemptCount:
+          type: integer
+          example: 1
+        lastAttemptAt:
+          type: string
+          format: date-time
+    
+    InvitationAnalytics:
+      type: object
+      properties:
+        totalSent:
+          type: integer
+          example: 5
+        totalAccepted:
+          type: integer
+          example: 3
+        totalDeclined:
+          type: integer
+          example: 1
+        totalExpired:
+          type: integer
+          example: 1
+        acceptanceRate:
+          type: number
+          format: float
+          example: 60.0
+        averageResponseTime:
+          type: number
+          format: float
+          description: "Average response time in milliseconds"
+          example: 86400000
+        recentInvitations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invitation'
+    
+    # Chat Message Types
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "msg_123456789"
+        text:
+          type: string
+          example: "Hey twin! How are you doing?"
+        senderId:
+          type: string
+          example: "user_123456789"
+        senderName:
+          type: string
+          example: "Jordan Smith"
+        timestamp:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [text, image, emoji, reaction, twintuition]
+          example: "text"
+        imageUrl:
+          type: string
+          format: uri
+        replyTo:
+          type: string
+          description: "ID of message being replied to"
+        reactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageReaction'
+        isDelivered:
+          type: boolean
+          example: true
+        isRead:
+          type: boolean
+          example: false
+        accentColor:
+          $ref: '#/components/schemas/ThemeColor'
+    
+    MessageReaction:
+      type: object
+      properties:
+        emoji:
+          type: string
+          example: "👍"
+        userId:
+          type: string
+          example: "user_123456789"
+        userName:
+          type: string
+          example: "Jordan Smith"
+        timestamp:
+          type: string
+          format: date-time
+    
+    # Assessment Types
+    AssessmentSession:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "session_123456789"
+        userId:
+          type: string
+          example: "user_123456789"
+        twinId:
+          type: string
+          example: "user_987654321"
+        startDate:
+          type: string
+          format: date-time
+        completionDate:
+          type: string
+          format: date-time
+        responses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssessmentResponse'
+        currentProgress:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 75.5
+        isComplete:
+          type: boolean
+          example: false
+    
+    AssessmentResponse:
+      type: object
+      properties:
+        itemId:
+          type: string
+          example: "item_001"
+        value:
+          type: integer
+          minimum: 1
+          maximum: 7
+          example: 5
+        timestamp:
+          type: string
+          format: date-time
+    
+    AssessmentResults:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          example: "session_123456789"
+        userId:
+          type: string
+          example: "user_123456789"
+        twinId:
+          type: string
+          example: "user_987654321"
+        completionDate:
+          type: string
+          format: date-time
+        subscaleScores:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscaleScore'
+        compositeScores:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompositeScore'
+        overallProfile:
+          type: string
+          example: "Highly synchronized twin pair with strong emotional connection"
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recommendation'
+    
+    SubscaleScore:
+      type: object
+      properties:
+        category:
+          type: string
+          example: "identity_fusion"
+        rawScore:
+          type: number
+          format: float
+          example: 4.2
+        scaledScore:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 84.0
+        percentile:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 92.0
+        interpretation:
+          type: string
+          example: "High identity fusion indicates strong twin connection"
+    
+    CompositeScore:
+      type: object
+      properties:
+        index:
+          type: string
+          enum: [CI, ARI, TRS]
+          example: "CI"
+        value:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 87.5
+        interpretation:
+          type: string
+          example: "High Connection Index suggests excellent twin synchronicity"
+        components:
+          type: array
+          items:
+            type: string
+          example: ["identity_fusion", "communication", "attachment"]
+    
+    Recommendation:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "rec_123456789"
+        title:
+          type: string
+          example: "Improve Communication Patterns"
+        description:
+          type: string
+          example: "Consider structured conversation time to enhance emotional sharing"
+        category:
+          type: string
+          example: "communication"
+        priority:
+          type: string
+          enum: [high, medium, low]
+          example: "medium"
+        microExperiment:
+          $ref: '#/components/schemas/MicroExperiment'
+    
+    MicroExperiment:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "exp_123456789"
+        title:
+          type: string
+          example: "Daily Check-in Challenge"
+        duration:
+          type: string
+          example: "7 days"
+        instructions:
+          type: array
+          items:
+            type: string
+          example: ["Send a daily emotional check-in message", "Share one specific feeling each day"]
+        expectedOutcome:
+          type: string
+          example: "Improved emotional awareness and communication"
+        trackingMetrics:
+          type: array
+          items:
+            type: string
+          example: ["message_frequency", "emotional_words_used", "response_time"]
+    
+    # Research Types
+    ResearchStudy:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "twin-sync-2024"
+        title:
+          type: string
+          example: "Twin Synchronicity & Intuition Study"
+        description:
+          type: string
+          example: "Investigating psychic connections and synchronicity between twins"
+        fullDescription:
+          type: string
+        duration:
+          type: string
+          example: "12 months"
+        compensation:
+          type: array
+          items:
+            type: string
+          example: ["Research insights", "Early feature access"]
+        participants:
+          type: integer
+          example: 1247
+        status:
+          type: string
+          enum: [recruiting, active, completed, paused]
+          example: "recruiting"
+        category:
+          type: string
+          example: "synchronicity"
+        requirements:
+          type: array
+          items:
+            type: string
+          example: ["Both twins must participate", "Regular app usage"]
+        ethicsApproval:
+          type: string
+          example: "IRB-2024-TWIN-001"
+        leadResearcher:
+          type: string
+          example: "Dr. Sarah Chen, PhD"
+        institution:
+          type: string
+          example: "Stanford Twin Research Institute"
+        consentVersion:
+          type: integer
+          example: 2
+        dataTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResearchDataType'
+        benefits:
+          type: array
+          items:
+            type: string
+    
+    ResearchDataType:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [games, communication, assessment, behavioral]
+          example: "games"
+        description:
+          type: string
+          example: "Psychic game results and response patterns"
+        anonymizationLevel:
+          type: string
+          enum: [full, pseudonymized, identified]
+          example: "full"
+        retentionPeriod:
+          type: string
+          example: "7 years"
+        sharingScope:
+          type: string
+          enum: [internal, academic, public]
+          example: "academic"
+    
+    ConsentRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "consent_123456789"
+        userId:
+          type: string
+          example: "user_123456789"
+        studyId:
+          type: string
+          example: "twin-sync-2024"
+        consentVersion:
+          type: integer
+          example: 2
+        consentedAt:
+          type: string
+          format: date-time
+        consentedTo:
+          type: object
+          properties:
+            dataCollection:
+              type: boolean
+              example: true
+            dataSharing:
+              type: boolean
+              example: true
+            longTermStorage:
+              type: boolean
+              example: false
+            contactForFollowup:
+              type: boolean
+              example: true
+        ipAddress:
+          type: string
+          example: "192.168.1.1"
+        location:
+          type: string
+          example: "San Francisco, CA"
+    
+    ResearchParticipation:
+      type: object
+      properties:
+        userId:
+          type: string
+          example: "user_123456789"
+        activeStudies:
+          type: array
+          items:
+            type: string
+          example: ["twin-sync-2024", "emotional-mirror-2024"]
+        totalStudies:
+          type: integer
+          example: 3
+        joinedAt:
+          type: string
+          format: date-time
+        dataContributions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataContribution'
+        preferences:
+          type: object
+          properties:
+            dataSharing:
+              type: object
+              properties:
+                fullAnonymization:
+                  type: boolean
+                  example: true
+                academicSharing:
+                  type: boolean
+                  example: true
+                publicResults:
+                  type: boolean
+                  example: false
+                commercialUse:
+                  type: boolean
+                  example: false
+            communication:
+              type: object
+              properties:
+                updates:
+                  type: boolean
+                  example: true
+                insights:
+                  type: boolean
+                  example: true
+                publications:
+                  type: boolean
+                  example: false
+                surveys:
+                  type: boolean
+                  example: true
+            participation:
+              type: object
+              properties:
+                maxStudies:
+                  type: integer
+                  example: 3
+                preferredCategories:
+                  type: array
+                  items:
+                    type: string
+                  example: ["synchronicity", "psychology"]
+                timeCommitment:
+                  type: string
+                  enum: [minimal, moderate, extensive]
+                  example: "moderate"
+    
+    DataContribution:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "contrib_123456789"
+        studyId:
+          type: string
+          example: "twin-sync-2024"
+        dataType:
+          type: string
+          enum: [assessment, behavioral, games, communication]
+          example: "assessment"
+        contributedAt:
+          type: string
+          format: date-time
+        dataPoints:
+          type: integer
+          example: 47
+        anonymizedId:
+          type: string
+          example: "anon_abc123def456"
+        status:
+          type: string
+          enum: [pending, processed, included]
+          example: "processed"
+    
+    # Subscription Types
+    SubscriptionStatus:
+      type: object
+      properties:
+        isActive:
+          type: boolean
+          example: true
+        productId:
+          type: string
+          example: "twinship_monthly"
+        purchaseDate:
+          type: string
+          format: date-time
+        expiresDate:
+          type: string
+          format: date-time
+        isTrialPeriod:
+          type: boolean
+          example: false
+        autoRenewing:
+          type: boolean
+          example: true
+        originalTransactionId:
+          type: string
+          example: "txn_123456789"
+        entitlements:
+          type: array
+          items:
+            type: string
+          example: ["premium_features", "unlimited_assessments", "advanced_insights"]
+    
+    SubscriptionPlan:
+      type: object
+      properties:
+        productId:
+          type: string
+          example: "twinship_monthly"
+        title:
+          type: string
+          example: "Twinship Premium Monthly"
+        description:
+          type: string
+          example: "Unlock all premium features"
+        price:
+          type: string
+          example: "$9.99"
+        currency:
+          type: string
+          example: "USD"
+        period:
+          type: string
+          enum: [monthly, yearly]
+          example: "monthly"
+        features:
+          type: array
+          items:
+            type: string
+          example: ["Unlimited assessments", "Advanced insights", "Premium games"]
+        isPopular:
+          type: boolean
+          example: false
+        savings:
+          type: string
+          example: "Save 20%"
+    
+    # Utility Types
+    PaginationInfo:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 50
+        total:
+          type: integer
+          example: 150
+        totalPages:
+          type: integer
+          example: 3
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: false
+    
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Invalid request data"
+            details:
+              type: object
+              example: { "field": "email", "reason": "invalid_format" }
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Unauthorized:
+      description: Unauthorized - invalid or missing authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        X-RateLimit-Limit:
+          description: Request limit per time window
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          description: Remaining requests in current window
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          description: Time when rate limit resets (Unix timestamp)
+          schema:
+            type: integer
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    
+    LimitParam:
+      name: limit
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Twin Pairing
+    description: Twin invitation and pairing system
+  - name: User Management
+    description: User profiles and settings
+  - name: Messaging
+    description: Real-time chat and communication
+  - name: Assessments
+    description: Psychological assessments and scoring
+  - name: Research
+    description: Research participation and data contribution
+  - name: Subscriptions
+    description: Premium subscriptions and billing
+  - name: WebSocket
+    description: Real-time connection management
+  - name: Health
+    description: API health and monitoring

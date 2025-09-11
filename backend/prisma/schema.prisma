@@ -1,0 +1,166 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ============================================
+// User Model
+// ============================================
+model User {
+  id                       String    @id @default(uuid())
+  email                    String    @unique
+  emailNormalized          String    @unique @map("email_normalized")
+  passwordHash             String    @map("password_hash")
+  emailVerified            Boolean   @default(false) @map("email_verified")
+  emailVerificationToken   String?   @unique @map("email_verification_token")
+  emailVerificationExpires DateTime? @map("email_verification_expires")
+
+  // Profile fields
+  displayName String? @map("display_name")
+  avatarUrl   String? @map("avatar_url")
+
+  // Security fields
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  accountLockedUntil  DateTime? @map("account_locked_until")
+  lastLoginAt         DateTime? @map("last_login_at")
+  lastLoginIp         String?   @map("last_login_ip")
+
+  // Timestamps
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  refreshTokens  RefreshToken[]
+  passwordResets PasswordReset[]
+  loginHistory   LoginHistory[]
+  twinPairs1     TwinPair[]      @relation("TwinPair_User1")
+  twinPairs2     TwinPair[]      @relation("TwinPair_User2")
+
+  @@index([emailNormalized])
+  @@index([emailVerificationToken])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+// ============================================
+// Refresh Token Model
+// ============================================
+model RefreshToken {
+  id              String    @id @default(uuid())
+  token           String    @unique
+  userId          String    @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Token metadata
+  deviceId        String?   @map("device_id")
+  userAgent       String?   @map("user_agent")
+  ipAddress       String?   @map("ip_address")
+  
+  // Security
+  expiresAt       DateTime  @map("expires_at")
+  revokedAt       DateTime? @map("revoked_at")
+  revokedReason   String?   @map("revoked_reason") // logout, security, expired, replaced
+  replacedByToken String?   @map("replaced_by_token")
+  
+  // Timestamps
+  createdAt       DateTime  @default(now()) @map("created_at")
+  lastUsedAt      DateTime? @map("last_used_at")
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("refresh_tokens")
+}
+
+// ============================================
+// Password Reset Model
+// ============================================
+model PasswordReset {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  
+  // Security
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  ipAddress String?   @map("ip_address")
+  userAgent String?   @map("user_agent")  
+  // Timestamps
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_resets")
+}
+
+// ============================================
+// Login History Model
+// ============================================
+model LoginHistory {
+  id               String   @id @default(uuid())
+  userId           String?  @map("user_id")
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email            String
+  
+  // Event details
+  eventType        String   @map("event_type") // login_success, login_failed, logout, etc.
+  success          Boolean
+  failureReason    String?  @map("failure_reason") // invalid_password, account_locked, etc.
+  
+  // Metadata
+  ipAddress        String?  @map("ip_address")
+  userAgent        String?  @map("user_agent")
+  deviceFingerprint String? @map("device_fingerprint")
+  
+  // Timestamp
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([email])
+  @@index([createdAt])
+  @@index([eventType])
+  @@map("login_history")
+}
+
+// ============================================
+// Twin Pair Model
+// ============================================
+model TwinPair {
+  id          String    @id @default(uuid())
+  user1Id     String    @map("user1_id")
+  user1       User      @relation("TwinPair_User1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2Id     String    @map("user2_id")
+  user2       User      @relation("TwinPair_User2", fields: [user2Id], references: [id], onDelete: Cascade)
+  
+  // Pairing details
+  pairingCode String?   @map("pairing_code")
+  pairedAt    DateTime? @map("paired_at")
+  pairType    String?   @map("pair_type") // identical, fraternal, other
+  
+  // Status
+  status      String    @default("pending") // pending, active, inactive
+  
+  // Timestamps
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([pairingCode])
+  @@index([status])
+  @@map("twin_pairs")
+}
+
+// SQLite doesn't support enums, so we'll use String constraints in the application layer

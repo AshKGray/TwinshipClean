@@ -32,8 +32,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const scaleValue = new Animated.Value(1);
 
   const bubbleColor = isOwn
-    ? getNeonAccentColorWithOpacity(message.accentColor, 0.2)
-    : getNeonAccentColorWithOpacity(message.accentColor, 0.2);
+    ? getNeonAccentColorWithOpacity(message.accentColor, 0.8)
+    : getNeonAccentColorWithOpacity(message.accentColor, 0.8);
 
   const textColor = isOwn ? '#FFFFFF' : '#FFFFFF';
   const borderColor = getNeonAccentColor(message.accentColor);
@@ -105,7 +105,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           {/* Message Bubble */}
           <View
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
               borderWidth: 1,
               borderColor: borderColor,
             }}
@@ -158,10 +158,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     onPress={() => handleReaction(emoji)}
                     style={{
                       backgroundColor: userReacted
-                        ? getNeonAccentColorWithOpacity(message.accentColor, 0.3)
-                        : 'rgba(255,255,255,0.1)',
-                      borderColor: userReacted ? borderColor : 'transparent',
-                      borderWidth: userReacted ? 1 : 0,
+                        ? getNeonAccentColorWithOpacity(message.accentColor, 0.8)
+                        : 'rgba(0,0,0,0.7)',
+                      borderColor: userReacted ? borderColor : 'rgba(255,255,255,0.3)',
+                      borderWidth: 1,
                     }}
                     className="flex-row items-center px-2 py-1 rounded-full mr-1 mb-1"
                   >
@@ -180,7 +180,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         {showReactions && (
           <View
             style={{
-              backgroundColor: 'rgba(0,0,0,0.8)',
+              backgroundColor: 'rgba(0,0,0,0.9)',
               borderColor: borderColor,
               borderWidth: 1,
             }}

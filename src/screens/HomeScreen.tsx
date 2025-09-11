@@ -115,13 +115,13 @@ export const HomeScreen = () => {
               <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.7)" />
             </Pressable>
 
-             <Pressable onPress={() => navigation.navigate("Stories")} className="bg-white/10 rounded-xl p-4 flex-row items-center">
-              <View className="bg-orange-500/30 rounded-full p-3 mr-4">
-                <Ionicons name="book" size={24} color="white" />
+             <Pressable onPress={() => navigation.navigate("Twintuition")} className="bg-white/10 rounded-xl p-4 flex-row items-center">
+              <View className="bg-purple-500/30 rounded-full p-3 mr-4">
+                <Ionicons name="library" size={24} color="white" />
               </View>
               <View className="flex-1">
-                <Text className="text-white text-lg font-semibold">Twin Stories</Text>
-                <Text className="text-white/70 text-sm">Share your journey together</Text>
+                <Text className="text-white text-lg font-semibold">Twincidence Log</Text>
+                <Text className="text-white/70 text-sm">Track your twin moments & stories</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.7)" />
             </Pressable>

@@ -112,8 +112,8 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
             onPress={() => onSelect(option)}
             className={`mr-3 px-4 py-2 rounded-full border ${
               value === option 
-                ? 'bg-white/20 border-white/50' 
-                : 'bg-white/5 border-white/20'
+                ? 'bg-black/80 border-white/50' 
+                : 'bg-black/70 border-white/20'
             }`}
             style={({ pressed }) => ({
               opacity: pressed ? 0.8 : 1,
@@ -137,7 +137,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
           <View className="flex-row items-center justify-between pt-4 pb-8 px-8">
             <Pressable
               onPress={onBack}
-              className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
+              className="w-10 h-10 rounded-full bg-black/80 items-center justify-center"
             >
               <Ionicons name="chevron-back" size={20} color="white" />
             </Pressable>
@@ -196,7 +196,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
                   onChangeText={(text) => setFormData({ ...formData, name: text })}
                   placeholder="Enter your full name"
                   placeholderTextColor="rgba(255,255,255,0.4)"
-                  className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-4 text-white text-lg border border-white/20"
+                  className="bg-black/80 backdrop-blur-sm rounded-xl px-4 py-4 text-white text-lg border border-white/20"
                   autoCapitalize="words"
                 />
               </View>
@@ -210,7 +210,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
                   onChangeText={(text) => setFormData({ ...formData, age: text.replace(/[^0-9]/g, '') })}
                   placeholder="Enter your age"
                   placeholderTextColor="rgba(255,255,255,0.4)"
-                  className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-4 text-white text-lg border border-white/20"
+                  className="bg-black/80 backdrop-blur-sm rounded-xl px-4 py-4 text-white text-lg border border-white/20"
                   keyboardType="numeric"
                   maxLength={3}
                 />
@@ -235,7 +235,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
                   Sexual Orientation 
                   <Text className="text-white/60 text-sm font-normal"> (Optional)</Text>
                 </Text>
-                <View className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 overflow-hidden">
+                <View className="bg-black/80 backdrop-blur-sm rounded-xl border border-white/20 overflow-hidden">
                   <Pressable
                     onPress={() => setShowOrientationPicker(!showOrientationPicker)}
                     className="flex-row items-center justify-between px-4 py-4"
@@ -250,7 +250,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
                     />
                   </Pressable>
                   {showOrientationPicker && (
-                    <View className="bg-white/5 border-t border-white/10">
+                    <View className="bg-black/60 border-t border-white/10">
                       <ScrollView 
                         style={{ maxHeight: 200 }}
                         showsVerticalScrollIndicator={true}
@@ -265,7 +265,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
                             }}
                             className="px-4 py-3 border-b border-white/5"
                             style={({ pressed }) => ({
-                              backgroundColor: pressed ? 'rgba(255,255,255,0.1)' : 'transparent'
+                              backgroundColor: pressed ? 'rgba(0,0,0,0.8)' : 'transparent'
                             })}
                           >
                             <Text className="text-white/80 text-base">{option}</Text>
@@ -286,7 +286,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
                   >
                     <View className={`w-6 h-6 rounded border-2 mr-3 items-center justify-center ${
                       formData.showSexualOrientation 
-                        ? 'bg-white/20 border-white/50' 
+                        ? 'bg-black/80 border-white/50' 
                         : 'border-white/30'
                     }`}>
                       {formData.showSexualOrientation && (
@@ -301,7 +301,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
               </View>
 
               {/* Optional Astrology Fields */}
-              <View className="bg-white/5 rounded-xl p-4 mb-6 border border-white/10">
+              <View className="bg-black/70 rounded-xl p-4 mb-6 border border-white/10">
                 <Text className="text-white text-lg font-semibold mb-2">
                   🌟 Astrology & Birth Info
                 </Text>
@@ -318,7 +318,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
                     onChangeText={(text) => setFormData({ ...formData, placeOfBirth: text })}
                     placeholder="e.g., New York, NY, USA"
                     placeholderTextColor="rgba(255,255,255,0.4)"
-                    className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 text-white border border-white/20"
+                    className="bg-black/80 backdrop-blur-sm rounded-xl px-4 py-3 text-white border border-white/20"
                     autoCapitalize="words"
                   />
                 </View>
@@ -332,7 +332,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
                     onChangeText={(text) => setFormData({ ...formData, timeOfBirth: text })}
                     placeholder="e.g., 3:45 PM"
                     placeholderTextColor="rgba(255,255,255,0.4)"
-                    className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 text-white border border-white/20"
+                    className="bg-black/80 backdrop-blur-sm rounded-xl px-4 py-3 text-white border border-white/20"
                   />
                 </View>
               </View>
@@ -343,8 +343,8 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
                   disabled={!isFormValid()}
                   className={`rounded-full py-4 items-center border ${
                     isFormValid() 
-                      ? 'bg-white/20 border-white/30' 
-                      : 'bg-white/5 border-white/10'
+                      ? 'bg-black/80 border-white/30' 
+                      : 'bg-black/70 border-white/10'
                   }`}
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.8 : 1,

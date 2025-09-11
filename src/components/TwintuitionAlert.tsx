@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   messageContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     borderRadius: 15,
     padding: 18,
     marginBottom: 25,
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dismissButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },

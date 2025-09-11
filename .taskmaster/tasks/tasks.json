@@ -217,8 +217,65 @@
         "testStrategy": "Create Postman/Insomnia collection for all endpoints. Write integration tests for API endpoints. Test authentication flow and JWT refresh. Validate data persistence and retrieval. Load test API endpoints for performance benchmarks.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design RESTful API Endpoints and OpenAPI Specification",
+            "description": "Create comprehensive API endpoint design and OpenAPI/Swagger documentation for all core features",
+            "dependencies": [],
+            "details": "Define RESTful endpoints for user authentication (/auth/register, /auth/login, /auth/refresh, /auth/logout), twin pairing (/twins/pair, /twins/invite, /twins/accept), profile management (/users/profile, /users/settings), messaging (/messages/send, /messages/history, /messages/sync), assessments (/assessments/submit, /assessments/results), and research telemetry (/research/consent, /research/telemetry). Create OpenAPI 3.0 specification with request/response schemas, error codes, and authentication requirements. Define standard error response format and HTTP status codes. Document rate limiting rules and API versioning strategy (v1 prefix).\n<info added on 2025-09-10T05:14:14.713Z>\nI'll analyze the codebase to understand the current implementation and provide a comprehensive update for the subtask.Based on my analysis of the codebase, I can now provide a comprehensive update for the subtask:\n\nSuccessfully completed the OpenAPI 3.0 specification as `/docs/api-specification.yaml` with comprehensive endpoint definitions covering all major features. The specification includes 36 endpoints across authentication, twin pairing (including `/twins/pair`, `/twins/invite`, `/twins/accept`), messaging with WebSocket support, assessments, research telemetry, and subscription management. Each endpoint contains detailed request/response schemas using reusable component definitions, standardized error responses with consistent format across all endpoints, rate limiting headers (X-RateLimit-*), and authentication requirements using JWT Bearer tokens. Created complete PostgreSQL database schema in `/docs/database-schema.sql` with 24 tables including core tables (users, twin_pairs, user_settings), messaging system (messages with type enum, reactions, read receipts), assessment framework (sessions, items, results with category enums), research participation (studies, consent tracking, telemetry events), subscription management (plans, subscriptions with Stripe integration), and comprehensive indexes for performance optimization. Selected Node.js + Express + TypeScript stack documented in `/docs/backend-architecture.md` for shared TypeScript codebase with React Native frontend, enabling rapid iteration and reducing context switching. Architecture uses PostgreSQL with Redis for caching, Socket.io for real-time features, JWT RS256 for secure authentication, and follows controller-service-repository pattern with clear separation of concerns. Project structure defined with organized directories for routes, services, middleware, database schemas, and WebSocket handlers. Development tooling includes Prisma ORM for type-safe database access, Jest for testing, Docker for containerization, and deployment strategy using Railway/Vercel with CDN support.\n</info added on 2025-09-10T05:14:14.713Z>",
+            "status": "done",
+            "testStrategy": "Validate OpenAPI specification using swagger-cli tools. Create Postman collection from OpenAPI spec. Test all endpoint definitions for completeness and consistency. Verify request/response schemas match frontend requirements."
+          },
+          {
+            "id": 2,
+            "title": "Setup Backend Framework and Project Structure",
+            "description": "Initialize backend project with chosen framework and establish scalable architecture patterns",
+            "dependencies": [
+              "4.1"
+            ],
+            "details": "Set up Node.js with Express.js or Python with FastAPI based on team expertise. Create modular project structure with separate layers for routes, controllers, services, models, and middleware. Configure environment variables for development, staging, and production. Set up logging with Winston or similar (structured JSON logs). Implement global error handling middleware. Configure CORS for mobile app access. Set up dependency injection pattern for testability. Initialize package.json or requirements.txt with core dependencies. Create Docker configuration for containerized deployment.",
+            "status": "done",
+            "testStrategy": "Test framework initialization and basic health check endpoint. Verify environment configuration works across environments. Test error handling middleware catches all error types. Validate CORS configuration allows mobile app requests."
+          },
+          {
+            "id": 3,
+            "title": "Design and Implement Database Schema",
+            "description": "Create optimized database schema for all application data with proper relationships and indexes",
+            "dependencies": [
+              "4.1"
+            ],
+            "details": "Choose between PostgreSQL (relational) or MongoDB (document) based on data relationships. Design schema for users table (id, email, password_hash, created_at, updated_at), twins table (user1_id, user2_id, pair_code, status, paired_at), profiles table (user_id, name, age, avatar_color, bio), messages table (id, sender_id, twin_pair_id, content, created_at), assessments table (id, twin_pair_id, type, results_json, created_at), and research_telemetry table (id, user_id, event_type, data_json, consented, created_at). Create indexes for frequently queried fields. Implement database migrations system (Knex.js or Alembic). Set up connection pooling and query optimization.",
+            "status": "done",
+            "testStrategy": "Test database migrations run successfully. Verify all foreign key relationships work correctly. Test index performance with sample data. Validate connection pooling under load."
+          },
+          {
+            "id": 4,
+            "title": "Implement Authentication and Security Middleware",
+            "description": "Build JWT-based authentication system with security best practices and middleware",
+            "dependencies": [
+              "4.2",
+              "4.3"
+            ],
+            "details": "Implement JWT token generation with RS256 algorithm for better security. Create middleware for token validation and user authentication. Set up refresh token rotation for enhanced security. Implement rate limiting using express-rate-limit or similar (100 requests per 15 minutes per IP). Add input validation middleware using Joi or express-validator. Implement request sanitization to prevent XSS and SQL injection. Set up helmet.js for security headers. Create API key authentication for service-to-service communication. Implement request logging and audit trail. Add HTTPS enforcement and certificate pinning support.",
+            "status": "done",
+            "testStrategy": "Test JWT generation and validation with various scenarios. Verify rate limiting blocks excessive requests. Test input validation catches malformed data. Validate security headers are properly set. Test refresh token rotation works correctly."
+          },
+          {
+            "id": 5,
+            "title": "Create Core API Routes and Controllers",
+            "description": "Implement essential API endpoints with business logic and data validation",
+            "dependencies": [
+              "4.2",
+              "4.3",
+              "4.4"
+            ],
+            "details": "Implement user registration endpoint with email validation and password strength requirements. Create login endpoint with JWT token generation and refresh token storage. Build twin pairing endpoints for generating/validating pair codes and establishing connections. Implement profile CRUD operations with image upload support. Create message endpoints with real-time sync capabilities and pagination. Build assessment submission and retrieval endpoints with data validation. Implement research telemetry collection with consent verification. Add WebSocket support for real-time features. Create batch endpoints for offline sync. Implement soft delete for data retention compliance.",
+            "status": "done",
+            "testStrategy": "Integration test each endpoint with valid and invalid inputs. Test pagination and filtering on list endpoints. Verify WebSocket connections work correctly. Test batch operations handle partial failures. Validate soft delete preserves data integrity."
+          }
+        ]
       },
       {
         "id": 5,
@@ -230,8 +287,63 @@
         "dependencies": [
           4
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Evaluate and Select Real-time Messaging Solution",
+            "description": "Research and choose between Firebase Realtime Database and Socket.io based on project requirements, scalability needs, and cost considerations",
+            "dependencies": [],
+            "details": "Compare Firebase Realtime Database vs Socket.io for: pricing models and expected costs at scale, setup complexity for React Native/Expo, offline support capabilities, presence detection features, typing indicator support, end-to-end encryption options, performance benchmarks for message latency, SDK size impact on app bundle. Document decision rationale and create implementation plan. Consider hybrid approach if needed.",
+            "status": "done",
+            "testStrategy": "Create proof-of-concept implementations for both solutions. Measure connection time, message latency, reconnection speed, and bundle size impact. Test offline message queuing capabilities."
+          },
+          {
+            "id": 2,
+            "title": "Setup WebSocket Infrastructure and Configuration",
+            "description": "Install required packages, configure the chosen WebSocket solution, and setup connection management infrastructure",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "For Firebase: Install @react-native-firebase/app and @react-native-firebase/database packages, create Firebase project and obtain configuration files, setup iOS and Android native configurations, configure Firebase security rules for chat rooms. For Socket.io: Install socket.io-client package, setup Socket.io server infrastructure, configure CORS and authentication middleware, implement connection pooling. Create WebSocketService class to abstract implementation details. Setup environment variables for production/staging endpoints.",
+            "status": "done",
+            "testStrategy": "Verify package installation and native configuration. Test basic connection establishment to WebSocket server. Validate authentication flow with WebSocket. Test connection across different network conditions."
+          },
+          {
+            "id": 3,
+            "title": "Implement Core Messaging Functions",
+            "description": "Replace MockWebSocket implementation with production WebSocket service for sending, receiving, and syncing messages in real-time",
+            "dependencies": [
+              "5.2"
+            ],
+            "details": "Refactor src/services/chatService.ts to use production WebSocket. Implement message sending with acknowledgment handling. Setup real-time message listeners for incoming messages. Create message queue for offline support with retry logic. Implement message delivery status (sent, delivered, read). Handle message ordering and deduplication. Migrate existing EventEmitter patterns to WebSocket events. Ensure backward compatibility with existing chat UI components.",
+            "status": "done",
+            "testStrategy": "Test message sending and receiving between two test accounts. Verify message ordering is maintained. Test offline message queuing and delivery on reconnection. Validate message status updates. Test with 100+ messages for performance."
+          },
+          {
+            "id": 4,
+            "title": "Add Presence and Typing Indicators",
+            "description": "Implement real-time presence detection and typing indicators to enhance chat user experience",
+            "dependencies": [
+              "5.3"
+            ],
+            "details": "Implement online/offline presence detection using WebSocket heartbeat or Firebase presence API. Create typing indicator events with debouncing (start/stop typing). Update UI components to display presence status and typing indicators. Implement last seen timestamp tracking. Add connection state management (connecting, connected, disconnected). Handle presence updates efficiently to minimize bandwidth. Create presence subscription management for chat rooms.",
+            "status": "done",
+            "testStrategy": "Test presence updates when app goes to background/foreground. Verify typing indicators show/hide correctly with 300ms debounce. Test presence accuracy across network disconnections. Measure presence update latency."
+          },
+          {
+            "id": 5,
+            "title": "Implement End-to-End Encryption and Security",
+            "description": "Add end-to-end encryption for messages and implement security measures for production WebSocket communication",
+            "dependencies": [
+              "5.3",
+              "5.4"
+            ],
+            "details": "Implement E2E encryption using Signal Protocol or similar. Generate and exchange encryption keys securely between twins. Encrypt message content before sending through WebSocket. Decrypt messages on receiving device only. Store encryption keys in expo-secure-store. Implement forward secrecy with key rotation. Add message integrity verification. Secure WebSocket connection with WSS/TLS. Implement rate limiting and DDoS protection. Add audit logging for security events.",
+            "status": "done",
+            "testStrategy": "Verify messages are encrypted before transmission. Test decryption works only with correct keys. Validate key exchange process. Test message integrity verification. Perform security audit of WebSocket implementation."
+          }
+        ]
       },
       {
         "id": 6,
@@ -243,8 +355,63 @@
         "dependencies": [
           4
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Authentication Schema and Database Models",
+            "description": "Create database schema for users, sessions, and refresh tokens with proper indexing and security considerations",
+            "dependencies": [],
+            "details": "Design User model with fields: id, email, password_hash, email_verified, created_at, updated_at. Create RefreshToken model with fields: id, token, user_id, expires_at, revoked. Design PasswordReset model for reset tokens. Set up proper database indexes for email lookups and token queries. Define relationships between models. Consider using UUID for user IDs for security. Document schema migrations needed.\n<info added on 2025-09-10T17:30:05.742Z>\nI'll analyze the codebase to understand the current authentication implementation and provide specific details for the subtask update.Authentication schema implementation is complete with comprehensive infrastructure in place. Database models have been successfully designed with SQL schemas for User, RefreshToken, PasswordReset, LoginHistory, and TwinPair tables, including proper indexes for performance, UUID primary keys for security, and soft delete support for GDPR compliance. TypeScript interfaces have been created in /src/types/auth.ts defining all authentication-related types with proper error handling including AuthError class and AuthErrorCodes constants. Prisma ORM schema has been configured in /backend/prisma/schema.prisma with full relational mapping, cascade delete rules, and enum definitions for type safety. WebSocket configuration has been prepared in /src/config/websocket.ts with Socket.io integration for real-time features. Backend architecture documentation in /docs/backend-architecture.md outlines Node.js + Express + TypeScript stack with PostgreSQL/Redis for data storage, JWT RS256 for authentication, and Socket.io for real-time communication. Production WebSocket service implementation in /src/services/websocketService.ts includes offline queue management, automatic reconnection logic, and typing indicators. All authentication models include necessary security fields such as password hashing with bcrypt, account lockout mechanisms, email verification tokens, and comprehensive audit logging through LoginHistory table. The schema supports twin-specific features with TwinPair model for managing twin relationships and pairing codes. Environment configuration requirements have been documented for JWT secrets, database connections, and third-party services like SendGrid for email and Twilio for SMS.\n</info added on 2025-09-10T17:30:05.742Z>",
+            "status": "done",
+            "testStrategy": "Validate schema migrations run successfully. Test database constraints and indexes work correctly. Verify foreign key relationships. Test query performance with sample data."
+          },
+          {
+            "id": 2,
+            "title": "Implement Core Authentication Endpoints",
+            "description": "Build /auth/register, /auth/login, /auth/logout endpoints with bcrypt password hashing and JWT token generation",
+            "dependencies": [
+              "6.1"
+            ],
+            "details": "Implement /auth/register with email validation, password strength requirements, and bcrypt hashing (12 salt rounds). Build /auth/login endpoint validating credentials and generating JWT access token (15min expiry) and refresh token (7 days expiry). Create /auth/logout endpoint to revoke refresh tokens. Use jsonwebtoken library for JWT generation with RS256 algorithm. Implement proper error responses (401, 403, 422). Add rate limiting to prevent brute force attacks.",
+            "status": "done",
+            "testStrategy": "Test registration with valid/invalid emails and weak passwords. Verify bcrypt hashing with correct salt rounds. Test login with correct/incorrect credentials. Validate JWT token structure and claims. Test logout properly revokes tokens."
+          },
+          {
+            "id": 3,
+            "title": "Build Token Refresh and Validation Middleware",
+            "description": "Create /auth/refresh endpoint and authentication middleware for protected routes with automatic token validation",
+            "dependencies": [
+              "6.2"
+            ],
+            "details": "Implement /auth/refresh endpoint that validates refresh token and issues new access token. Create authentication middleware to verify JWT tokens on protected routes. Implement token blacklisting for revoked tokens. Add middleware to automatically attach user context to requests. Handle expired token errors gracefully. Store refresh tokens in secure httpOnly cookies or database. Implement token rotation strategy for enhanced security.\n<info added on 2025-09-10T20:18:17.917Z>\nImplementation analysis confirms missing components in backend/src/services/auth.service.ts and backend/src/routes/auth.routes.ts. Needs to add refresh() method to AuthService class following existing patterns (lines 95-182 for reference), implement /auth/refresh route in auth.routes.ts (between lines 91-114), and create authenticate middleware file in backend/src/middleware/. Token rotation and blacklisting logic can be integrated into existing refreshToken database operations shown in generateTokenPair() method (lines 249-257). Existing AuthError and error handling patterns should be reused for consistency.\n</info added on 2025-09-10T20:18:17.917Z>\n<info added on 2025-09-10T20:21:59.159Z>\nI'll analyze the codebase to understand the implementation details for task 6.3 and verify what was completed.<info added on 2025-09-10T20:36:38.604Z>\nIMPLEMENTATION VERIFIED: All code changes confirmed in codebase. The refresh() method in AuthService (lines 225-316) properly implements token rotation by revoking old tokens (line 278-283) and generating new pairs. The /auth/refresh route exists in auth.routes.ts (lines 117-146) with proper validation using express-validator. Comprehensive auth middleware created in backend/src/middleware/auth.ts with authenticate (lines 20-142), optionalAuthenticate (lines 145-158), and requireEmailVerification (lines 161-183) functions. Token blacklisting implemented via revokedAt field in database operations. All components follow existing error handling patterns using AuthError class and proper status codes.\n</info added on 2025-09-10T20:36:38.604Z>\n</info added on 2025-09-10T20:21:59.159Z>",
+            "status": "done",
+            "testStrategy": "Test refresh flow with valid/expired/revoked tokens. Verify middleware blocks unauthorized requests. Test token rotation prevents replay attacks. Validate proper error codes returned."
+          },
+          {
+            "id": 4,
+            "title": "Implement Email Verification and Password Reset",
+            "description": "Build email verification flow for new registrations and password reset functionality with secure token generation",
+            "dependencies": [
+              "6.2"
+            ],
+            "details": "Create /auth/verify-email endpoint with secure verification tokens (6-hour expiry). Implement email sending service integration (SendGrid/AWS SES). Build /auth/forgot-password endpoint generating reset tokens. Create /auth/reset-password endpoint validating tokens and updating passwords. Use crypto.randomBytes for secure token generation. Implement email templates for verification and reset emails. Add resend verification email functionality. Store verification status in user model.",
+            "status": "done",
+            "testStrategy": "Test email verification flow end-to-end. Verify token expiration works correctly. Test password reset with valid/expired tokens. Validate email delivery and template rendering. Test rate limiting on email endpoints."
+          },
+          {
+            "id": 5,
+            "title": "Integrate Authentication with React Native App",
+            "description": "Update React Native app to use authentication endpoints with expo-secure-store and implement auto-refresh logic",
+            "dependencies": [
+              "6.3",
+              "6.4"
+            ],
+            "details": "Update src/services/authService.ts to call real authentication endpoints. Implement secure token storage using expo-secure-store for access and refresh tokens. Add authentication headers to all API requests using axios interceptors. Implement automatic token refresh when access token expires (401 response). Create auth context/store in app for user state management. Add login/logout UI flows and redirect logic. Implement biometric authentication option for stored credentials. Handle deep linking for email verification.",
+            "status": "done",
+            "testStrategy": "Test secure storage saves/retrieves tokens correctly. Verify auto-refresh triggers on 401 responses. Test deep linking for email verification. Validate biometric authentication flow. Test app behavior on token expiration."
+          }
+        ]
       },
       {
         "id": 7,
@@ -329,7 +496,7 @@
     ],
     "metadata": {
       "created": "2025-09-09T21:07:30.046Z",
-      "updated": "2025-09-10T04:46:15.491Z",
+      "updated": "2025-09-11T03:24:12.993Z",
       "description": "Tasks for master context"
     }
   }

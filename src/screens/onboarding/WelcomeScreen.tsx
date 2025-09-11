@@ -79,7 +79,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onContinue }) => {
           >
             <Pressable
               onPress={onContinue}
-              className="bg-white/20 backdrop-blur-sm rounded-full py-4 items-center mx-8 border border-white/30"
+              className="bg-black/80 backdrop-blur-sm rounded-full py-4 items-center mx-8 border border-white/30"
               style={({ pressed }) => ([
                 {
                   opacity: pressed ? 0.8 : 1,
