@@ -128,11 +128,11 @@ export function calculateSubscaleScore(
 export function calculateCompositeIndices(subscales: SubscaleScore[]): CompositeIndex {
   const scoreMap = new Map(subscales.map(s => [s.category, s.normalizedScore]));
   
-  // Connection Index: Communication + Emotional Connection + Psychic Connection
+  // Connection Index: Communication + Emotional Connection + Intuitive Connection
   const CI = Math.round(
     ((scoreMap.get('communication') ?? 0) +
      (scoreMap.get('emotional_connection') ?? 0) +
-     (scoreMap.get('psychic_connection') ?? 0)) / 3
+     (scoreMap.get('intuitive_connection') ?? 0)) / 3
   );
   
   // Autonomy-Relatedness Index: Independence vs Support System balance
@@ -148,7 +148,7 @@ export function calculateCompositeIndices(subscales: SubscaleScore[]): Composite
     conflict_resolution: 0.15,
     independence: 0.10,
     support_system: 0.10,
-    psychic_connection: 0.05,
+    intuitive_connection: 0.05,
     identity_formation: 0.05
   };
   

@@ -135,24 +135,12 @@ export const LoginScreen = () => {
             keyboardShouldPersistTaps="handled"
           >
             <View className="flex-1 px-6">
-              {/* Header */}
-              <View className="flex-row items-center justify-between py-4">
-                <Pressable
-                  onPress={() => navigation.goBack()}
-                  className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
-                >
-                  <Ionicons name="chevron-back" size={20} color="white" />
-                </Pressable>
-                <Text className="text-white text-xl font-bold flex-1 text-center">Welcome Back</Text>
-                <View className="w-10" />
-              </View>
-
-              {/* Logo/Title */}
-              <View className="items-center mt-8 mb-8">
-                <Text className="text-white text-3xl font-bold mb-2">Twinship</Text>
-                <Text className="text-white/70 text-center">
-                  Sign in to connect with your twin
-                </Text>
+              {/* Logo - Centered in upper area */}
+              <View className="items-center mt-16 mb-12">
+                <View className="bg-white rounded-2xl p-4 mb-6">
+                  <Text className="text-2xl">👥</Text>
+                </View>
+                <Text className="text-white text-4xl font-bold">Twinship</Text>
               </View>
 
               {/* Error Message */}
@@ -166,16 +154,15 @@ export const LoginScreen = () => {
               <View className="space-y-4">
                 {/* Email Input */}
                 <View>
-                  <Text className="text-white/80 mb-2">Email</Text>
                   <TextInput
                     value={email}
                     onChangeText={(text) => {
                       setEmail(text);
                       if (emailError) validateEmail(text);
                     }}
-                    placeholder="Enter your email"
-                    placeholderTextColor="rgba(255,255,255,0.5)"
-                    className="bg-white/10 rounded-xl px-4 py-4 text-white text-base"
+                    placeholder="Email"
+                    placeholderTextColor="rgba(255,255,255,0.6)"
+                    className="bg-white/15 rounded-xl px-4 py-4 text-white text-base"
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -188,7 +175,6 @@ export const LoginScreen = () => {
 
                 {/* Password Input */}
                 <View>
-                  <Text className="text-white/80 mb-2">Password</Text>
                   <View className="relative">
                     <TextInput
                       value={password}
@@ -196,9 +182,9 @@ export const LoginScreen = () => {
                         setPassword(text);
                         if (passwordError) validatePassword(text);
                       }}
-                      placeholder="Enter your password"
-                      placeholderTextColor="rgba(255,255,255,0.5)"
-                      className="bg-white/10 rounded-xl px-4 py-4 text-white text-base pr-12"
+                      placeholder="Password"
+                      placeholderTextColor="rgba(255,255,255,0.6)"
+                      className="bg-white/15 rounded-xl px-4 py-4 text-white text-base pr-12"
                       secureTextEntry={!showPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -220,17 +206,7 @@ export const LoginScreen = () => {
                   ) : null}
                 </View>
 
-                {/* Forgot Password */}
-                <View className="items-end">
-                  <Pressable
-                    onPress={() => navigation.navigate('ForgotPassword')}
-                    disabled={isLoading}
-                  >
-                    <Text className="text-purple-300 text-sm">Forgot password?</Text>
-                  </Pressable>
-                </View>
-
-                {/* Login Button */}
+                {/* Sign In Button */}
                 <Pressable
                   onPress={handleLogin}
                   disabled={isLoading}
@@ -248,6 +224,31 @@ export const LoginScreen = () => {
                     {isLoading ? 'Signing In...' : 'Sign In'}
                   </Text>
                 </Pressable>
+
+                {/* Sign Up Button */}
+                <Pressable
+                  onPress={() => navigation.navigate('Register')}
+                  disabled={isLoading}
+                  className="rounded-xl py-4 items-center mt-3 bg-white/10"
+                  style={({ pressed }) => [
+                    {
+                      opacity: pressed ? 0.8 : 1,
+                      transform: [{ scale: pressed ? 0.98 : 1 }],
+                    },
+                  ]}
+                >
+                  <Text className="text-white font-semibold text-lg">Sign Up</Text>
+                </Pressable>
+
+                {/* Forgot Password - Centered */}
+                <View className="items-center mt-6">
+                  <Pressable
+                    onPress={() => navigation.navigate('ForgotPassword')}
+                    disabled={isLoading}
+                  >
+                    <Text className="text-purple-300 text-sm">Forgot password?</Text>
+                  </Pressable>
+                </View>
 
                 {/* Biometric Login */}
                 {biometricAvailable && biometricEnabled && (
@@ -274,16 +275,6 @@ export const LoginScreen = () => {
                   </View>
                 )}
 
-                {/* Sign Up Link */}
-                <View className="flex-row justify-center items-center mt-8">
-                  <Text className="text-white/70">Don't have an account? </Text>
-                  <Pressable
-                    onPress={() => navigation.navigate('Register')}
-                    disabled={isLoading}
-                  >
-                    <Text className="text-purple-300 font-semibold">Sign Up</Text>
-                  </Pressable>
-                </View>
 
                 {/* Development Mode */}
                 {__DEV__ && (

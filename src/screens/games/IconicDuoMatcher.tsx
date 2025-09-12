@@ -76,7 +76,7 @@ const questions: Question[] = [
     text: 'Your superpower as a duo would be:',
     type: 'relationship',
     options: [
-      { text: 'Reading each other\'s minds', points: { 'synchronized': 3, 'psychic': 3 } },
+      { text: 'Reading each other\'s minds', points: { 'synchronized': 3, 'intuitive': 3 } },
       { text: 'Perfect balance of opposites', points: { 'complementary': 3, 'balanced': 2 } },
       { text: 'Unstoppable chaos energy', points: { 'chaos': 3, 'wild': 2 } },
       { text: 'Strategic domination', points: { 'strategic': 3, 'professional': 2 } }

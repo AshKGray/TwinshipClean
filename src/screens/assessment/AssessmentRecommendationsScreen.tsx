@@ -42,7 +42,7 @@ const COACHING_PLANS = {
   "Moderate": {
     title: "Connection Enhancer Plan",
     duration: "4-6 weeks",
-    focus: "Strengthening existing psychic abilities",
+    focus: "Strengthening existing intuitive abilities",
     activities: [
       "Advanced meditation techniques",
       "Dream sharing and analysis",
@@ -53,11 +53,11 @@ const COACHING_PLANS = {
   "Strong": {
     title: "Mastery Development Plan",
     duration: "6-8 weeks",
-    focus: "Refining and expanding psychic abilities",
+    focus: "Refining and expanding intuitive abilities",
     activities: [
       "Complex telepathy challenges",
       "Remote viewing exercises",
-      "Psychic healing practices",
+      "Intuitive healing practices",
       "Advanced synchronicity work"
     ]
   },
@@ -68,7 +68,7 @@ const COACHING_PLANS = {
     activities: [
       "Consciousness merging techniques",
       "Advanced astral projection",
-      "Psychic research participation",
+      "Intuitive research participation",
       "Mentoring other twin pairs"
     ]
   }
@@ -291,11 +291,11 @@ export const AssessmentRecommendationsScreen = () => {
         <Text className="text-white font-semibold mb-3">General Guidelines</Text>
         <View className="space-y-2">
           {[
-            "Practice regularly - consistency is key for developing psychic abilities",
+            "Practice regularly - consistency is key for developing intuitive abilities",
             "Stay relaxed and open-minded during experiments",
             "Keep a journal to track your experiences and progress",
             "Trust your intuition, even if it seems unlikely",
-            "Be patient - psychic abilities develop over time"
+            "Be patient - intuitive abilities develop over time"
           ].map((tip, index) => (
             <View key={index} className="flex-row items-start">
               <Text className="text-white/70 mr-2">•</Text>

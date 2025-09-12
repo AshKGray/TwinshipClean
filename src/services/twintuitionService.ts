@@ -224,7 +224,7 @@ class TwintuitionService {
     const messages = {
       simultaneous_action: [
         "Your twin just performed the same action as you!",
-        "Psychic sync detected - you're both doing the same thing!",
+        "Intuitive sync detected - you're both doing the same thing!",
         "Twin connection alert: simultaneous behavior detected!",
       ],
       mood_synchronization: [
@@ -234,7 +234,7 @@ class TwintuitionService {
       ],
       app_synchronization: [
         "Your twin opened the app at the same time as you!",
-        "Psychic connection: you both reached for the app simultaneously",
+        "Intuitive connection: you both reached for the app simultaneously",
         "Twin telepathy moment - you're both here!",
       ],
       location_synchronization: [

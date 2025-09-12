@@ -1,0 +1,193 @@
+name: 'Send Deployment Notification'
+description: 'Send notifications to multiple channels about deployment status'
+author: 'Twinship Team'
+
+inputs:
+  status:
+    description: 'Deployment status (success, failure, warning, info)'
+    required: true
+    default: 'info'
+  
+  message:
+    description: 'The notification message'
+    required: true
+  
+  title:
+    description: 'Notification title'
+    required: false
+    default: 'Twinship Deployment Notification'
+  
+  environment:
+    description: 'Deployment environment (production, staging, development)'
+    required: false
+    default: 'development'
+  
+  discord_webhook:
+    description: 'Discord webhook URL'
+    required: false
+  
+  slack_webhook:
+    description: 'Slack webhook URL'
+    required: false
+  
+  email_to:
+    description: 'Email recipients (comma-separated)'
+    required: false
+  
+  include_metrics:
+    description: 'Include deployment metrics'
+    required: false
+    default: 'false'
+  
+  job_url:
+    description: 'GitHub Actions job URL'
+    required: false
+    default: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set emoji based on status
+      id: emoji
+      shell: bash
+      run: |
+        case "${{ inputs.status }}" in
+          success)
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "color=3066993" >> $GITHUB_OUTPUT  # Green
+            echo "slack_color=good" >> $GITHUB_OUTPUT
+            ;;
+          failure)
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "color=15158332" >> $GITHUB_OUTPUT  # Red
+            echo "slack_color=danger" >> $GITHUB_OUTPUT
+            ;;
+          warning)
+            echo "emoji=⚠️" >> $GITHUB_OUTPUT
+            echo "color=16776960" >> $GITHUB_OUTPUT  # Yellow
+            echo "slack_color=warning" >> $GITHUB_OUTPUT
+            ;;
+          info)
+            echo "emoji=ℹ️" >> $GITHUB_OUTPUT
+            echo "color=3447003" >> $GITHUB_OUTPUT  # Blue
+            echo "slack_color=#0088cc" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "emoji=📢" >> $GITHUB_OUTPUT
+            echo "color=10181046" >> $GITHUB_OUTPUT  # Purple
+            echo "slack_color=#663399" >> $GITHUB_OUTPUT
+            ;;
+        esac
+
+    - name: Send Discord notification
+      if: inputs.discord_webhook != ''
+      shell: bash
+      run: |
+        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        # Build fields array
+        FIELDS='[]'
+        if [[ "${{ inputs.include_metrics }}" == "true" ]]; then
+          FIELDS='[
+            {"name": "Environment", "value": "${{ inputs.environment }}", "inline": true},
+            {"name": "Branch", "value": "${{ github.ref_name }}", "inline": true},
+            {"name": "Commit", "value": "`${{ github.sha }}`", "inline": false},
+            {"name": "Author", "value": "${{ github.actor }}", "inline": true},
+            {"name": "Workflow", "value": "${{ github.workflow }}", "inline": true}
+          ]'
+        fi
+        
+        # Create Discord embed
+        DISCORD_PAYLOAD=$(cat << EOF
+        {
+          "username": "Twinship CI/CD",
+          "avatar_url": "https://raw.githubusercontent.com/twinship/assets/main/logo.png",
+          "embeds": [{
+            "title": "${{ steps.emoji.outputs.emoji }} ${{ inputs.title }}",
+            "description": "${{ inputs.message }}",
+            "color": ${{ steps.emoji.outputs.color }},
+            "fields": $FIELDS,
+            "footer": {
+              "text": "GitHub Actions",
+              "icon_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+            },
+            "timestamp": "$TIMESTAMP",
+            "url": "${{ inputs.job_url }}"
+          }]
+        }
+        EOF
+        )
+        
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -d "$DISCORD_PAYLOAD" \
+          "${{ inputs.discord_webhook }}"
+
+    - name: Send Slack notification
+      if: inputs.slack_webhook != ''
+      shell: bash
+      run: |
+        # Build attachments
+        ATTACHMENTS="[]"
+        if [[ "${{ inputs.include_metrics }}" == "true" ]]; then
+          ATTACHMENTS='[{
+            "color": "${{ steps.emoji.outputs.slack_color }}",
+            "fields": [
+              {"title": "Environment", "value": "${{ inputs.environment }}", "short": true},
+              {"title": "Branch", "value": "${{ github.ref_name }}", "short": true},
+              {"title": "Commit", "value": "${{ github.sha }}", "short": false},
+              {"title": "Author", "value": "${{ github.actor }}", "short": true},
+              {"title": "Workflow", "value": "${{ github.workflow }}", "short": true}
+            ],
+            "footer": "GitHub Actions",
+            "footer_icon": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+            "ts": '$(date +%s)'
+          }]'
+        fi
+        
+        SLACK_PAYLOAD=$(cat << EOF
+        {
+          "text": "${{ steps.emoji.outputs.emoji }} ${{ inputs.title }}",
+          "blocks": [{
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": "*${{ inputs.title }}*\n${{ inputs.message }}"
+            }
+          }],
+          "attachments": $ATTACHMENTS
+        }
+        EOF
+        )
+        
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -d "$SLACK_PAYLOAD" \
+          "${{ inputs.slack_webhook }}"
+
+    - name: Send email notification
+      if: inputs.email_to != '' && inputs.status == 'failure'
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        secure: true
+        username: ${{ github.repository_owner }}@gmail.com
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: '${{ steps.emoji.outputs.emoji }} ${{ inputs.title }}'
+        to: ${{ inputs.email_to }}
+        from: Twinship CI/CD
+        body: |
+          Deployment Status: ${{ inputs.status }}
+          Environment: ${{ inputs.environment }}
+          
+          ${{ inputs.message }}
+          
+          Details:
+          - Repository: ${{ github.repository }}
+          - Branch: ${{ github.ref_name }}
+          - Commit: ${{ github.sha }}
+          - Author: ${{ github.actor }}
+          - Workflow: ${{ github.workflow }}
+          
+          View full details: ${{ inputs.job_url }}

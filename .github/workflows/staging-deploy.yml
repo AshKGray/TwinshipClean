@@ -46,58 +46,32 @@ jobs:
         env:
           CI: true
 
-      - name: Configure EAS for staging
+      - name: Validate EAS configuration
         run: |
-          cat > eas.json << EOF
-          {
-            "cli": {
-              "version": ">= 5.0.0"
-            },
-            "build": {
-              "staging": {
-                "extends": "base",
-                "distribution": "internal",
-                "channel": "staging",
-                "env": {
-                  "NODE_ENV": "staging"
-                }
-              },
-              "base": {
-                "node": "20.x",
-                "npm": {
-                  "cache": false
-                }
-              }
-            },
-            "submit": {
-              "staging": {
-                "extends": "base"
-              },
-              "base": {}
-            }
-          }
-          EOF
+          echo "📋 Validating eas.json configuration..."
+          if [ ! -f eas.json ]; then
+            echo "❌ eas.json not found!"
+            exit 1
+          fi
+          echo "✅ EAS configuration found"
 
       - name: Build for staging (iOS)
         run: |
-          echo "Building iOS staging build..."
-          # EAS Build will be configured here
-          # eas build --platform ios --profile staging --non-interactive
-          echo "iOS staging build configured"
+          echo "🔨 Building iOS staging build..."
+          eas build --platform ios --profile staging --non-interactive --wait
+          echo "✅ iOS staging build completed"
 
       - name: Build for staging (Android)
         run: |
-          echo "Building Android staging build..."
-          # EAS Build will be configured here  
-          # eas build --platform android --profile staging --non-interactive
-          echo "Android staging build configured"
+          echo "🔨 Building Android staging build..."
+          eas build --platform android --profile staging --non-interactive --wait
+          echo "✅ Android staging build completed"
 
       - name: Deploy to Expo staging
         run: |
-          echo "Deploying to Expo staging environment..."
-          # npx expo export
-          # eas update --branch staging --message "Staging deployment: ${{ github.sha }}"
-          echo "Staged for Expo deployment"
+          echo "🚀 Deploying to Expo staging environment..."
+          eas update --branch staging --message "Staging deployment: ${{ github.sha }}"
+          echo "✅ Expo staging deployment completed"
 
       - name: Update staging environment variables
         run: |

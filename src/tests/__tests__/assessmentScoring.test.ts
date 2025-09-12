@@ -227,11 +227,11 @@ describe('Assessment Scoring Algorithms', () => {
       expect(result.TRS).toBeLessThanOrEqual(100);
     });
 
-    it('should calculate Connection Index from communication, emotional, and psychic scores', () => {
+    it('should calculate Connection Index from communication, emotional, and intuitive scores', () => {
       const subscales = [
         { category: 'communication' as AssessmentCategory, normalizedScore: 90, rawScore: 0, percentile: 0, interpretation: 'high' as const, reliability: 0.9 },
         { category: 'emotional_connection' as AssessmentCategory, normalizedScore: 80, rawScore: 0, percentile: 0, interpretation: 'high' as const, reliability: 0.9 },
-        { category: 'psychic_connection' as AssessmentCategory, normalizedScore: 60, rawScore: 0, percentile: 0, interpretation: 'average' as const, reliability: 0.9 }
+        { category: 'intuitive_connection' as AssessmentCategory, normalizedScore: 60, rawScore: 0, percentile: 0, interpretation: 'average' as const, reliability: 0.9 }
       ];
       
       const result = calculateCompositeIndices(subscales);
@@ -270,7 +270,7 @@ describe('Assessment Scoring Algorithms', () => {
         { category: 'conflict_resolution' as AssessmentCategory, normalizedScore: 0, rawScore: 0, percentile: 0, interpretation: 'very_low' as const, reliability: 0.9 },
         { category: 'independence' as AssessmentCategory, normalizedScore: 0, rawScore: 0, percentile: 0, interpretation: 'very_low' as const, reliability: 0.9 },
         { category: 'support_system' as AssessmentCategory, normalizedScore: 0, rawScore: 0, percentile: 0, interpretation: 'very_low' as const, reliability: 0.9 },
-        { category: 'psychic_connection' as AssessmentCategory, normalizedScore: 0, rawScore: 0, percentile: 0, interpretation: 'very_low' as const, reliability: 0.9 },
+        { category: 'intuitive_connection' as AssessmentCategory, normalizedScore: 0, rawScore: 0, percentile: 0, interpretation: 'very_low' as const, reliability: 0.9 },
         { category: 'identity_formation' as AssessmentCategory, normalizedScore: 0, rawScore: 0, percentile: 0, interpretation: 'very_low' as const, reliability: 0.9 }
       ];
       

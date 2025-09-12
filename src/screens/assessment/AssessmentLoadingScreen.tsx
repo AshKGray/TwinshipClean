@@ -98,7 +98,7 @@ export const AssessmentLoadingScreen = () => {
     const insights = [
       "Your twin connection shows unique patterns of synchronicity",
       "You demonstrate above-average emotional attunement",
-      "Your telepathic experiences suggest a strong psychic bond"
+      "Your telepathic experiences suggest a strong intuitive bond"
     ];
     
     const recommendations = [
@@ -221,7 +221,7 @@ export const AssessmentLoadingScreen = () => {
           {/* Fun Facts */}
           <View className="mt-8 bg-white/5 rounded-xl p-4 w-full max-w-sm">
             <Text className="text-white/70 text-xs text-center">
-              💫 Did you know? Identical twins share 99.9% of their DNA, which may contribute to their psychic connection
+              💫 Did you know? Identical twins share 99.9% of their DNA, which may contribute to their intuitive connection
             </Text>
           </View>
         </View>

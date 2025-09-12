@@ -18,11 +18,11 @@ import { useGameStore } from '../state/stores/games/gameStore';
 import { useGameConfig } from '../hooks/games/useGameConfig';
 import { getNeonAccentColor, getNeonAccentColorWithOpacity } from '../utils/neonColors';
 
-interface PsychicGamesHubProps {
+interface TwinGamesHubProps {
   navigation: any;
 }
 
-export const PsychicGamesHub: React.FC<PsychicGamesHubProps> = ({ navigation }) => {
+export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
   const { width } = Dimensions.get('window');
   const { userProfile, twinProfile } = useTwinStore();
   const { syncMetrics, achievements, createGameSession } = useGameStore();
@@ -39,6 +39,24 @@ export const PsychicGamesHub: React.FC<PsychicGamesHubProps> = ({ navigation }) 
   const statsOpacity = useSharedValue(0);
   
   React.useEffect(() => {
+    // Preload game screens when hub is opened
+    const preloadGameScreens = async () => {
+      try {
+        // Import game screen modules to preload them
+        const gameModules = [
+          import('./games/CognitiveSyncMaze'),
+          import('./games/EmotionalResonanceMapping'),
+          import('./games/IconicDuoMatcher'),
+          import('./games/TemporalDecisionSync')
+        ];
+        await Promise.all(gameModules);
+      } catch (error) {
+        console.log('Game preloading in progress...');
+      }
+    };
+    
+    preloadGameScreens();
+    
     // Staggered entrance animations
     headerOpacity.value = withSpring(1, { damping: 15 });
     statsOpacity.value = withDelay(200, withSpring(1, { damping: 15 }));

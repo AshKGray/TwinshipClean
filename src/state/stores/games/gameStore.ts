@@ -1,18 +1,18 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GameState, GameSession, PsychicGameType, GameInvitation, Achievement, SyncScoreMetrics } from '../../../types/games';
+import { GameState, GameSession, TwinGameType, GameInvitation, Achievement, SyncScoreMetrics } from '../../../types/games';
 import * as Haptics from 'expo-haptics';
 
 interface GameActions {
   // Session Management
-  createGameSession: (gameType: PsychicGameType, twinId: string) => GameSession;
+  createGameSession: (gameType: TwinGameType, twinId: string) => GameSession;
   updateGameSession: (sessionId: string, updates: Partial<GameSession>) => void;
   completeGameSession: (sessionId: string, results: any) => void;
   cancelGameSession: (sessionId: string) => void;
   
   // Invitations
-  sendGameInvitation: (toUserId: string, gameType: PsychicGameType) => void;
+  sendGameInvitation: (toUserId: string, gameType: TwinGameType) => void;
   acceptInvitation: (invitationId: string) => void;
   declineInvitation: (invitationId: string) => void;
   
@@ -26,7 +26,7 @@ interface GameActions {
   
   // Analytics
   updateSyncMetrics: (session: GameSession) => void;
-  getGameStats: (gameType?: PsychicGameType) => any;
+  getGameStats: (gameType?: TwinGameType) => any;
   
   // Connection
   setConnectionStatus: (status: 'online' | 'offline' | 'connecting') => void;
@@ -398,7 +398,7 @@ export const useGameStore = create<GameStore>()(
       }
     }),
     {
-      name: 'psychic-games-storage',
+      name: 'twin-games-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         gameHistory: state.gameHistory.slice(0, 50), // Keep last 50 games

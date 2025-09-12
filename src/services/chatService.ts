@@ -377,7 +377,7 @@ class ChatService {
       await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Twintuition Alert! 🔮',
-          body: 'You and your twin are having a psychic moment!',
+          body: 'You and your twin are having an intuitive moment!',
           data: { type: 'twintuition', screen: 'Twintuition' },
         },
         trigger: null,

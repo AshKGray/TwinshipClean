@@ -64,7 +64,7 @@ const COMPATIBILITY_INSIGHTS = [
   {
     type: "synergy" as const,
     title: "Complementary Strengths",
-    description: "Your different strength areas create a well-rounded psychic partnership.",
+    description: "Your different strength areas create a well-rounded intuitive partnership.",
     icon: "people",
     difference: 0
   }

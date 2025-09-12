@@ -502,7 +502,7 @@ Twinship helps twins strengthen their unique bond through private communication,
 
 ✨ What awaits you:
 • Private "Twin Talk" messaging with your twin
-• "Twintuition" alerts for those psychic moments
+• "Twintuition" alerts for those intuitive moments
 • Fun games to test your synchronicity
 • Personality assessments built specifically for twins
 • A safe space to explore your twin identity

@@ -99,8 +99,8 @@ export const PairScreen = () => {
     }, 400);
 
     setTimeout(() => {
-      console.log("About to navigate to TwinTalk from createDevPair");
-      navigation.navigate("TwinTalk");
+      console.log("About to navigate to chat from createDevPair");
+      navigation.navigate("Main", { screen: "Twinbox" });
     }, 1000);
   };
 
@@ -144,9 +144,9 @@ export const PairScreen = () => {
       chatStore.addMessage(welcomeMessage);
     }, 500);
     
-    // Auto-navigate to Twin Talk after successful test pairing
+    // Auto-navigate to chat after successful test pairing
     setTimeout(() => {
-      navigation.navigate("TwinTalk");
+      navigation.navigate("Main", { screen: "Twinbox" });
     }, 1500); // Short delay to show success message
   };
 
@@ -212,9 +212,9 @@ export const PairScreen = () => {
     
     // Auto-navigate to Twin Talk after successful pairing
     setTimeout(() => {
-      console.log("Navigating to TwinTalk");
+      console.log("Navigating to chat tab");
       try {
-        navigation.navigate("TwinTalk");
+        navigation.navigate("Main", { screen: "Twinbox" });
       } catch (error) {
         console.error("Navigation error:", error);
         setStatusText("Navigation error: " + String(error));
@@ -233,7 +233,7 @@ export const PairScreen = () => {
   useEffect(() => {
     if (paired && userProfile && twinProfile) {
       const timer = setTimeout(() => {
-        navigation.navigate("TwinTalk");
+        navigation.navigate("Main", { screen: "Twinbox" });
       }, 1200); // Short delay to show success message
       
       return () => clearTimeout(timer);

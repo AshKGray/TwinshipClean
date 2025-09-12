@@ -47,13 +47,33 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
-      - name: Run tests
-        run: npm test -- --coverage --watchAll=false
+      - name: Run tests with coverage
+        run: |
+          npm test -- --coverage --watchAll=false --coverageReporters=text-lcov | tee coverage.lcov
+          npm test -- --coverage --watchAll=false --coverageReporters=json-summary
         env:
           CI: true
 
       - name: Security audit
-        run: npm audit --audit-level high
+        run: |
+          echo "🔍 Running security audit..."
+          npm audit --audit-level moderate --json > audit-results.json || true
+          
+          # Check if there are any high/critical vulnerabilities
+          HIGH_VULN=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+          CRITICAL_VULN=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+          
+          echo "High vulnerabilities: $HIGH_VULN"
+          echo "Critical vulnerabilities: $CRITICAL_VULN"
+          
+          if [ "$HIGH_VULN" -gt 0 ] || [ "$CRITICAL_VULN" -gt 0 ]; then
+            echo "❌ Security vulnerabilities found!"
+            npm audit --audit-level high
+            exit 1
+          fi
+          
+          echo "✅ No high/critical security vulnerabilities found"
+        continue-on-error: false
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -63,11 +83,24 @@ jobs:
           files: ./coverage/lcov.info
           fail_ci_if_error: false
 
-      - name: Bundle analysis (Node 20.x only)
+      - name: Bundle size analysis (Node 20.x only)
         if: matrix.node-version == '20.x'
         run: |
-          echo "Bundle size analysis would go here"
-          # Future: Add bundle size analysis for React Native/Expo
+          echo "📦 Analyzing bundle size..."
+          npx expo export --platform web --output-dir web-build || echo "Web build failed, skipping size analysis"
+          
+          if [ -d "web-build" ]; then
+            du -sh web-build/* || true
+            echo "JavaScript bundle sizes:"
+            find web-build -name "*.js" -exec du -h {} + | head -10 || true
+          fi
+          
+          echo "📱 React Native bundle analysis:"
+          npx react-native bundle --platform android --entry-file index.js --bundle-output android-bundle.js --assets-dest /tmp || echo "Android bundle failed"
+          if [ -f "android-bundle.js" ]; then
+            echo "Android bundle size: $(du -h android-bundle.js | cut -f1)"
+            rm android-bundle.js
+          fi
 
   comment-pr:
     runs-on: ubuntu-latest
@@ -91,16 +124,44 @@ jobs:
             );
             
             const success = '${{ needs.validate.result }}' === 'success';
-            const body = `## PR Validation Results
+            
+            // Try to get coverage data if available
+            let coverageInfo = '';
+            try {
+              const fs = require('fs');
+              if (fs.existsSync('./coverage/coverage-summary.json')) {
+                const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+                const pct = coverage.total;
+                coverageInfo = `
+            **Coverage Report:**
+            - Lines: ${pct.lines.pct}% (${pct.lines.covered}/${pct.lines.total})
+            - Functions: ${pct.functions.pct}% (${pct.functions.covered}/${pct.functions.total})
+            - Branches: ${pct.branches.pct}% (${pct.branches.covered}/${pct.branches.total})
+            - Statements: ${pct.statements.pct}% (${pct.statements.covered}/${pct.statements.total})
+            `;
+              }
+            } catch (e) {
+              coverageInfo = '\n**Coverage:** Report not available';
+            }
+            
+            const body = `## 🔍 PR Validation Results
             
             ${success ? '✅' : '❌'} **Validation ${success ? 'Passed' : 'Failed'}**
             
-            - Linting: ${success ? '✅ Passed' : '❌ Check logs'}
-            - Type Checking: ${success ? '✅ Passed' : '❌ Check logs'}  
-            - Tests: ${success ? '✅ Passed' : '❌ Check logs'}
-            - Security Audit: ${success ? '✅ Passed' : '❌ Check logs'}
+            ### 📊 Checks Status
+            - 🔧 **Linting**: ${success ? '✅ Passed' : '❌ Check logs'}
+            - 📝 **Type Checking**: ${success ? '✅ Passed' : '❌ Check logs'}  
+            - 🧪 **Tests**: ${success ? '✅ Passed' : '❌ Check logs'}
+            - 🔒 **Security Audit**: ${success ? '✅ Passed' : '❌ Check logs'}
+            - 📦 **Bundle Analysis**: ${success ? '✅ Completed' : '❌ Check logs'}
+            ${coverageInfo}
             
-            View full results in the [Actions tab](${context.payload.pull_request.html_url}/checks).
+            ### 🔗 Additional Resources
+            - 📋 View full results in the [Actions tab](${context.payload.pull_request.html_url}/checks)
+            - 📈 [Coverage Report](${context.payload.pull_request.html_url}/checks) (when available)
+            
+            ---
+            <sub>🤖 This comment is automatically updated on each commit</sub>
             `;
             
             if (botComment) {

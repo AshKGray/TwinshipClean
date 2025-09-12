@@ -3,7 +3,7 @@ import { useTwinStore } from '../state/twinStore';
 import { useResearchStore } from '../state/researchStore';
 import { researchService } from '../services/researchService';
 import { AssessmentResults } from '../types/assessment';
-import { PsychicGameResult } from '../state/twinStore';
+import { TwinGameResult } from '../state/twinStore';
 
 /**
  * Hook to automatically contribute data to research studies
@@ -33,15 +33,15 @@ export const useResearchIntegration = () => {
   };
 
   /**
-   * Contribute psychic game data to research studies
+   * Contribute twin game data to research studies
    */
-  const contributePsychicGameData = async (gameResult: PsychicGameResult) => {
+  const contributeTwinGameData = async (gameResult: TwinGameResult) => {
     if (!userProfile || !participation?.activeStudies.length) return;
 
     try {
       await researchService.contributeBehavioralData(
         userProfile.id, 
-        `psychic_game_${gameResult.gameType}`, 
+        `twin_game_${gameResult.gameType}`, 
         1
       );
       incrementResearchContributions();
@@ -51,7 +51,7 @@ export const useResearchIntegration = () => {
         await contributeData(userProfile.id, 'games', 1);
       }
     } catch (error) {
-      console.error('Failed to contribute psychic game data to research:', error);
+      console.error('Failed to contribute twin game data to research:', error);
     }
   };
 
@@ -110,14 +110,14 @@ export const useResearchIntegration = () => {
       const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
       
       if (gameTimestamp > fiveMinutesAgo) {
-        contributePsychicGameData(latestGame);
+        contributeTwinGameData(latestGame);
       }
     }
   }, [gameResults, participation]);
 
   return {
     contributeAssessmentData,
-    contributePsychicGameData,
+    contributeTwinGameData,
     contributeCommunicationData,
     contributeTwintuitionData,
     isParticipatingInResearch: participation?.activeStudies.length > 0

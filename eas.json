@@ -1,0 +1,84 @@
+{
+  "cli": {
+    "version": ">= 5.0.0"
+  },
+  "build": {
+    "development": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "development",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    "preview": {
+      "extends": "base",
+      "distribution": "internal",
+      "channel": "preview",
+      "env": {
+        "NODE_ENV": "staging"
+      }
+    },
+    "staging": {
+      "extends": "base",
+      "distribution": "internal", 
+      "channel": "staging",
+      "env": {
+        "NODE_ENV": "staging"
+      }
+    },
+    "production": {
+      "extends": "base",
+      "distribution": "store",
+      "channel": "production",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    "base": {
+      "node": "20.x",
+      "npm": {
+        "cache": false
+      },
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "$NODE_ENV"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "APPLE_ID_PLACEHOLDER",
+        "ascAppId": "ASC_APP_ID_PLACEHOLDER",
+        "appleTeamId": "APPLE_TEAM_ID_PLACEHOLDER"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./service-account-key.json",
+        "track": "production"
+      }
+    },
+    "staging": {
+      "ios": {
+        "appleId": "APPLE_ID_PLACEHOLDER", 
+        "ascAppId": "ASC_APP_ID_PLACEHOLDER",
+        "appleTeamId": "APPLE_TEAM_ID_PLACEHOLDER"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./service-account-key.json",
+        "track": "internal"
+      }
+    }
+  },
+  "update": {
+    "production": {
+      "channel": "production"
+    },
+    "staging": {
+      "channel": "staging" 
+    },
+    "development": {
+      "channel": "development"
+    }
+  }
+}

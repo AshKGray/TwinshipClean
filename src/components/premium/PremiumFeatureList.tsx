@@ -82,7 +82,7 @@ export const PremiumFeatureList: React.FC<PremiumFeatureListProps> = ({
           {[
             "Basic assessment results",
             "Twin pairing & chat", 
-            "Psychic games",
+            "Twin connection games",
             "Story sharing",
             "Basic twintuition alerts"
           ].map((feature, index) => (

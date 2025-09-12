@@ -398,7 +398,7 @@ export const mockNormativeData = {
   conflict_resolution: { mean: 49.7, std: 15.4 },
   independence: { mean: 53.2, std: 12.9 },
   support_system: { mean: 50.8, std: 14.1 },
-  psychic_connection: { mean: 45.3, std: 18.6 },
+  intuitive_connection: { mean: 45.3, std: 18.6 },
   identity_formation: { mean: 52.7, std: 13.5 }
 };
 

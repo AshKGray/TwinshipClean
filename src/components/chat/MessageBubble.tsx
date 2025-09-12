@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ChatMessage, TWIN_EMOJIS } from '../../types/chat';
-import { getNeonAccentColor, getNeonAccentColorWithOpacity } from '../../utils/neonColors';
+import { 
+  getNeonAccentColor, 
+  getNeonAccentColorWithOpacity,
+  getNeonCardBackground,
+  getNeonSubtleGlow,
+  getNeonButtonBackground
+} from '../../utils/neonColors';
 import { useTwinStore } from '../../state/twinStore';
 import { useChatStore } from '../../state/chatStore';
 import { chatService } from '../../services/chatService';
@@ -21,7 +27,7 @@ interface MessageBubbleProps {
   onLongPress?: (message: ChatMessage) => void;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({
+export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
   message,
   isOwn,
   showTimestamp = false,
@@ -31,12 +37,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const [showReactions, setShowReactions] = useState(false);
   const scaleValue = new Animated.Value(1);
 
+  // Use more vibrant neon colors for message bubbles
   const bubbleColor = isOwn
-    ? getNeonAccentColorWithOpacity(message.accentColor, 0.8)
-    : getNeonAccentColorWithOpacity(message.accentColor, 0.8);
+    ? getNeonCardBackground(message.accentColor, 0.9)
+    : getNeonCardBackground(message.accentColor, 0.6);
 
-  const textColor = isOwn ? '#FFFFFF' : '#FFFFFF';
+  const textColor = '#FFFFFF';
   const borderColor = getNeonAccentColor(message.accentColor);
+  const glowEffect = getNeonSubtleGlow(message.accentColor);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -104,11 +112,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         >
           {/* Message Bubble */}
           <View
-            style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-              borderWidth: 1,
-              borderColor: borderColor,
-            }}
+            style={[
+              {
+                backgroundColor: bubbleColor,
+                borderWidth: 2,
+                borderColor: borderColor,
+              },
+              isOwn ? glowEffect : {}
+            ]}
             className={`px-4 py-3 rounded-2xl ${
               isOwn ? 'rounded-br-md' : 'rounded-bl-md'
             }`}
@@ -116,7 +127,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             {/* Message Text */}
             <Text
               style={{ color: textColor }}
-              className="text-base leading-5"
+              className={`text-base leading-5 ${isOwn ? 'font-medium' : 'font-normal'}`}
             >
               {message.text}
             </Text>
@@ -124,7 +135,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             {/* Message Status (for own messages) */}
             {isOwn && (
               <View className="flex-row items-center justify-end mt-1">
-                <Text className="text-white/60 text-xs mr-1">
+                <Text className="text-white/80 text-xs mr-1 font-medium">
                   {formatTime(message.timestamp)}
                 </Text>
                 <View className="flex-row">
@@ -156,18 +167,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   <Pressable
                     key={`${emoji}-${index}`}
                     onPress={() => handleReaction(emoji)}
-                    style={{
-                      backgroundColor: userReacted
-                        ? getNeonAccentColorWithOpacity(message.accentColor, 0.8)
-                        : 'rgba(0,0,0,0.7)',
-                      borderColor: userReacted ? borderColor : 'rgba(255,255,255,0.3)',
-                      borderWidth: 1,
-                    }}
+                    style={[
+                      {
+                        backgroundColor: userReacted
+                          ? getNeonButtonBackground(message.accentColor)
+                          : 'rgba(0,0,0,0.7)',
+                        borderColor: userReacted ? borderColor : 'rgba(255,255,255,0.3)',
+                        borderWidth: 1,
+                      },
+                      userReacted ? getNeonSubtleGlow(message.accentColor) : {}
+                    ]}
                     className="flex-row items-center px-2 py-1 rounded-full mr-1 mb-1"
                   >
                     <Text className="text-sm">{emoji}</Text>
                     {count > 1 && (
-                      <Text className="text-white text-xs ml-1">{count}</Text>
+                      <Text className="text-white text-xs ml-1 font-bold">{count}</Text>
                     )}
                   </Pressable>
                 );
@@ -179,11 +193,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         {/* Quick Reaction Panel */}
         {showReactions && (
           <View
-            style={{
-              backgroundColor: 'rgba(0,0,0,0.9)',
-              borderColor: borderColor,
-              borderWidth: 1,
-            }}
+            style={[
+              {
+                backgroundColor: getNeonCardBackground(message.accentColor, 0.95),
+                borderColor: borderColor,
+                borderWidth: 2,
+              },
+              glowEffect
+            ]}
             className={`absolute top-0 ${isOwn ? 'right-0' : 'left-0'} flex-row items-center px-3 py-2 rounded-full`}
           >
             {TWIN_EMOJIS.slice(0, 6).map((emoji, index) => (
@@ -207,10 +224,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
       {/* Timestamp (for twin's messages) */}
       {!isOwn && (showTimestamp || message.reactions?.length > 0) && (
-        <Text className="text-white/50 text-xs mt-1 ml-1">
+        <Text className="text-white/60 text-xs mt-1 ml-1 font-medium">
           {formatTime(message.timestamp)}
         </Text>
       )}
     </View>
   );
-};
+});
+
+MessageBubble.displayName = 'MessageBubble';

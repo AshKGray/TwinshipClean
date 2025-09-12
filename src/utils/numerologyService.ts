@@ -188,8 +188,8 @@ export const LIFE_PATH_MEANINGS: Record<number, LifePathNumber> = {
     number: 11,
     isMasterNumber: true,
     title: "The Illuminator",
-    description: "Highly intuitive and inspirational soul with psychic abilities and spiritual mission",
-    traits: ["Intuitive", "Inspirational", "Psychic", "Charismatic", "Visionary"],
+    description: "Highly intuitive and inspirational soul with spiritual insight and divine mission",
+    traits: ["Intuitive", "Inspirational", "Spiritually Gifted", "Charismatic", "Visionary"],
     challenges: ["Nervous energy", "Self-doubt", "Emotional intensity"],
     purpose: "To illuminate and inspire others toward spiritual awakening",
     compatibility: [11, 22, 33]

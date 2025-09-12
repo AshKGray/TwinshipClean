@@ -21,7 +21,7 @@ export type AssessmentCategory =
   | 'conflict_resolution'
   | 'independence'
   | 'support_system'
-  | 'psychic_connection'
+  | 'intuitive_connection'
   | 'identity_formation';
 
 export interface AssessmentResponse {

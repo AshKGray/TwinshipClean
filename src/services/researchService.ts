@@ -27,7 +27,7 @@ class ResearchService {
     {
       id: 'twin-sync-2024',
       title: 'Twin Synchronicity & Intuition Study',
-      description: 'Investigating psychic connections and synchronicity between twins',
+      description: 'Investigating intuitive connections and synchronicity between twins',
       fullDescription: 'This comprehensive study explores the phenomenon of twin telepathy, synchronicity, and intuitive connections. We analyze communication patterns, simultaneous experiences, and predictive behaviors between twin pairs.',
       duration: '12 months',
       compensation: ['Research insights', 'Early feature access', 'Scientific publications acknowledgment'],
@@ -42,7 +42,7 @@ class ResearchService {
       dataTypes: [
         {
           type: 'games',
-          description: 'Psychic game results and response patterns',
+          description: 'Twin game results and response patterns',
           anonymizationLevel: 'full',
           retentionPeriod: '7 years',
           sharingScope: 'academic'

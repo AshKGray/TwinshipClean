@@ -1,0 +1,341 @@
+name: Deployment Monitoring & Notifications
+
+on:
+  workflow_run:
+    workflows: 
+      - "Deploy to Production"
+      - "Deploy to Staging"
+      - "PR Validation"
+    types:
+      - completed
+      - in_progress
+  
+  workflow_dispatch:
+    inputs:
+      test_notifications:
+        description: 'Test notification channels'
+        type: boolean
+        default: false
+
+env:
+  SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+  SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+jobs:
+  track-deployment:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion != 'skipped'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine environment
+        id: environment
+        run: |
+          WORKFLOW_NAME="${{ github.event.workflow_run.name }}"
+          if [[ "$WORKFLOW_NAME" == "Deploy to Production" ]]; then
+            echo "env=production" >> $GITHUB_OUTPUT
+            echo "emoji=🚀" >> $GITHUB_OUTPUT
+          elif [[ "$WORKFLOW_NAME" == "Deploy to Staging" ]]; then
+            echo "env=staging" >> $GITHUB_OUTPUT
+            echo "emoji=🔧" >> $GITHUB_OUTPUT
+          else
+            echo "env=development" >> $GITHUB_OUTPUT
+            echo "emoji=🛠️" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract deployment info
+        id: deployment_info
+        run: |
+          # Get commit info
+          COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
+          COMMIT_MSG=$(git log --format=%B -n 1 $COMMIT_SHA | head -1)
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          AUTHOR="${{ github.event.workflow_run.actor.login }}"
+          
+          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "commit_msg=$COMMIT_MSG" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "author=$AUTHOR" >> $GITHUB_OUTPUT
+          
+          # Calculate deployment duration if completed
+          if [[ "${{ github.event.workflow_run.status }}" == "completed" ]]; then
+            START_TIME="${{ github.event.workflow_run.created_at }}"
+            END_TIME="${{ github.event.workflow_run.updated_at }}"
+            DURATION=$(( $(date -d "$END_TIME" +%s) - $(date -d "$START_TIME" +%s) ))
+            DURATION_MIN=$(( DURATION / 60 ))
+            DURATION_SEC=$(( DURATION % 60 ))
+            echo "duration=${DURATION_MIN}m ${DURATION_SEC}s" >> $GITHUB_OUTPUT
+          else
+            echo "duration=In Progress" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send deployment started notification
+        if: github.event.workflow_run.status == 'in_progress'
+        uses: ./.github/actions/notify
+        with:
+          status: info
+          title: '${{ steps.environment.outputs.emoji }} Deployment Started - ${{ steps.environment.outputs.env }}'
+          message: |
+            Deployment to **${{ steps.environment.outputs.env }}** has started.
+            
+            **Branch:** `${{ steps.deployment_info.outputs.branch }}`
+            **Commit:** `${{ steps.deployment_info.outputs.commit_sha }}`
+            **Message:** ${{ steps.deployment_info.outputs.commit_msg }}
+            **Triggered by:** @${{ steps.deployment_info.outputs.author }}
+          environment: ${{ steps.environment.outputs.env }}
+          discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+          include_metrics: true
+
+      - name: Send deployment success notification
+        if: github.event.workflow_run.conclusion == 'success'
+        uses: ./.github/actions/notify
+        with:
+          status: success
+          title: '✅ Deployment Successful - ${{ steps.environment.outputs.env }}'
+          message: |
+            Deployment to **${{ steps.environment.outputs.env }}** completed successfully!
+            
+            **Duration:** ${{ steps.deployment_info.outputs.duration }}
+            **Branch:** `${{ steps.deployment_info.outputs.branch }}`
+            **Commit:** `${{ steps.deployment_info.outputs.commit_sha }}`
+            **Message:** ${{ steps.deployment_info.outputs.commit_msg }}
+            **Deployed by:** @${{ steps.deployment_info.outputs.author }}
+            
+            🎉 The application is now live in ${{ steps.environment.outputs.env }}!
+          environment: ${{ steps.environment.outputs.env }}
+          discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+          include_metrics: true
+
+      - name: Send deployment failure notification
+        if: github.event.workflow_run.conclusion == 'failure'
+        uses: ./.github/actions/notify
+        with:
+          status: failure
+          title: '❌ Deployment Failed - ${{ steps.environment.outputs.env }}'
+          message: |
+            Deployment to **${{ steps.environment.outputs.env }}** has failed!
+            
+            **Duration:** ${{ steps.deployment_info.outputs.duration }}
+            **Branch:** `${{ steps.deployment_info.outputs.branch }}`
+            **Commit:** `${{ steps.deployment_info.outputs.commit_sha }}`
+            **Message:** ${{ steps.deployment_info.outputs.commit_msg }}
+            **Failed for:** @${{ steps.deployment_info.outputs.author }}
+            
+            🚨 **Immediate action required!**
+            Please check the [workflow logs](${{ github.event.workflow_run.html_url }}) for details.
+          environment: ${{ steps.environment.outputs.env }}
+          discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+          email_to: ${{ secrets.TEAM_EMAIL }}
+          include_metrics: true
+
+  sentry-release-tracking:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.name == 'Deploy to Production' || github.event.workflow_run.name == 'Deploy to Staging')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install Sentry CLI
+        run: npm install -g @sentry/cli
+
+      - name: Create Sentry release
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          ENVIRONMENT="${{ github.event.workflow_run.name == 'Deploy to Production' && 'production' || 'staging' }}"
+          
+          # Create a new release
+          sentry-cli releases new "$VERSION"
+          
+          # Associate commits
+          sentry-cli releases set-commits "$VERSION" --auto
+          
+          # Upload source maps
+          sentry-cli releases files "$VERSION" upload-sourcemaps ./dist \
+            --url-prefix "~/" \
+            --rewrite
+          
+          # Mark release as deployed
+          sentry-cli releases deploys "$VERSION" new \
+            -e "$ENVIRONMENT" \
+            -n "GitHub Actions Deploy"
+          
+          # Finalize the release
+          sentry-cli releases finalize "$VERSION"
+          
+          echo "✅ Sentry release $VERSION created for $ENVIRONMENT"
+
+      - name: Notify Sentry release creation
+        uses: ./.github/actions/notify
+        with:
+          status: success
+          title: '📊 Sentry Release Created'
+          message: |
+            Sentry release tracking has been set up for version **${{ env.VERSION }}**
+            
+            **Environment:** ${{ env.ENVIRONMENT }}
+            **Source Maps:** Uploaded
+            **Error Tracking:** Active
+            
+            Monitor errors at: [Sentry Dashboard](https://sentry.io/organizations/${{ env.SENTRY_ORG }}/projects/${{ env.SENTRY_PROJECT }})
+          discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}
+
+  collect-metrics:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion != 'skipped'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Calculate deployment metrics
+        id: metrics
+        run: |
+          # Get workflow run data
+          WORKFLOW_ID="${{ github.event.workflow_run.id }}"
+          WORKFLOW_NAME="${{ github.event.workflow_run.name }}"
+          CONCLUSION="${{ github.event.workflow_run.conclusion }}"
+          
+          # Calculate duration
+          START_TIME="${{ github.event.workflow_run.created_at }}"
+          END_TIME="${{ github.event.workflow_run.updated_at }}"
+          
+          if [[ "$CONCLUSION" != "" ]]; then
+            DURATION=$(( $(date -d "$END_TIME" +%s) - $(date -d "$START_TIME" +%s) ))
+            echo "duration_seconds=$DURATION" >> $GITHUB_OUTPUT
+          fi
+          
+          # Get current date for metrics file
+          DATE=$(date +%Y-%m-%d)
+          METRICS_FILE=".github/metrics/deployments/${DATE}.json"
+          
+          # Ensure metrics directory exists
+          mkdir -p .github/metrics/deployments
+          
+          # Create or update metrics file
+          if [[ ! -f "$METRICS_FILE" ]]; then
+            echo '{"deployments": []}' > "$METRICS_FILE"
+          fi
+          
+          # Add new metric entry
+          jq --arg workflow "$WORKFLOW_NAME" \
+             --arg conclusion "$CONCLUSION" \
+             --arg duration "$DURATION" \
+             --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+             '.deployments += [{
+               "workflow": $workflow,
+               "conclusion": $conclusion,
+               "duration_seconds": ($duration | tonumber),
+               "timestamp": $timestamp
+             }]' "$METRICS_FILE" > tmp.json && mv tmp.json "$METRICS_FILE"
+          
+          # Calculate daily statistics
+          TOTAL=$(jq '.deployments | length' "$METRICS_FILE")
+          SUCCESS=$(jq '[.deployments[] | select(.conclusion == "success")] | length' "$METRICS_FILE")
+          FAILED=$(jq '[.deployments[] | select(.conclusion == "failure")] | length' "$METRICS_FILE")
+          AVG_DURATION=$(jq '[.deployments[] | select(.duration_seconds != null) | .duration_seconds] | add / length' "$METRICS_FILE")
+          
+          echo "total_deployments=$TOTAL" >> $GITHUB_OUTPUT
+          echo "successful_deployments=$SUCCESS" >> $GITHUB_OUTPUT
+          echo "failed_deployments=$FAILED" >> $GITHUB_OUTPUT
+          echo "average_duration=$AVG_DURATION" >> $GITHUB_OUTPUT
+          echo "success_rate=$(( SUCCESS * 100 / TOTAL ))%" >> $GITHUB_OUTPUT
+
+      - name: Commit metrics
+        if: github.event.workflow_run.conclusion != ''
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          git add .github/metrics/
+          git commit -m "📊 Update deployment metrics [skip ci]" || echo "No metrics changes to commit"
+          git push || echo "No changes to push"
+
+      - name: Generate daily report
+        if: github.event.schedule == '0 0 * * *'  # Daily at midnight
+        run: |
+          # Generate markdown report
+          DATE=$(date +%Y-%m-%d)
+          REPORT=".github/metrics/reports/daily-${DATE}.md"
+          mkdir -p .github/metrics/reports
+          
+          cat << EOF > "$REPORT"
+          # Daily Deployment Report - ${DATE}
+          
+          ## Summary
+          - **Total Deployments:** ${{ steps.metrics.outputs.total_deployments }}
+          - **Successful:** ${{ steps.metrics.outputs.successful_deployments }}
+          - **Failed:** ${{ steps.metrics.outputs.failed_deployments }}
+          - **Success Rate:** ${{ steps.metrics.outputs.success_rate }}
+          - **Average Duration:** ${{ steps.metrics.outputs.average_duration }}s
+          
+          ## Deployment History
+          $(jq -r '.deployments[] | "- \(.timestamp): \(.workflow) - \(.conclusion) (\(.duration_seconds)s)"' .github/metrics/deployments/${DATE}.json)
+          
+          ---
+          *Generated by GitHub Actions*
+          EOF
+          
+          # Send daily report
+          if [[ -n "${{ secrets.DISCORD_WEBHOOK }}" ]]; then
+            curl -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+              -H "Content-Type: application/json" \
+              -d "{\"content\": \"📊 **Daily Deployment Report**\n\nToday's Stats:\n- Deployments: ${{ steps.metrics.outputs.total_deployments }}\n- Success Rate: ${{ steps.metrics.outputs.success_rate }}\n- Avg Duration: ${{ steps.metrics.outputs.average_duration }}s\"}"
+          fi
+
+  test-notifications:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_notifications == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test Discord notification
+        uses: ./.github/actions/notify
+        with:
+          status: info
+          title: '🧪 Discord Notification Test'
+          message: |
+            This is a test notification from Twinship CI/CD.
+            
+            If you're seeing this, Discord notifications are working correctly! 🎉
+          discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          include_metrics: true
+
+      - name: Test Slack notification
+        uses: ./.github/actions/notify
+        with:
+          status: info
+          title: '🧪 Slack Notification Test'
+          message: |
+            This is a test notification from Twinship CI/CD.
+            
+            If you're seeing this, Slack notifications are working correctly! 🎉
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+          include_metrics: true
+
+      - name: Test email notification
+        uses: ./.github/actions/notify
+        with:
+          status: failure  # Only failure sends emails
+          title: '🧪 Email Notification Test'
+          message: |
+            This is a test email notification from Twinship CI/CD.
+            
+            If you're seeing this, email notifications are working correctly!
+          email_to: ${{ secrets.TEAM_EMAIL }}
+          include_metrics: true

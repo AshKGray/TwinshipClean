@@ -1,0 +1,54 @@
+# CODEOWNERS for Twinship
+# This file defines which teams and individuals are responsible for code review in specific parts of the repository.
+# More specific rules override more general ones.
+
+# Global owners - require review from at least one
+* @ashleygray
+
+# Critical Configuration Files - require senior review
+package.json @ashleygray
+app.json @ashleygray
+eas.json @ashleygray
+.github/workflows/ @ashleygray
+
+# Core Services - require architecture review
+src/services/ @ashleygray
+src/state/ @ashleygray
+src/utils/assessment/ @ashleygray
+
+# Security Sensitive Areas - require security review
+src/utils/encryption/ @ashleygray
+src/services/encryptionService.ts @ashleygray
+.env.example @ashleygray
+
+# AI Integration - require AI specialist review
+src/api/ @ashleygray
+src/services/twintuitionService.ts @ashleygray
+
+# Premium Features - require business logic review
+src/services/subscriptionService.ts @ashleygray
+src/components/premium/ @ashleygray
+
+# Navigation & Core App Flow
+src/navigation/ @ashleygray
+src/screens/OnboardingScreen.tsx @ashleygray
+src/screens/PairScreen.tsx @ashleygray
+
+# Test Infrastructure
+jest.config.js @ashleygray
+src/tests/ @ashleygray
+
+# Documentation
+docs/ @ashleygray
+*.md @ashleygray
+
+# CI/CD Pipeline
+.github/ @ashleygray
+
+# Mobile Platform Specific
+ios/ @ashleygray
+android/ @ashleygray
+
+# Performance Critical Components
+src/components/assessment/ @ashleygray
+src/utils/behaviorAnalytics.ts @ashleygray

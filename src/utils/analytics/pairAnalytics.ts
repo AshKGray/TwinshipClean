@@ -372,7 +372,7 @@ function getCategoryWeight(category: AssessmentCategory): number {
     shared_experiences: 1.0,
     support_system: 1.0,
     independence: 0.9,
-    psychic_connection: 0.7,
+    intuitive_connection: 0.7,
     identity_formation: 0.8
   };
   
@@ -408,7 +408,7 @@ function formatCategoryName(category: AssessmentCategory): string {
     conflict_resolution: 'Conflict Resolution',
     independence: 'Independence',
     support_system: 'Support System',
-    psychic_connection: 'Psychic Connection',
+    intuitive_connection: 'Intuitive Connection',
     identity_formation: 'Identity Formation'
   };
   

@@ -8,39 +8,111 @@ import { useAuthStore } from "../state/authStore";
 import { deepLinkService } from "../services/deepLinkService";
 import { BMadNavigationTracker } from "../../.bmad-mobile-app/navigation-tracker";
 import { MobilePerformanceAgent } from "../../.bmad-mobile-app/mobile-performance.agent";
+import { preloadManager } from "../utils/preloadManager";
+import { performanceTracker } from "../utils/performanceMeasurement";
 
-// Screens
+// Import lazy loading utilities
+import { lazyWithPreload, lazyScreen, lazyScreenWithSkeleton, lazyWithPreloadAndSkeleton } from "../utils/lazyWithPreload";
+
+// Core Screens (loaded immediately)
 import { OnboardingScreen } from "../screens/OnboardingScreen";
 import { HomeScreen } from "../screens/HomeScreen";
 import { TwinTalkScreen } from "../screens/chat/TwinTalkScreen";
-import { TwintuitionScreen } from "../screens/TwintuitionScreen";
-import { PsychicGamesHub } from "../screens/PsychicGamesHub";
-import { CognitiveSyncMaze } from "../screens/games/CognitiveSyncMaze";
-import { EmotionalResonanceMapping } from "../screens/games/EmotionalResonanceMapping";
-import { IconicDuoMatcher } from "../screens/games/IconicDuoMatcher";
-import { TemporalDecisionSync } from "../screens/games/TemporalDecisionSync";
-import { ResearchScreen } from "../screens/ResearchScreen";
-import { SettingsScreen } from "../screens/SettingsScreen";
 
-// Authentication Screens
+// Pairing Screen (lazy loaded)
+const PairScreen = lazyScreen(() => import("../screens/PairScreen").then(m => ({ default: m.PairScreen })));
+
+// Secondary Screens (lazy loaded with enhanced skeletons)
+const TwintuitionScreen = lazyScreenWithSkeleton(
+  () => import("../screens/TwintuitionScreen").then(m => ({ default: m.TwintuitionScreen })),
+  'generic',
+  'Loading Twintuition...'
+);
+const TwinGamesHub = lazyWithPreloadAndSkeleton(
+  () => import("../screens/TwinGamesHub").then(m => ({ default: m.TwinGamesHub })),
+  'game',
+  'Preparing psychic games...',
+  'TwinGamesHub'
+);
+const ResearchScreen = lazyScreenWithSkeleton(
+  () => import("../screens/ResearchScreen").then(m => ({ default: m.ResearchScreen })),
+  'generic',
+  'Loading research dashboard...'
+);
+const SettingsScreen = lazyScreenWithSkeleton(
+  () => import("../screens/SettingsScreen").then(m => ({ default: m.SettingsScreen })),
+  'generic',
+  'Loading settings...'
+);
+
+// Game Screens (lazy loaded with preload)
+const CognitiveSyncMaze = lazyWithPreload(() => import("../screens/games/CognitiveSyncMaze").then(m => ({ default: m.CognitiveSyncMaze })));
+const EmotionalResonanceMapping = lazyWithPreload(() => import("../screens/games/EmotionalResonanceMapping").then(m => ({ default: m.EmotionalResonanceMapping })));
+const IconicDuoMatcher = lazyWithPreload(() => import("../screens/games/IconicDuoMatcher").then(m => ({ default: m.IconicDuoMatcher })));
+const TemporalDecisionSync = lazyWithPreload(() => import("../screens/games/TemporalDecisionSync").then(m => ({ default: m.TemporalDecisionSync })));
+
+// Authentication Screens (keep non-lazy for fast auth flow)
 import { LoginScreen } from "../screens/auth/LoginScreen";
 import { RegisterScreen } from "../screens/auth/RegisterScreen";
 import { ForgotPasswordScreen } from "../screens/auth/ForgotPasswordScreen";
 
-// Assessment Screens
-import { AssessmentIntroScreen } from "../screens/assessment/AssessmentIntroScreen";
-import { AssessmentSurveyScreen } from "../screens/assessment/AssessmentSurveyScreen";
-import { AssessmentLoadingScreen } from "../screens/assessment/AssessmentLoadingScreen";
-import { AssessmentResultsScreen } from "../screens/assessment/AssessmentResultsScreen";
-import { AssessmentRecommendationsScreen } from "../screens/assessment/AssessmentRecommendationsScreen";
-import { PairComparisonScreen } from "../screens/assessment/PairComparisonScreen";
+// Assessment Screens (lazy loaded with assessment skeletons)
+const AssessmentIntroScreen = lazyScreenWithSkeleton(
+  () => import("../screens/assessment/AssessmentIntroScreen").then(m => ({ default: m.AssessmentIntroScreen })),
+  'assessment',
+  'Preparing assessment...'
+);
+const AssessmentSurveyScreen = lazyScreenWithSkeleton(
+  () => import("../screens/assessment/AssessmentSurveyScreen").then(m => ({ default: m.AssessmentSurveyScreen })),
+  'assessment',
+  'Loading assessment questions...'
+);
+const AssessmentLoadingScreen = lazyScreenWithSkeleton(
+  () => import("../screens/assessment/AssessmentLoadingScreen").then(m => ({ default: m.AssessmentLoadingScreen })),
+  'assessment',
+  'Processing responses...'
+);
+const AssessmentResultsScreen = lazyScreenWithSkeleton(
+  () => import("../screens/assessment/AssessmentResultsScreen").then(m => ({ default: m.AssessmentResultsScreen })),
+  'assessment',
+  'Analyzing results...'
+);
+const AssessmentRecommendationsScreen = lazyScreenWithSkeleton(
+  () => import("../screens/assessment/AssessmentRecommendationsScreen").then(m => ({ default: m.AssessmentRecommendationsScreen })),
+  'assessment',
+  'Generating recommendations...'
+);
+const PairComparisonScreen = lazyScreenWithSkeleton(
+  () => import("../screens/assessment/PairComparisonScreen").then(m => ({ default: m.PairComparisonScreen })),
+  'assessment',
+  'Loading comparison...'
+);
 
 // Story Screens removed - integrated into Twincidence Log
 
-// Research Screens
-import { ConsentScreen } from "../screens/research/ConsentScreen";
-import { ResearchParticipationScreen } from "../screens/research/ResearchParticipationScreen";
-import { ResearchDashboardScreen } from "../screens/research/ResearchDashboardScreen";
+// Premium Screen (lazy loaded with premium skeleton)  
+const PremiumScreen = lazyScreenWithSkeleton(
+  () => import("../screens/premium/PremiumScreen").then(m => ({ default: m.PremiumScreen })),
+  'premium',
+  'Loading premium features...'
+);
+
+// Research Screens (lazy loaded)
+const ConsentScreen = lazyScreenWithSkeleton(
+  () => import("../screens/research/ConsentScreen").then(m => ({ default: m.ConsentScreen })),
+  'generic',
+  'Loading consent form...'
+);
+const ResearchParticipationScreen = lazyScreenWithSkeleton(
+  () => import("../screens/research/ResearchParticipationScreen").then(m => ({ default: m.ResearchParticipationScreen })),
+  'generic',
+  'Loading research participation...'
+);
+const ResearchDashboardScreen = lazyScreenWithSkeleton(
+  () => import("../screens/research/ResearchDashboardScreen").then(m => ({ default: m.ResearchDashboardScreen })),
+  'generic',
+  'Loading research dashboard...'
+);
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -96,26 +168,56 @@ const TabNavigator = () => {
   const userProfile = useTwinStore((state) => state.userProfile);
   const themeColor = userProfile?.accentColor || "neon-purple";
   
+  // Preload heavy screens when tab navigator mounts
+  useEffect(() => {
+    // Preload game screens using preload manager
+    const preloadGameScreens = async () => {
+      const componentsToPreload = [
+        { name: 'TwinGamesHub', component: TwinGamesHub as any },
+        { name: 'CognitiveSyncMaze', component: CognitiveSyncMaze as any },
+        { name: 'EmotionalResonanceMapping', component: EmotionalResonanceMapping as any },
+        { name: 'IconicDuoMatcher', component: IconicDuoMatcher as any },
+        { name: 'TemporalDecisionSync', component: TemporalDecisionSync as any },
+      ];
+      
+      await preloadManager.preloadComponents(componentsToPreload);
+      
+      // Log preload status for debugging
+      const status = preloadManager.getStatus();
+      console.log('[AppNavigator] Preload status:', status);
+      
+      // Generate performance report after preloading
+      setTimeout(() => {
+        const report = performanceTracker.generateReport();
+        console.log(report);
+      }, 5000);
+    };
+    
+    // Preload after a short delay to avoid impacting initial render
+    const timeoutId = setTimeout(preloadGameScreens, 2000);
+    return () => clearTimeout(timeoutId);
+  }, []);
+  
   const getTabBarColors = () => {
     switch (themeColor) {
       case "neon-pink":
-        return { active: "#ff1493", inactive: "#6b7280", background: "rgba(26, 10, 26, 0.9)" };
+        return { active: "#ff1493", inactive: "#9ca3af", background: "rgba(26, 10, 26, 0.95)" };
       case "neon-blue":
-        return { active: "#00bfff", inactive: "#6b7280", background: "rgba(10, 26, 46, 0.9)" };
+        return { active: "#00bfff", inactive: "#9ca3af", background: "rgba(10, 26, 46, 0.95)" };
       case "neon-green":
-        return { active: "#00ff7f", inactive: "#6b7280", background: "rgba(10, 26, 10, 0.9)" };
+        return { active: "#00ff7f", inactive: "#9ca3af", background: "rgba(10, 26, 10, 0.95)" };
       case "neon-yellow":
-        return { active: "#ffff00", inactive: "#6b7280", background: "rgba(26, 26, 10, 0.9)" };
+        return { active: "#ffff00", inactive: "#9ca3af", background: "rgba(26, 26, 10, 0.95)" };
       case "neon-purple":
-        return { active: "#8a2be2", inactive: "#6b7280", background: "rgba(26, 10, 26, 0.9)" };
+        return { active: "#8a2be2", inactive: "#9ca3af", background: "rgba(26, 10, 26, 0.95)" };
       case "neon-orange":
-        return { active: "#ff4500", inactive: "#6b7280", background: "rgba(26, 10, 10, 0.9)" };
+        return { active: "#ff4500", inactive: "#9ca3af", background: "rgba(26, 10, 10, 0.95)" };
       case "neon-cyan":
-        return { active: "#00ffff", inactive: "#6b7280", background: "rgba(10, 26, 26, 0.9)" };
+        return { active: "#00ffff", inactive: "#9ca3af", background: "rgba(10, 26, 26, 0.95)" };
       case "neon-red":
-        return { active: "#ff0000", inactive: "#6b7280", background: "rgba(26, 10, 10, 0.9)" };
+        return { active: "#ff0000", inactive: "#9ca3af", background: "rgba(26, 10, 10, 0.95)" };
       default:
-        return { active: "#8a2be2", inactive: "#6b7280", background: "rgba(26, 10, 26, 0.9)" };
+        return { active: "#8a2be2", inactive: "#9ca3af", background: "rgba(26, 10, 26, 0.95)" };
     }
   };
 
@@ -148,14 +250,28 @@ const TabNavigator = () => {
         tabBarInactiveTintColor: colors.inactive,
         tabBarStyle: {
           backgroundColor: colors.background,
-          borderTopColor: "rgba(255, 255, 255, 0.1)",
-          borderTopWidth: 1,
+          borderTopColor: colors.active,
+          borderTopWidth: 2,
+          shadowColor: colors.active,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 10,
         },
+        tabBarItemStyle: {
+          paddingVertical: 4,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
+        tabBarActiveTintColor: colors.active,
+        tabBarInactiveTintColor: colors.inactive,
         headerShown: false,
       })}
     >
       <Tab.Screen name="Twindex" component={HomeScreen} />
-      <Tab.Screen name="Twgames" component={PsychicGamesHub} />
+      <Tab.Screen name="Twgames" component={TwinGamesHub} />
       <Tab.Screen name="Twinalert" component={TwintuitionScreen} />
       <Tab.Screen name="Twintuition" component={TwintuitionScreen} />
       <Tab.Screen name="Twinbox" component={TwinTalkScreen} />
@@ -255,7 +371,7 @@ export const AppNavigator = () => {
             <Stack.Screen name="Main" component={TabNavigator} />
             <Stack.Screen name="TwinTalk" component={TwinTalkScreen} />
             <Stack.Screen name="Twintuition" component={TwintuitionScreen} />
-            <Stack.Screen name="Twingames" component={PsychicGamesHub} />
+            <Stack.Screen name="Twingames" component={TwinGamesHub} />
             <Stack.Screen name="Twinquiry" component={ResearchScreen} />
             <Stack.Screen name="Twinsettings" component={SettingsScreen} />
             {/* Story screens removed - functionality integrated into Twincidence Log */}
@@ -285,14 +401,14 @@ export const AppNavigator = () => {
             {/* Premium Screens */}
             <Stack.Screen 
               name="Premium" 
-              component={require('../screens/premium/PremiumDashboardScreen').PremiumDashboardScreen}
+              component={PremiumScreen}
             />
             <Stack.Screen 
               name="PremiumFeatures" 
-              component={require('../screens/premium/PremiumDashboardScreen').PremiumDashboardScreen}
+              component={PremiumScreen}
             />
-            {/* Psychic Game Screens */}
-            <Stack.Screen name="PsychicGamesHub" component={PsychicGamesHub} />
+            {/* Twin Connection Game Screens */}
+            <Stack.Screen name="TwinGamesHub" component={TwinGamesHub} />
             <Stack.Screen name="CognitiveSyncMaze" component={CognitiveSyncMaze} />
             <Stack.Screen name="EmotionalResonanceMapping" component={EmotionalResonanceMapping} />
             <Stack.Screen name="IconicDuoMatcher" component={IconicDuoMatcher} />
@@ -306,7 +422,7 @@ export const AppNavigator = () => {
             <Stack.Screen name="ResearchParticipationScreen" component={ResearchParticipationScreen} />
             <Stack.Screen name="ResearchDashboardScreen" component={ResearchDashboardScreen} />
             {/* Missing route placeholders - redirect to proper screens */}
-            <Stack.Screen name="GameStats" component={PsychicGamesHub} />
+            <Stack.Screen name="GameStats" component={TwinGamesHub} />
             <Stack.Screen name="Home" component={TabNavigator} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Recommendations" component={AssessmentRecommendationsScreen} />
