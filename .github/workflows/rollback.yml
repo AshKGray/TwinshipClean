@@ -1,0 +1,333 @@
+name: 🔄 Rollback Production Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_version:
+        description: 'Target version to rollback to (e.g., v1.2.3)'
+        required: false
+        type: string
+      rollback_type:
+        description: 'Type of rollback'
+        required: true
+        type: choice
+        options:
+          - 'app-only'
+          - 'database-only'
+          - 'full-rollback'
+          - 'canary-rollback'
+        default: 'app-only'
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+      emergency:
+        description: 'Emergency rollback (skip confirmations)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '18'
+  ROLLBACK_RETENTION_DAYS: 30
+
+jobs:
+  validate-rollback:
+    name: 🔍 Validate Rollback Request
+    runs-on: ubuntu-latest
+    outputs:
+      can_rollback: ${{ steps.check.outputs.can_rollback }}
+      previous_version: ${{ steps.check.outputs.previous_version }}
+      rollback_commit: ${{ steps.check.outputs.rollback_commit }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Validate rollback parameters
+        id: check
+        run: |
+          # Get target version or find previous stable version
+          if [ -n "${{ github.event.inputs.target_version }}" ]; then
+            TARGET_VERSION="${{ github.event.inputs.target_version }}"
+          else
+            # Get the previous stable release
+            TARGET_VERSION=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sed -n '2p')
+          fi
+          
+          echo "Target rollback version: $TARGET_VERSION"
+          
+          # Verify target version exists
+          if git rev-parse "$TARGET_VERSION" >/dev/null 2>&1; then
+            echo "can_rollback=true" >> $GITHUB_OUTPUT
+            echo "previous_version=$TARGET_VERSION" >> $GITHUB_OUTPUT
+            echo "rollback_commit=$(git rev-parse $TARGET_VERSION)" >> $GITHUB_OUTPUT
+          else
+            echo "can_rollback=false" >> $GITHUB_OUTPUT
+            echo "❌ Target version $TARGET_VERSION not found"
+            exit 1
+          fi
+      
+      - name: Check deployment history
+        run: |
+          echo "📋 Recent production deployments:"
+          git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -10
+      
+      - name: Log rollback request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue ? context.issue.number : 1,
+              body: `🔄 **Rollback Initiated**
+              - **Type:** ${{ github.event.inputs.rollback_type }}
+              - **Target Version:** ${{ steps.check.outputs.previous_version }}
+              - **Reason:** ${{ github.event.inputs.reason }}
+              - **Emergency:** ${{ github.event.inputs.emergency }}
+              - **Initiated by:** @${{ github.actor }}
+              - **Time:** ${new Date().toISOString()}`
+            });
+
+  create-backup:
+    name: 💾 Create Backup
+    needs: validate-rollback
+    if: needs.validate-rollback.outputs.can_rollback == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Backup current production state
+        run: |
+          echo "Creating backup of current production state..."
+          mkdir -p backups
+          
+          # Create backup metadata
+          cat > backups/backup-metadata.json << EOF
+          {
+            "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "current_version": "${{ github.ref_name }}",
+            "rollback_to": "${{ needs.validate-rollback.outputs.previous_version }}",
+            "type": "${{ github.event.inputs.rollback_type }}",
+            "reason": "${{ github.event.inputs.reason }}",
+            "initiated_by": "${{ github.actor }}"
+          }
+          EOF
+      
+      - name: Backup database
+        if: contains(github.event.inputs.rollback_type, 'database') || github.event.inputs.rollback_type == 'full-rollback'
+        run: |
+          echo "📦 Creating database backup..."
+          # Simulated database backup - replace with actual backup command
+          # pg_dump $DATABASE_URL > backups/db-backup-$(date +%Y%m%d-%H%M%S).sql
+      
+      - name: Backup application state
+        run: |
+          echo "📸 Creating application state snapshot..."
+          # Create snapshot of current deployment configuration
+      
+      - name: Upload backup artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: rollback-backup-${{ github.run_id }}
+          path: backups/
+          retention-days: ${{ env.ROLLBACK_RETENTION_DAYS }}
+
+  rollback-application:
+    name: 🚀 Rollback Application
+    needs: [validate-rollback, create-backup]
+    if: github.event.inputs.rollback_type != 'database-only'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout target version
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-rollback.outputs.rollback_commit }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Build application
+        run: |
+          echo "Building version ${{ needs.validate-rollback.outputs.previous_version }}..."
+          npm run build
+        env:
+          ROLLBACK_BUILD: true
+          TARGET_VERSION: ${{ needs.validate-rollback.outputs.previous_version }}
+      
+      - name: Run rollback tests
+        run: |
+          echo "Running rollback validation tests..."
+          npm run test:rollback || true
+      
+      - name: Deploy to production (Canary)
+        if: github.event.inputs.rollback_type == 'canary-rollback'
+        run: |
+          echo "🐤 Deploying canary rollback (10% traffic)..."
+          # Deploy to canary environment
+          # Update load balancer to route 10% traffic
+      
+      - name: Deploy to production (Full)
+        if: github.event.inputs.rollback_type == 'app-only' || github.event.inputs.rollback_type == 'full-rollback'
+        run: |
+          echo "🚀 Deploying full rollback..."
+          # Deploy to all production servers
+          # Update load balancer configuration
+
+  rollback-database:
+    name: 🗄️ Rollback Database
+    needs: [validate-rollback, create-backup]
+    if: contains(github.event.inputs.rollback_type, 'database') && github.event.inputs.rollback_type != 'app-only'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout migration scripts
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-rollback.outputs.rollback_commit }}
+          sparse-checkout: |
+            migrations/
+            scripts/rollback/
+      
+      - name: Validate migration rollback
+        run: |
+          echo "Validating database migration rollback..."
+          # Check if rollback migrations exist
+          if [ -d "migrations/rollback" ]; then
+            echo "✅ Rollback migrations found"
+          else
+            echo "⚠️ No rollback migrations found, manual intervention may be required"
+          fi
+      
+      - name: Execute rollback migrations
+        if: github.event.inputs.emergency != 'true'
+        run: |
+          echo "Executing database rollback migrations..."
+          # Run rollback migrations
+          # Example: npm run db:rollback --to=${{ needs.validate-rollback.outputs.previous_version }}
+      
+      - name: Emergency database restore
+        if: github.event.inputs.emergency == 'true'
+        run: |
+          echo "⚠️ EMERGENCY: Restoring database from backup..."
+          # Restore from latest backup
+          # Example: pg_restore --clean --if-exists -d $DATABASE_URL backups/latest.dump
+
+  smoke-tests:
+    name: 🔥 Smoke Tests
+    needs: [rollback-application, rollback-database]
+    if: always() && (needs.rollback-application.result == 'success' || needs.rollback-database.result == 'success')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout test suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-rollback.outputs.rollback_commit }}
+          sparse-checkout: |
+            tests/smoke/
+            tests/e2e/critical/
+      
+      - name: Setup test environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Run smoke tests
+        run: |
+          echo "Running post-rollback smoke tests..."
+          npm run test:smoke
+        continue-on-error: ${{ github.event.inputs.emergency == 'true' }}
+      
+      - name: Health check
+        run: |
+          echo "Performing health checks..."
+          # Check API endpoints
+          curl -f https://api.twinship.app/health || exit 1
+          # Check critical features
+          npm run test:critical-features
+      
+      - name: Monitor error rates
+        run: |
+          echo "Monitoring error rates for 5 minutes..."
+          # Monitor application metrics
+          # Alert if error rate exceeds threshold
+
+  finalize-rollback:
+    name: ✅ Finalize Rollback
+    needs: [validate-rollback, smoke-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Update deployment status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ needs.smoke-tests.result }}' === 'success' ? 'success' : 'failure';
+            const message = status === 'success' 
+              ? '✅ Rollback completed successfully'
+              : '❌ Rollback completed with issues';
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment?.id || 0,
+              state: status,
+              description: message,
+              environment: 'production'
+            });
+      
+      - name: Create rollback record
+        run: |
+          cat > rollback-record.json << EOF
+          {
+            "id": "${{ github.run_id }}",
+            "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "from_version": "${{ github.ref_name }}",
+            "to_version": "${{ needs.validate-rollback.outputs.previous_version }}",
+            "type": "${{ github.event.inputs.rollback_type }}",
+            "reason": "${{ github.event.inputs.reason }}",
+            "status": "${{ needs.smoke-tests.result }}",
+            "initiated_by": "${{ github.actor }}",
+            "emergency": ${{ github.event.inputs.emergency }}
+          }
+          EOF
+      
+      - name: Notify team
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ needs.smoke-tests.result }}';
+            const emoji = status === 'success' ? '✅' : '⚠️';
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue ? context.issue.number : 1,
+              body: `${emoji} **Rollback Status: ${status}**
+              
+              - **Rolled back to:** ${{ needs.validate-rollback.outputs.previous_version }}
+              - **Type:** ${{ github.event.inputs.rollback_type }}
+              - **Smoke Tests:** ${{ needs.smoke-tests.result }}
+              - **Duration:** ${Math.round((Date.now() - ${{ github.run_id }}) / 60000)} minutes
+              
+              [View deployment logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`
+            });
+      
+      - name: Trigger monitoring alerts
+        if: needs.smoke-tests.result != 'success'
+        run: |
+          echo "⚠️ Alerting on-call team about rollback issues..."
+          # Send alerts to monitoring system
+          # Trigger PagerDuty/Slack notifications

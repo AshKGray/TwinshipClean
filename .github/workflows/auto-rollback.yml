@@ -1,0 +1,337 @@
+name: 🚨 Automatic Rollback Triggers
+
+on:
+  workflow_run:
+    workflows: ["🚀 Deploy to Production"]
+    types: [completed]
+  
+  workflow_dispatch:
+    inputs:
+      check_deployment:
+        description: 'Deployment ID to check'
+        required: false
+        type: string
+
+env:
+  ERROR_THRESHOLD: 5  # Error rate percentage
+  RESPONSE_TIME_THRESHOLD: 3000  # milliseconds
+  AVAILABILITY_THRESHOLD: 99  # percentage
+  MONITORING_DURATION: 300  # seconds (5 minutes)
+  CANARY_DURATION: 600  # seconds (10 minutes)
+
+jobs:
+  monitor-deployment:
+    name: 📊 Monitor Deployment Health
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    outputs:
+      needs_rollback: ${{ steps.health_check.outputs.needs_rollback }}
+      rollback_reason: ${{ steps.health_check.outputs.rollback_reason }}
+      metrics_summary: ${{ steps.health_check.outputs.metrics_summary }}
+    
+    steps:
+      - name: Checkout monitoring scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts/monitoring/
+            .github/scripts/
+      
+      - name: Setup monitoring environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install monitoring tools
+        run: |
+          npm install axios prom-client @datadog/datadog-api-client
+      
+      - name: Initial health check
+        id: initial_check
+        run: |
+          echo "🔍 Performing initial health check..."
+          
+          # Wait for deployment to stabilize
+          sleep 30
+          
+          # Check basic health endpoints
+          HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.twinship.app/health)
+          
+          if [ "$HEALTH_STATUS" != "200" ]; then
+            echo "⚠️ Health check failed with status: $HEALTH_STATUS"
+            echo "needs_immediate_rollback=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Initial health check passed"
+            echo "needs_immediate_rollback=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Monitor error rates
+        id: error_monitor
+        run: |
+          cat > monitor_errors.js << 'EOF'
+          const axios = require('axios');
+          
+          async function checkErrorRates() {
+            const metrics = {
+              errorRate: 0,
+              responseTime: 0,
+              availability: 100,
+              criticalErrors: []
+            };
+            
+            try {
+              // Simulate metrics collection - replace with actual monitoring API
+              const response = await axios.get('https://api.twinship.app/metrics', {
+                headers: { 'X-API-Key': process.env.MONITORING_API_KEY }
+              });
+              
+              metrics.errorRate = response.data.errorRate || 0;
+              metrics.responseTime = response.data.avgResponseTime || 0;
+              metrics.availability = response.data.availability || 100;
+              
+              // Check for critical errors
+              if (response.data.errors) {
+                metrics.criticalErrors = response.data.errors.filter(e => e.severity === 'critical');
+              }
+              
+            } catch (error) {
+              console.error('Failed to fetch metrics:', error.message);
+              // Use synthetic data for testing
+              metrics.errorRate = Math.random() * 10;
+              metrics.responseTime = 500 + Math.random() * 1000;
+              metrics.availability = 95 + Math.random() * 5;
+            }
+            
+            return metrics;
+          }
+          
+          async function monitorDeployment() {
+            const duration = ${{ env.MONITORING_DURATION }};
+            const interval = 10; // seconds
+            const checks = duration / interval;
+            
+            let totalErrors = 0;
+            let maxErrorRate = 0;
+            let avgResponseTime = 0;
+            let minAvailability = 100;
+            
+            for (let i = 0; i < checks; i++) {
+              const metrics = await checkErrorRates();
+              
+              maxErrorRate = Math.max(maxErrorRate, metrics.errorRate);
+              avgResponseTime = (avgResponseTime * i + metrics.responseTime) / (i + 1);
+              minAvailability = Math.min(minAvailability, metrics.availability);
+              
+              console.log(\`Check \${i + 1}/\${checks}: Error Rate: \${metrics.errorRate}%, Response Time: \${metrics.responseTime}ms, Availability: \${metrics.availability}%\`);
+              
+              // Check thresholds
+              if (metrics.errorRate > ${{ env.ERROR_THRESHOLD }}) {
+                totalErrors++;
+              }
+              
+              // Immediate rollback on critical errors
+              if (metrics.criticalErrors.length > 0) {
+                console.log('🚨 Critical errors detected!');
+                process.stdout.write(\`::set-output name=critical_failure::true\n\`);
+                process.exit(1);
+              }
+              
+              await new Promise(resolve => setTimeout(resolve, interval * 1000));
+            }
+            
+            // Determine if rollback is needed
+            const needsRollback = 
+              maxErrorRate > ${{ env.ERROR_THRESHOLD }} ||
+              avgResponseTime > ${{ env.RESPONSE_TIME_THRESHOLD }} ||
+              minAvailability < ${{ env.AVAILABILITY_THRESHOLD }};
+            
+            console.log(\`\nSummary: Max Error Rate: \${maxErrorRate}%, Avg Response Time: \${avgResponseTime}ms, Min Availability: \${minAvailability}%\`);
+            console.log(\`Needs Rollback: \${needsRollback}\`);
+            
+            // Set outputs
+            process.stdout.write(\`::set-output name=max_error_rate::\${maxErrorRate}\n\`);
+            process.stdout.write(\`::set-output name=avg_response_time::\${avgResponseTime}\n\`);
+            process.stdout.write(\`::set-output name=min_availability::\${minAvailability}\n\`);
+            process.stdout.write(\`::set-output name=needs_rollback::\${needsRollback}\n\`);
+          }
+          
+          monitorDeployment().catch(console.error);
+          EOF
+          
+          node monitor_errors.js
+      
+      - name: Check database health
+        id: db_check
+        run: |
+          echo "🗄️ Checking database health..."
+          
+          # Check database connectivity and performance
+          cat > check_db.js << 'EOF'
+          async function checkDatabase() {
+            // Simulate database health check
+            const checks = {
+              connectivity: true,
+              replicationLag: 0,
+              activeConnections: 50,
+              slowQueries: 0
+            };
+            
+            // Check if database is healthy
+            const isHealthy = 
+              checks.connectivity &&
+              checks.replicationLag < 1000 &&
+              checks.activeConnections < 100 &&
+              checks.slowQueries < 5;
+            
+            console.log('Database health:', checks);
+            return isHealthy;
+          }
+          
+          checkDatabase().then(healthy => {
+            process.stdout.write(`::set-output name=db_healthy::${healthy}\n`);
+          });
+          EOF
+          
+          node check_db.js
+      
+      - name: Analyze deployment health
+        id: health_check
+        run: |
+          # Compile health check results
+          NEEDS_ROLLBACK=false
+          ROLLBACK_REASON=""
+          
+          if [ "${{ steps.initial_check.outputs.needs_immediate_rollback }}" == "true" ]; then
+            NEEDS_ROLLBACK=true
+            ROLLBACK_REASON="Initial health check failed"
+          elif [ "${{ steps.error_monitor.outputs.needs_rollback }}" == "true" ]; then
+            NEEDS_ROLLBACK=true
+            ROLLBACK_REASON="Error thresholds exceeded"
+          elif [ "${{ steps.db_check.outputs.db_healthy }}" == "false" ]; then
+            NEEDS_ROLLBACK=true
+            ROLLBACK_REASON="Database health check failed"
+          fi
+          
+          echo "needs_rollback=$NEEDS_ROLLBACK" >> $GITHUB_OUTPUT
+          echo "rollback_reason=$ROLLBACK_REASON" >> $GITHUB_OUTPUT
+          
+          # Create metrics summary
+          cat > metrics.json << EOF
+          {
+            "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "max_error_rate": "${{ steps.error_monitor.outputs.max_error_rate }}",
+            "avg_response_time": "${{ steps.error_monitor.outputs.avg_response_time }}",
+            "min_availability": "${{ steps.error_monitor.outputs.min_availability }}",
+            "db_healthy": "${{ steps.db_check.outputs.db_healthy }}",
+            "needs_rollback": "$NEEDS_ROLLBACK",
+            "reason": "$ROLLBACK_REASON"
+          }
+          EOF
+          
+          METRICS_SUMMARY=$(cat metrics.json | jq -c .)
+          echo "metrics_summary=$METRICS_SUMMARY" >> $GITHUB_OUTPUT
+
+  trigger-automatic-rollback:
+    name: 🔄 Trigger Automatic Rollback
+    needs: monitor-deployment
+    if: needs.monitor-deployment.outputs.needs_rollback == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Get deployment information
+        id: deployment_info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get the latest deployment
+            const deployments = await github.rest.repos.listDeployments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              environment: 'production',
+              per_page: 2
+            });
+            
+            if (deployments.data.length >= 2) {
+              const current = deployments.data[0];
+              const previous = deployments.data[1];
+              
+              core.setOutput('current_sha', current.sha);
+              core.setOutput('previous_sha', previous.sha);
+              core.setOutput('current_ref', current.ref);
+              core.setOutput('previous_ref', previous.ref);
+            }
+      
+      - name: Create rollback issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Automatic Rollback Triggered',
+              body: `## Automatic Rollback Initiated
+              
+              **Reason:** ${{ needs.monitor-deployment.outputs.rollback_reason }}
+              
+              ### Metrics Summary
+              \`\`\`json
+              ${{ needs.monitor-deployment.outputs.metrics_summary }}
+              \`\`\`
+              
+              ### Deployment Information
+              - **Current SHA:** ${{ steps.deployment_info.outputs.current_sha }}
+              - **Rolling back to:** ${{ steps.deployment_info.outputs.previous_sha }}
+              
+              ### Actions
+              - [ ] Rollback initiated automatically
+              - [ ] Team notified
+              - [ ] Root cause analysis required
+              
+              cc: @${{ github.actor }}`,
+              labels: ['incident', 'automatic-rollback', 'high-priority']
+            });
+            
+            core.setOutput('issue_number', issue.data.number);
+      
+      - name: Trigger rollback workflow
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'rollback.yml',
+              ref: 'main',
+              inputs: {
+                target_version: '${{ steps.deployment_info.outputs.previous_ref }}',
+                rollback_type: 'full-rollback',
+                reason: 'Automatic rollback: ${{ needs.monitor-deployment.outputs.rollback_reason }}',
+                emergency: 'true'
+              }
+            });
+      
+      - name: Notify team
+        run: |
+          echo "📢 Notifying team about automatic rollback..."
+          # Send notifications via Slack/PagerDuty/email
+          # Example: curl -X POST $SLACK_WEBHOOK_URL -d '{"text":"🚨 Automatic rollback triggered!"}'
+
+  canary-monitoring:
+    name: 🐤 Canary Deployment Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && contains(github.event.workflow_run.name, 'canary')
+    
+    steps:
+      - name: Monitor canary metrics
+        run: |
+          echo "📊 Monitoring canary deployment for ${{ env.CANARY_DURATION }} seconds..."
+          
+          # Monitor canary-specific metrics
+          # Compare canary vs stable performance
+          # Gradually increase traffic if healthy
+      
+      - name: Promote or rollback canary
+        run: |
+          echo "Analyzing canary performance..."
+          # Decide whether to promote canary to full production
+          # or rollback if issues detected

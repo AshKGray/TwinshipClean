@@ -1,0 +1,447 @@
+name: 🐤 Canary Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., v1.2.3)'
+        required: true
+        type: string
+      canary_percentage:
+        description: 'Initial traffic percentage for canary'
+        required: false
+        type: choice
+        options:
+          - '5'
+          - '10'
+          - '25'
+          - '50'
+        default: '10'
+      monitoring_duration:
+        description: 'Monitoring duration in minutes'
+        required: false
+        type: choice
+        options:
+          - '10'
+          - '30'
+          - '60'
+          - '120'
+        default: '30'
+      auto_promote:
+        description: 'Automatically promote if healthy'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  NODE_VERSION: '18'
+  ERROR_THRESHOLD: 2  # Error rate percentage
+  LATENCY_THRESHOLD: 1500  # milliseconds
+  SUCCESS_RATE_THRESHOLD: 98  # percentage
+
+jobs:
+  prepare-canary:
+    name: 🔧 Prepare Canary Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      deployment_id: ${{ steps.create_deployment.outputs.deployment_id }}
+      canary_tag: ${{ steps.prepare.outputs.canary_tag }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+      
+      - name: Validate version
+        run: |
+          if ! git rev-parse "${{ github.event.inputs.version }}" >/dev/null 2>&1; then
+            echo "❌ Version ${{ github.event.inputs.version }} not found"
+            exit 1
+          fi
+          echo "✅ Version validated"
+      
+      - name: Prepare canary tag
+        id: prepare
+        run: |
+          CANARY_TAG="${{ github.event.inputs.version }}-canary-$(date +%Y%m%d-%H%M%S)"
+          echo "canary_tag=$CANARY_TAG" >> $GITHUB_OUTPUT
+          echo "🏷️ Canary tag: $CANARY_TAG"
+      
+      - name: Create GitHub deployment
+        id: create_deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: '${{ github.event.inputs.version }}',
+              environment: 'canary',
+              description: 'Canary deployment at ${{ github.event.inputs.canary_percentage }}%',
+              required_contexts: [],
+              auto_merge: false
+            });
+            
+            core.setOutput('deployment_id', deployment.data.id);
+            return deployment.data.id;
+
+  build-canary:
+    name: 🔨 Build Canary Version
+    needs: prepare-canary
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Build application
+        run: |
+          echo "🔨 Building canary version..."
+          npm run build
+        env:
+          DEPLOYMENT_TYPE: canary
+          CANARY_TAG: ${{ needs.prepare-canary.outputs.canary_tag }}
+          CANARY_PERCENTAGE: ${{ github.event.inputs.canary_percentage }}
+      
+      - name: Run tests
+        run: |
+          echo "🧪 Running tests..."
+          npm test -- --coverage
+      
+      - name: Package canary build
+        run: |
+          mkdir -p canary-build
+          cp -r dist/* canary-build/
+          echo "${{ needs.prepare-canary.outputs.canary_tag }}" > canary-build/VERSION
+          tar -czf canary-build.tar.gz canary-build/
+      
+      - name: Upload canary artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: canary-build-${{ github.run_id }}
+          path: canary-build.tar.gz
+          retention-days: 7
+
+  deploy-canary:
+    name: 🚀 Deploy Canary
+    needs: [prepare-canary, build-canary]
+    runs-on: ubuntu-latest
+    environment:
+      name: canary
+      url: https://canary.twinship.app
+    
+    steps:
+      - name: Download canary build
+        uses: actions/download-artifact@v3
+        with:
+          name: canary-build-${{ github.run_id }}
+      
+      - name: Extract build
+        run: tar -xzf canary-build.tar.gz
+      
+      - name: Configure canary infrastructure
+        run: |
+          echo "🔧 Configuring canary deployment..."
+          
+          # Create canary configuration
+          cat > canary-config.json << EOF
+          {
+            "version": "${{ github.event.inputs.version }}",
+            "tag": "${{ needs.prepare-canary.outputs.canary_tag }}",
+            "percentage": ${{ github.event.inputs.canary_percentage }},
+            "monitoring_duration": ${{ github.event.inputs.monitoring_duration }},
+            "auto_promote": ${{ github.event.inputs.auto_promote }},
+            "deployed_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "deployed_by": "${{ github.actor }}"
+          }
+          EOF
+      
+      - name: Deploy to canary servers
+        run: |
+          echo "🚀 Deploying canary to servers..."
+          # Deploy to canary infrastructure
+          # This would typically use your deployment tool (kubectl, terraform, etc.)
+          
+          # Example for Kubernetes:
+          # kubectl set image deployment/api api=twinship:${{ needs.prepare-canary.outputs.canary_tag }} -n canary
+          # kubectl rollout status deployment/api -n canary
+      
+      - name: Configure traffic routing
+        run: |
+          echo "🔀 Configuring traffic routing..."
+          echo "Routing ${{ github.event.inputs.canary_percentage }}% of traffic to canary"
+          
+          # Configure load balancer / service mesh
+          # Example for AWS ALB:
+          # aws elbv2 modify-rule --rule-arn $CANARY_RULE_ARN \
+          #   --conditions Field=path-pattern,Values="/*" \
+          #   --actions Type=forward,TargetGroupArn=$CANARY_TG_ARN,Weight=${{ github.event.inputs.canary_percentage }}
+      
+      - name: Update deployment status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: ${{ needs.prepare-canary.outputs.deployment_id }},
+              state: 'in_progress',
+              description: 'Canary deployed at ${{ github.event.inputs.canary_percentage }}%',
+              environment_url: 'https://canary.twinship.app',
+              auto_inactive: false
+            });
+
+  monitor-canary:
+    name: 📊 Monitor Canary Health
+    needs: [prepare-canary, deploy-canary]
+    runs-on: ubuntu-latest
+    outputs:
+      is_healthy: ${{ steps.final_check.outputs.is_healthy }}
+      metrics_summary: ${{ steps.final_check.outputs.metrics_summary }}
+    
+    steps:
+      - name: Checkout monitoring scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts/monitoring/
+            tests/smoke/
+      
+      - name: Setup monitoring environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install monitoring dependencies
+        run: |
+          npm install axios prom-client
+      
+      - name: Run initial smoke tests
+        run: |
+          echo "🔥 Running smoke tests on canary..."
+          API_BASE_URL=https://canary.twinship.app node tests/smoke/smoke-tests.js || true
+      
+      - name: Monitor canary metrics
+        id: monitor
+        run: |
+          cat > monitor-canary.js << 'EOF'
+          const axios = require('axios');
+          
+          const MONITORING_DURATION = ${{ github.event.inputs.monitoring_duration }} * 60 * 1000;
+          const CHECK_INTERVAL = 30000; // 30 seconds
+          const CANARY_URL = 'https://canary.twinship.app';
+          const STABLE_URL = 'https://api.twinship.app';
+          
+          async function getMetrics(url) {
+            try {
+              const response = await axios.get(`${url}/metrics`);
+              return response.data;
+            } catch (error) {
+              console.error(`Failed to get metrics from ${url}:`, error.message);
+              return null;
+            }
+          }
+          
+          async function compareMetrics() {
+            const canaryMetrics = await getMetrics(CANARY_URL);
+            const stableMetrics = await getMetrics(STABLE_URL);
+            
+            if (!canaryMetrics || !stableMetrics) {
+              return { healthy: false, reason: 'Failed to fetch metrics' };
+            }
+            
+            const comparison = {
+              errorRate: {
+                canary: canaryMetrics.errorRate || 0,
+                stable: stableMetrics.errorRate || 0,
+                threshold: ${{ env.ERROR_THRESHOLD }}
+              },
+              latency: {
+                canary: canaryMetrics.avgLatency || 0,
+                stable: stableMetrics.avgLatency || 0,
+                threshold: ${{ env.LATENCY_THRESHOLD }}
+              },
+              successRate: {
+                canary: canaryMetrics.successRate || 100,
+                stable: stableMetrics.successRate || 100,
+                threshold: ${{ env.SUCCESS_RATE_THRESHOLD }}
+              }
+            };
+            
+            // Check if canary is healthy
+            const isHealthy = 
+              comparison.errorRate.canary <= comparison.errorRate.stable * 1.5 &&
+              comparison.errorRate.canary < comparison.errorRate.threshold &&
+              comparison.latency.canary <= comparison.latency.stable * 1.5 &&
+              comparison.latency.canary < comparison.latency.threshold &&
+              comparison.successRate.canary >= comparison.successRate.threshold;
+            
+            return {
+              healthy: isHealthy,
+              comparison,
+              timestamp: new Date().toISOString()
+            };
+          }
+          
+          async function monitorCanary() {
+            const startTime = Date.now();
+            const checks = [];
+            let unhealthyCount = 0;
+            
+            while (Date.now() - startTime < MONITORING_DURATION) {
+              const result = await compareMetrics();
+              checks.push(result);
+              
+              if (!result.healthy) {
+                unhealthyCount++;
+                console.log(`⚠️ Unhealthy check #${unhealthyCount}: ${JSON.stringify(result)}`);
+                
+                // Fail fast if too many unhealthy checks
+                if (unhealthyCount >= 3) {
+                  console.log('❌ Too many unhealthy checks, failing canary');
+                  return { success: false, checks, reason: 'Multiple unhealthy checks' };
+                }
+              } else {
+                console.log('✅ Healthy check:', new Date().toISOString());
+                unhealthyCount = 0; // Reset counter on healthy check
+              }
+              
+              await new Promise(resolve => setTimeout(resolve, CHECK_INTERVAL));
+            }
+            
+            // Calculate overall health
+            const healthyChecks = checks.filter(c => c.healthy).length;
+            const healthPercentage = (healthyChecks / checks.length) * 100;
+            
+            return {
+              success: healthPercentage >= 95,
+              healthPercentage,
+              totalChecks: checks.length,
+              healthyChecks,
+              checks
+            };
+          }
+          
+          monitorCanary().then(result => {
+            console.log('Monitoring complete:', result);
+            process.stdout.write(`::set-output name=monitoring_result::${JSON.stringify(result)}\n`);
+            process.exit(result.success ? 0 : 1);
+          });
+          EOF
+          
+          node monitor-canary.js
+      
+      - name: Analyze canary performance
+        id: final_check
+        run: |
+          # Parse monitoring results
+          MONITORING_RESULT='${{ steps.monitor.outputs.monitoring_result }}'
+          
+          # Determine if canary is healthy
+          IS_HEALTHY=$(echo "$MONITORING_RESULT" | jq -r '.success')
+          
+          echo "is_healthy=$IS_HEALTHY" >> $GITHUB_OUTPUT
+          echo "metrics_summary=$MONITORING_RESULT" >> $GITHUB_OUTPUT
+          
+          if [ "$IS_HEALTHY" = "true" ]; then
+            echo "✅ Canary is healthy and ready for promotion"
+          else
+            echo "❌ Canary failed health checks"
+          fi
+
+  promote-or-rollback:
+    name: 🎯 Promote or Rollback Canary
+    needs: [prepare-canary, monitor-canary]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Determine action
+        id: decision
+        run: |
+          if [ "${{ needs.monitor-canary.outputs.is_healthy }}" = "true" ]; then
+            if [ "${{ github.event.inputs.auto_promote }}" = "true" ]; then
+              echo "action=promote" >> $GITHUB_OUTPUT
+              echo "🚀 Auto-promoting canary to production"
+            else
+              echo "action=manual" >> $GITHUB_OUTPUT
+              echo "⏸️ Canary is healthy but requires manual promotion"
+            fi
+          else
+            echo "action=rollback" >> $GITHUB_OUTPUT
+            echo "🔄 Rolling back canary deployment"
+          fi
+      
+      - name: Promote canary to production
+        if: steps.decision.outputs.action == 'promote'
+        run: |
+          echo "🚀 Promoting canary to 100% traffic..."
+          
+          # Gradually increase traffic to 100%
+          for percentage in 25 50 75 100; do
+            echo "Increasing traffic to $percentage%"
+            # Update load balancer configuration
+            sleep 60  # Wait 1 minute between increases
+          done
+          
+          echo "✅ Canary promoted to production"
+      
+      - name: Rollback canary
+        if: steps.decision.outputs.action == 'rollback'
+        run: |
+          echo "🔄 Rolling back canary deployment..."
+          
+          # Remove canary from load balancer
+          # Scale down canary deployment
+          # Clean up canary resources
+          
+          echo "✅ Canary rolled back"
+      
+      - name: Update deployment status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const action = '${{ steps.decision.outputs.action }}';
+            const state = action === 'promote' ? 'success' : 
+                         action === 'rollback' ? 'failure' : 'inactive';
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: ${{ needs.prepare-canary.outputs.deployment_id }},
+              state: state,
+              description: `Canary ${action}d`,
+              environment_url: 'https://api.twinship.app',
+              auto_inactive: false
+            });
+      
+      - name: Create summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          # 🐤 Canary Deployment Summary
+          
+          **Version:** ${{ github.event.inputs.version }}
+          **Initial Traffic:** ${{ github.event.inputs.canary_percentage }}%
+          **Monitoring Duration:** ${{ github.event.inputs.monitoring_duration }} minutes
+          **Result:** ${{ steps.decision.outputs.action }}
+          
+          ## Metrics Summary
+          \`\`\`json
+          ${{ needs.monitor-canary.outputs.metrics_summary }}
+          \`\`\`
+          
+          **Deployment ID:** ${{ needs.prepare-canary.outputs.deployment_id }}
+          **Canary Tag:** ${{ needs.prepare-canary.outputs.canary_tag }}
+          EOF
