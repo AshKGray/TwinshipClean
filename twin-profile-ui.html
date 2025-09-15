@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twin Profile - Twinship</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Cosmic Background */
+        .cosmic-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(147, 51, 234, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 50%, #16213e 100%);
+            z-index: -2;
+        }
+
+        .stars {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.6), transparent),
+                radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: twinkle 3s ease-in-out infinite alternate;
+            z-index: -1;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 414px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 10px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .settings-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 10px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .settings-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Profile Section */
+        .profile-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 8px 35px rgba(102, 126, 234, 0.5), 0 0 20px rgba(147, 51, 234, 0.3); }
+        }
+
+        .connection-indicator {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            border: 3px solid #0a0a0f;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .profile-name {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .profile-subtitle {
+            font-size: 16px;
+            color: #9ca3af;
+            margin-bottom: 20px;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .status-icon {
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #10b981;
+        }
+
+        .twin-info {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .twin-name {
+            font-size: 16px;
+            color: #e5e7eb;
+            margin-bottom: 5px;
+        }
+
+        .connection-strength {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        /* Progress Bars */
+        .progress-section {
+            margin-bottom: 30px;
+        }
+
+        .progress-item {
+            margin-bottom: 20px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .progress-label {
+            font-size: 14px;
+            color: #e5e7eb;
+            font-weight: 500;
+        }
+
+        .progress-value {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        /* Recent Activities */
+        .activities-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .activity-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .activity-title {
+            font-size: 16px;
+            color: #ffffff;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .activity-icon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 16px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: none;
+        }
+
+        .action-button.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            .avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+
+            .profile-name {
+                font-size: 24px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+            }
+
+            .stats-grid {
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+        }
+
+        /* Floating particles animation */
+        .particle {
+            position: absolute;
+            background: rgba(102, 126, 234, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0; }
+            50% { transform: translateY(-100px) rotate(180deg); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="cosmic-background"></div>
+    <div class="stars"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-button" onclick="goBack()">
+                ← Back
+            </button>
+            <div class="page-title">Twin Profile</div>
+            <button class="settings-button" onclick="openSettings()">
+                ⚙️
+            </button>
+        </div>
+
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <div class="avatar-container">
+                <div class="avatar">
+                    👤
+                </div>
+                <div class="connection-indicator"></div>
+            </div>
+            <div class="profile-name">Jordan Chen</div>
+            <div class="profile-subtitle">Twin Explorer • Level 5</div>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="connection-status">
+            <div class="status-header">
+                <div class="status-icon"></div>
+                <div class="status-text">Connected to Twin</div>
+            </div>
+            <div class="twin-info">
+                <div class="twin-name">Connected with Alex Chen</div>
+                <div class="connection-strength">Connection Strength: 94%</div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">24</div>
+                <div class="stat-label">Days Connected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">89%</div>
+                <div class="stat-label">Sync Level</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">156</div>
+                <div class="stat-label">Messages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">7</div>
+                <div class="stat-label">Games Played</div>
+            </div>
+        </div>
+
+        <!-- Progress Bars -->
+        <div class="progress-section">
+            <div class="progress-item">
+                <div class="progress-header">
+                    <div class="progress-label">Telepathic Bond</div>
+                    <div class="progress-value">85%</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 85%"></div>
+                </div>
+            </div>
+            <div class="progress-item">
+                <div class="progress-header">
+                    <div class="progress-label">Emotional Sync</div>
+                    <div class="progress-value">72%</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 72%"></div>
+                </div>
+            </div>
+            <div class="progress-item">
+                <div class="progress-header">
+                    <div class="progress-label">Communication Flow</div>
+                    <div class="progress-value">94%</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 94%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="activities-section">
+            <div class="section-title">Recent Activities</div>
+            <div class="activity-item">
+                <div class="activity-title">
+                    <span class="activity-icon"></span>
+                    Completed Color Sync Game
+                </div>
+                <div class="activity-time">2 hours ago</div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-title">
+                    <span class="activity-icon"></span>
+                    Shared a memory in TwinTalk
+                </div>
+                <div class="activity-time">5 hours ago</div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-title">
+                    <span class="activity-icon"></span>
+                    Achieved 90% sync level
+                </div>
+                <div class="activity-time">1 day ago</div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-title">
+                    <span class="activity-icon"></span>
+                    Participated in Twin Study
+                </div>
+                <div class="activity-time">3 days ago</div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="action-button" onclick="startChat()">
+                💬 Start Chat
+            </button>
+            <button class="action-button secondary" onclick="playGames()">
+                🎮 Play Games
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Animate progress bars on load
+        window.addEventListener('load', function() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+        });
+
+        // Create floating particles
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.width = Math.random() * 4 + 2 + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+            document.body.appendChild(particle);
+
+            setTimeout(() => {
+                particle.remove();
+            }, 6000);
+        }
+
+        // Create particles periodically
+        setInterval(createParticle, 2000);
+
+        // Button handlers
+        function goBack() {
+            console.log('Going back...');
+            // In a real app, this would navigate back
+            alert('Going back to previous screen');
+        }
+
+        function openSettings() {
+            console.log('Opening settings...');
+            alert('Opening settings screen');
+        }
+
+        function startChat() {
+            console.log('Starting chat...');
+            alert('Opening TwinTalk chat');
+        }
+
+        function playGames() {
+            console.log('Opening games...');
+            alert('Opening Psychic Games Hub');
+        }
+
+        // Add interactive hover effects
+        document.querySelectorAll('.stat-card, .activity-item').forEach(element => {
+            element.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px) scale(1.02)';
+            });
+
+            element.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add click ripple effect to buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple 0.6s ease-out;
+                    pointer-events: none;
+                `;
+
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // Add ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                0% { transform: scale(0); opacity: 1; }
+                100% { transform: scale(4); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Dynamic connection indicator
+        let connectionPulse = true;
+        setInterval(() => {
+            const indicator = document.querySelector('.connection-indicator');
+            if (connectionPulse) {
+                indicator.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            } else {
+                indicator.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+            }
+            connectionPulse = !connectionPulse;
+        }, 2000);
+
+        // Simulate real-time stats updates
+        function updateStats() {
+            const syncLevel = document.querySelector('.stats-grid .stat-card:nth-child(2) .stat-value');
+            const currentSync = parseInt(syncLevel.textContent);
+            const newSync = Math.min(100, currentSync + Math.floor(Math.random() * 2));
+
+            if (newSync !== currentSync) {
+                syncLevel.textContent = newSync + '%';
+
+                // Update progress bar too
+                const syncProgress = document.querySelector('.progress-item:nth-child(2) .progress-fill');
+                const syncProgressValue = document.querySelector('.progress-item:nth-child(2) .progress-value');
+                syncProgress.style.width = newSync + '%';
+                syncProgressValue.textContent = newSync + '%';
+            }
+        }
+
+        // Update stats every 30 seconds
+        setInterval(updateStats, 30000);
+    </script>
+</body>
+</html>

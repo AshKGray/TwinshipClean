@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twintuition Game - Twinship</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #0a0a23 0%, #1a0f2e 25%, #2d1b3d 50%, #1a0f2e 75%, #0a0a23 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            color: #ffffff;
+        }
+
+        /* Animated background stars */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: twinkle 2s ease-in-out infinite alternate;
+        }
+
+        .star:nth-child(odd) {
+            animation-duration: 3s;
+        }
+
+        .star:nth-child(even) {
+            animation-duration: 1.5s;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Particle effects */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border-radius: 50%;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+
+        /* Main container */
+        .game-container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .game-title {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 3s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #a0a0ff;
+            opacity: 0.8;
+        }
+
+        /* Score panel */
+        .score-panel {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.1);
+        }
+
+        .score-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: #a0a0ff;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .streak-value {
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        /* Game area */
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .game-mode {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.1);
+        }
+
+        .mode-title {
+            font-size: 18px;
+            color: #ffff00;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+        }
+
+        .instruction {
+            font-size: 14px;
+            color: #a0a0ff;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        /* Color selection game */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .color-option {
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-option::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 15px;
+            padding: 2px;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: subtract;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .color-option:hover::before {
+            opacity: 1;
+        }
+
+        .color-option.selected {
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            transform: scale(1.1);
+        }
+
+        .color-option.correct {
+            border-color: #00ff00;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.8);
+            animation: success-pulse 0.6s ease-in-out;
+        }
+
+        .color-option.incorrect {
+            border-color: #ff0000;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+            animation: error-shake 0.6s ease-in-out;
+        }
+
+        @keyframes success-pulse {
+            0%, 100% { transform: scale(1.1); }
+            50% { transform: scale(1.3); }
+        }
+
+        @keyframes error-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Number input game */
+        .number-input {
+            width: 120px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            color: #ffffff;
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .number-input:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .number-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Buttons */
+        .button {
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            border: none;
+            border-radius: 25px;
+            color: #ffffff;
+            font-family: 'Orbitron', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 15px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            margin: 5px;
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .button:hover::before {
+            left: 100%;
+        }
+
+        .button:hover {
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: linear-gradient(45deg, #ff00ff, #ff0080);
+        }
+
+        .button.secondary:hover {
+            box-shadow: 0 0 25px rgba(255, 0, 255, 0.5);
+        }
+
+        .button:disabled {
+            background: rgba(128, 128, 128, 0.3);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button:disabled:hover {
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Feedback messages */
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border: 2px solid;
+            border-radius: 20px;
+            padding: 20px 30px;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.8);
+            transition: all 0.3s ease;
+        }
+
+        .feedback.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .feedback.success {
+            border-color: #00ff00;
+            color: #00ff00;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+        }
+
+        .feedback.error {
+            border-color: #ff0000;
+            color: #ff0000;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+        }
+
+        /* Game controls */
+        .game-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Hidden elements */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 15px;
+            }
+
+            .game-title {
+                font-size: 24px;
+            }
+
+            .color-option {
+                width: 70px;
+                height: 70px;
+            }
+
+            .score-panel {
+                padding: 12px;
+            }
+
+            .score-value {
+                font-size: 18px;
+            }
+        }
+
+        /* Loading animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="stars" id="stars"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Main game container -->
+    <div class="game-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="game-title">Twintuition</h1>
+            <p class="subtitle">Feel the cosmic connection</p>
+        </div>
+
+        <!-- Score panel -->
+        <div class="score-panel">
+            <div class="score-item">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">Streak</div>
+                <div class="score-value streak-value" id="streak">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">Round</div>
+                <div class="score-value" id="round">1</div>
+            </div>
+        </div>
+
+        <!-- Game area -->
+        <div class="game-area">
+            <!-- Color guessing game -->
+            <div class="game-mode" id="colorGame">
+                <h2 class="mode-title">Color Telepathy</h2>
+                <p class="instruction">Your twin is thinking of a color. Feel the energy and select the right one.</p>
+
+                <div class="color-grid">
+                    <div class="color-option" style="background: linear-gradient(45deg, #ff0066, #ff3399);" data-color="pink"></div>
+                    <div class="color-option" style="background: linear-gradient(45deg, #0066ff, #3399ff);" data-color="blue"></div>
+                    <div class="color-option" style="background: linear-gradient(45deg, #66ff00, #99ff33);" data-color="green"></div>
+                    <div class="color-option" style="background: linear-gradient(45deg, #ffaa00, #ffcc33);" data-color="orange"></div>
+                </div>
+            </div>
+
+            <!-- Number guessing game -->
+            <div class="game-mode hidden" id="numberGame">
+                <h2 class="mode-title">Number Intuition</h2>
+                <p class="instruction">Your twin has chosen a number between 1-10. Trust your instincts.</p>
+
+                <input type="number" class="number-input" id="numberInput" placeholder="?" min="1" max="10">
+            </div>
+        </div>
+
+        <!-- Game controls -->
+        <div class="game-controls">
+            <div class="button-group">
+                <button class="button" id="startBtn">Start Game</button>
+                <button class="button hidden" id="submitBtn">Submit Guess</button>
+                <button class="button secondary hidden" id="nextBtn">Next Round</button>
+            </div>
+
+            <div class="button-group">
+                <button class="button secondary" id="switchGameBtn">Switch Mode</button>
+                <button class="button secondary" id="resetBtn">Reset Score</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback popup -->
+    <div class="feedback" id="feedback"></div>
+
+    <script>
+        // Game state
+        let gameState = {
+            score: 0,
+            streak: 0,
+            round: 1,
+            currentMode: 'color', // 'color' or 'number'
+            currentAnswer: null,
+            isPlaying: false,
+            selectedColor: null
+        };
+
+        // DOM elements
+        const elements = {
+            score: document.getElementById('score'),
+            streak: document.getElementById('streak'),
+            round: document.getElementById('round'),
+            colorGame: document.getElementById('colorGame'),
+            numberGame: document.getElementById('numberGame'),
+            numberInput: document.getElementById('numberInput'),
+            startBtn: document.getElementById('startBtn'),
+            submitBtn: document.getElementById('submitBtn'),
+            nextBtn: document.getElementById('nextBtn'),
+            switchGameBtn: document.getElementById('switchGameBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            feedback: document.getElementById('feedback'),
+            colorOptions: document.querySelectorAll('.color-option')
+        };
+
+        // Initialize background effects
+        function createStars() {
+            const stars = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = star.style.height = Math.random() * 3 + 1 + 'px';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                stars.appendChild(star);
+            }
+        }
+
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 4 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                particles.appendChild(particle);
+            }
+        }
+
+        // Game functions
+        function updateDisplay() {
+            elements.score.textContent = gameState.score;
+            elements.streak.textContent = gameState.streak;
+            elements.round.textContent = gameState.round;
+        }
+
+        function switchGameMode() {
+            gameState.currentMode = gameState.currentMode === 'color' ? 'number' : 'color';
+
+            if (gameState.currentMode === 'color') {
+                elements.colorGame.classList.remove('hidden');
+                elements.numberGame.classList.add('hidden');
+            } else {
+                elements.colorGame.classList.add('hidden');
+                elements.numberGame.classList.remove('hidden');
+            }
+
+            if (gameState.isPlaying) {
+                generateNewAnswer();
+            }
+        }
+
+        function generateNewAnswer() {
+            if (gameState.currentMode === 'color') {
+                const colors = ['pink', 'blue', 'green', 'orange'];
+                gameState.currentAnswer = colors[Math.floor(Math.random() * colors.length)];
+            } else {
+                gameState.currentAnswer = Math.floor(Math.random() * 10) + 1;
+            }
+
+            // Reset UI state
+            elements.colorOptions.forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+            elements.numberInput.value = '';
+            gameState.selectedColor = null;
+        }
+
+        function startGame() {
+            gameState.isPlaying = true;
+            elements.startBtn.classList.add('hidden');
+            elements.submitBtn.classList.remove('hidden');
+
+            generateNewAnswer();
+
+            // Add loading effect
+            if (gameState.currentMode === 'color') {
+                elements.colorGame.classList.add('loading');
+                setTimeout(() => {
+                    elements.colorGame.classList.remove('loading');
+                }, 1500);
+            } else {
+                elements.numberGame.classList.add('loading');
+                setTimeout(() => {
+                    elements.numberGame.classList.remove('loading');
+                    elements.numberInput.focus();
+                }, 1500);
+            }
+        }
+
+        function submitGuess() {
+            let userAnswer = null;
+            let isCorrect = false;
+
+            if (gameState.currentMode === 'color') {
+                userAnswer = gameState.selectedColor;
+                if (!userAnswer) {
+                    showFeedback('Please select a color!', 'error');
+                    return;
+                }
+            } else {
+                userAnswer = parseInt(elements.numberInput.value);
+                if (!userAnswer || userAnswer < 1 || userAnswer > 10) {
+                    showFeedback('Please enter a number between 1-10!', 'error');
+                    return;
+                }
+            }
+
+            isCorrect = userAnswer === gameState.currentAnswer;
+
+            // Update score and streak
+            if (isCorrect) {
+                gameState.score += 10 + (gameState.streak * 2);
+                gameState.streak++;
+                showFeedback(`Incredible! Your twin was thinking of ${gameState.currentAnswer}!`, 'success');
+
+                // Visual feedback for colors
+                if (gameState.currentMode === 'color') {
+                    elements.colorOptions.forEach(option => {
+                        if (option.dataset.color === gameState.currentAnswer) {
+                            option.classList.add('correct');
+                        }
+                    });
+                }
+            } else {
+                gameState.streak = 0;
+                showFeedback(`Not quite... your twin was thinking of ${gameState.currentAnswer}`, 'error');
+
+                // Visual feedback for colors
+                if (gameState.currentMode === 'color') {
+                    elements.colorOptions.forEach(option => {
+                        if (option.dataset.color === userAnswer) {
+                            option.classList.add('incorrect');
+                        } else if (option.dataset.color === gameState.currentAnswer) {
+                            option.classList.add('correct');
+                        }
+                    });
+                }
+            }
+
+            gameState.round++;
+            updateDisplay();
+
+            elements.submitBtn.classList.add('hidden');
+            elements.nextBtn.classList.remove('hidden');
+        }
+
+        function nextRound() {
+            elements.nextBtn.classList.add('hidden');
+            elements.submitBtn.classList.remove('hidden');
+            generateNewAnswer();
+        }
+
+        function resetGame() {
+            gameState.score = 0;
+            gameState.streak = 0;
+            gameState.round = 1;
+            gameState.isPlaying = false;
+            gameState.selectedColor = null;
+
+            updateDisplay();
+
+            elements.startBtn.classList.remove('hidden');
+            elements.submitBtn.classList.add('hidden');
+            elements.nextBtn.classList.add('hidden');
+
+            elements.colorOptions.forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+            elements.numberInput.value = '';
+        }
+
+        function showFeedback(message, type) {
+            elements.feedback.textContent = message;
+            elements.feedback.className = `feedback ${type} show`;
+
+            setTimeout(() => {
+                elements.feedback.classList.remove('show');
+            }, 2500);
+        }
+
+        // Event listeners
+        elements.startBtn.addEventListener('click', startGame);
+        elements.submitBtn.addEventListener('click', submitGuess);
+        elements.nextBtn.addEventListener('click', nextRound);
+        elements.switchGameBtn.addEventListener('click', switchGameMode);
+        elements.resetBtn.addEventListener('click', resetGame);
+
+        // Color selection
+        elements.colorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                if (!gameState.isPlaying) return;
+
+                elements.colorOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                gameState.selectedColor = option.dataset.color;
+            });
+        });
+
+        // Number input
+        elements.numberInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && gameState.isPlaying) {
+                submitGuess();
+            }
+        });
+
+        // Prevent non-numeric input
+        elements.numberInput.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            if (value > 10) {
+                e.target.value = 10;
+            }
+        });
+
+        // Initialize the game
+        function init() {
+            createStars();
+            createParticles();
+            updateDisplay();
+
+            // Add subtle floating animation to the container
+            setInterval(() => {
+                const container = document.querySelector('.game-container');
+                container.style.transform = `translateY(${Math.sin(Date.now() * 0.001) * 2}px)`;
+            }, 50);
+        }
+
+        // Start the app
+        init();
+
+        // Add cosmic background animation
+        setInterval(() => {
+            const particles = document.querySelectorAll('.particle');
+            particles.forEach(particle => {
+                if (Math.random() < 0.1) {
+                    particle.style.background = `linear-gradient(45deg, #${Math.floor(Math.random()*16777215).toString(16)}, #${Math.floor(Math.random()*16777215).toString(16)})`;
+                }
+            });
+        }, 3000);
+    </script>
+</body>
+</html>

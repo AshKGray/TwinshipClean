@@ -9,7 +9,10 @@ import { deepLinkService } from "../services/deepLinkService";
 import { BMadNavigationTracker } from "../../.bmad-mobile-app/navigation-tracker";
 import { MobilePerformanceAgent } from "../../.bmad-mobile-app/mobile-performance.agent";
 import { preloadManager } from "../utils/preloadManager";
+import { performanceTracker as startupPerformanceTracker } from "../utils/performanceTracker";
 import { performanceTracker } from "../utils/performanceMeasurement";
+import { ProfiledComponent, PerformanceUtils } from "../utils/performanceProfiler";
+import { performanceDashboard } from "../utils/performanceDashboard";
 
 // Import lazy loading utilities
 import { lazyWithPreload, lazyScreen, lazyScreenWithSkeleton, lazyWithPreloadAndSkeleton } from "../utils/lazyWithPreload";
@@ -113,6 +116,11 @@ const ResearchDashboardScreen = lazyScreenWithSkeleton(
   'generic',
   'Loading research dashboard...'
 );
+const ResearchVoluntaryScreen = lazyScreenWithSkeleton(
+  () => import("../screens/research/ResearchVoluntaryScreen").then(m => ({ default: m.ResearchVoluntaryScreen })),
+  'generic',
+  'Loading research information...'
+);
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -160,6 +168,8 @@ type RootStackParamList = {
   ConsentScreen: { studyId?: string };
   ResearchParticipationScreen: undefined;
   ResearchDashboardScreen: undefined;
+  ResearchVoluntary: undefined;
+  ResearchParticipation: undefined;
   // Pair route
   Pair: undefined;
 };
@@ -270,11 +280,29 @@ const TabNavigator = () => {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Twindex" component={HomeScreen} />
-      <Tab.Screen name="Twgames" component={TwinGamesHub} />
+      <Tab.Screen name="Twindex">
+        {(props) => (
+          <ProfiledComponent id="HomeScreen">
+            <HomeScreen {...props} />
+          </ProfiledComponent>
+        )}
+      </Tab.Screen>
+      <Tab.Screen name="Twgames">
+        {(props) => (
+          <ProfiledComponent id="TwinGamesHub">
+            <TwinGamesHub {...props} />
+          </ProfiledComponent>
+        )}
+      </Tab.Screen>
       <Tab.Screen name="Twinalert" component={TwintuitionScreen} />
       <Tab.Screen name="Twintuition" component={TwintuitionScreen} />
-      <Tab.Screen name="Twinbox" component={TwinTalkScreen} />
+      <Tab.Screen name="Twinbox">
+        {(props) => (
+          <ProfiledComponent id="TwinTalkScreen">
+            <TwinTalkScreen {...props} />
+          </ProfiledComponent>
+        )}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 };
@@ -312,6 +340,9 @@ export const AppNavigator = () => {
       ref={navigationRef}
       onReady={() => {
         routeNameRef.current = navigationRef.current?.getCurrentRoute()?.name;
+        // Mark navigation as ready for startup performance tracking
+        startupPerformanceTracker.mark('navigationReady');
+        console.log('[AppNavigator] Navigation container ready');
       }}
       onStateChange={async () => {
         const previousRouteName = routeNameRef.current;
@@ -340,8 +371,30 @@ export const AppNavigator = () => {
           if (Math.random() < 0.1) { // 10% chance to export
             const analytics = bmadTracker.current.getNavigationAnalytics();
             const perfAnalysis = performanceAgent.current.analyze();
+            const startupMetrics = startupPerformanceTracker.exportForBMAD();
+
             console.log('[BMAD] Navigation Analytics:', analytics);
             console.log('[BMAD] Performance Analysis:', perfAnalysis);
+            console.log('[BMAD] Startup Metrics:', startupMetrics);
+
+            // Export performance dashboard data
+            const dashboardData = performanceDashboard.exportDashboardData();
+            console.log('[BMAD] Performance Dashboard:', dashboardData);
+
+            // Log React Profiler metrics in development
+            if (__DEV__) {
+              PerformanceUtils.logReport();
+
+              // Log comprehensive startup report
+              const startupReport = startupPerformanceTracker.generateStartupReport();
+              console.log('[BMAD] Startup Performance Report:', startupReport);
+
+              // Generate performance alerts
+              const alerts = performanceDashboard.generateAlerts();
+              if (alerts.length > 0) {
+                console.warn('[BMAD] Performance Alerts:', alerts);
+              }
+            }
           }
         }
 
@@ -421,6 +474,8 @@ export const AppNavigator = () => {
             <Stack.Screen name="ConsentScreen" component={ConsentScreen} />
             <Stack.Screen name="ResearchParticipationScreen" component={ResearchParticipationScreen} />
             <Stack.Screen name="ResearchDashboardScreen" component={ResearchDashboardScreen} />
+            <Stack.Screen name="ResearchVoluntary" component={ResearchVoluntaryScreen} />
+            <Stack.Screen name="ResearchParticipation" component={ResearchParticipationScreen} />
             {/* Missing route placeholders - redirect to proper screens */}
             <Stack.Screen name="GameStats" component={TwinGamesHub} />
             <Stack.Screen name="Home" component={TabNavigator} />

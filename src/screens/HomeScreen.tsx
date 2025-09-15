@@ -1,5 +1,6 @@
 import React, { memo, useCallback } from "react";
-import { View, Text, Pressable, ScrollView, ImageBackground } from "react-native";
+import { View, Text, Pressable, ScrollView } from "react-native";
+import { ImageBackground } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTwinStore } from "../state/twinStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -101,7 +102,13 @@ export const HomeScreen = memo(() => {
   const handleNavigateToResearch = useCallback(() => navigation.navigate("Twinquiry"), [navigation]);
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+    <ImageBackground
+      source={require("../../assets/galaxybackground.png")}
+      style={{ flex: 1 }}
+      contentFit="cover"
+      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+      transition={200}
+    >
       <SafeAreaView className="flex-1">
         <ScrollView 
           className="flex-1 px-6"

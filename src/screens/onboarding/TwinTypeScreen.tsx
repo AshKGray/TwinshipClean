@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, ScrollView, Animated, TextInput, ImageBackground } from "react-native";
+import { View, Text, Pressable, ScrollView, Animated, TextInputBackground } from "react-native";
+import { ImageBackground } from "expo-image";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TwinTypeSelector } from "../../components/onboarding/TwinTypeSelector";
 import { LinearGradient } from "expo-linear-gradient";
@@ -92,7 +94,10 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
   ];
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}
+      contentFit="cover"
+      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+      transition={200}>
       <SafeAreaView className="flex-1">
         <View className="flex-1">
           {/* Header */}

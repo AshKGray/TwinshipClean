@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, Pressable, ScrollView, Dimensions, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,8 +28,12 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
   const { syncMetrics, achievements, createGameSession } = useGameStore();
   const { allGames } = useGameConfig();
   
-  const themeColor = userProfile?.accentColor || 'neon-purple';
-  const accentColor = getNeonAccentColor(themeColor);
+  // Memoize theme calculations
+  const themeConfig = useMemo(() => {
+    const themeColor = userProfile?.accentColor || 'neon-purple';
+    const accentColor = getNeonAccentColor(themeColor);
+    return { themeColor, accentColor };
+  }, [userProfile?.accentColor]);
   
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [isInviting, setIsInviting] = useState(false);
@@ -83,32 +87,32 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
     };
   });
   
-  const startGame = async (gameType: string) => {
+  const startGame = useCallback(async (gameType: string) => {
     if (!twinProfile) {
       // Show pairing required message
       return;
     }
-    
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsInviting(true);
-    
+
     try {
       // Create game session
       const session = createGameSession(gameType as any, twinProfile.id);
-      
+
       // Navigate to specific game screen
       setTimeout(() => {
         setIsInviting(false);
         navigation.navigate(getGameScreenName(gameType), { sessionId: session.id });
       }, 1000);
-      
+
     } catch (error) {
       console.error('Failed to start game:', error);
       setIsInviting(false);
     }
-  };
+  }, [twinProfile, createGameSession, navigation]);
   
-  const getGameScreenName = (gameType: string): string => {
+  const getGameScreenName = useCallback((gameType: string): string => {
     switch (gameType) {
       case 'cognitive_sync_maze': return 'CognitiveSyncMaze';
       case 'emotional_resonance': return 'EmotionalResonanceMapping';
@@ -116,18 +120,22 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
       case 'iconic_duo': return 'IconicDuoMatcher';
       default: return 'CognitiveSyncMaze';
     }
-  };
-  
-  const getDifficultyColor = (difficulty: string) => {
+  }, []);
+
+  const getDifficultyColor = useCallback((difficulty: string) => {
     switch (difficulty) {
       case 'easy': return '#10b981';
       case 'medium': return '#f59e0b';
       case 'hard': return '#ef4444';
       default: return '#6b7280';
     }
-  };
+  }, []);
   
-  const recentAchievements = achievements.filter((a: any) => a.unlocked).slice(0, 3);
+  // Memoize expensive achievement filtering
+  const recentAchievements = useMemo(() =>
+    achievements.filter((a: any) => a.unlocked).slice(0, 3),
+    [achievements]
+  );
   
   return (
     <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
@@ -173,7 +181,7 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="people" size={24} color={accentColor} />
+                <Ionicons name="people" size={24} color={themeConfig.accentColor} />
               </View>
             </View>
           ) : (
@@ -194,9 +202,9 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
           
           {/* Sync Score Display */}
           <Animated.View style={statsStyle} className="mb-8">
-            <SyncScoreDisplay 
-              metrics={syncMetrics} 
-              themeColor={themeColor}
+            <SyncScoreDisplay
+              metrics={syncMetrics}
+              themeColor={themeConfig.themeColor}
             />
           </Animated.View>
           
@@ -248,7 +256,7 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
                         !twinProfile ? 'opacity-50' : ''
                       }`}
                       style={{
-                        backgroundColor: getNeonAccentColorWithOpacity(themeColor, 0.1)
+                        backgroundColor: getNeonAccentColorWithOpacity(themeConfig.themeColor, 0.1)
                       }}
                     >
                       <View className="flex-row items-center">
@@ -256,13 +264,13 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
                         <View 
                           className="w-16 h-16 rounded-xl items-center justify-center mr-4"
                           style={{
-                            backgroundColor: getNeonAccentColorWithOpacity(themeColor, 0.3)
+                            backgroundColor: getNeonAccentColorWithOpacity(themeConfig.themeColor, 0.3)
                           }}
                         >
                           <Ionicons 
                             name={game.icon as any} 
                             size={32} 
-                            color={accentColor}
+                            color={themeConfig.accentColor}
                           />
                         </View>
                         

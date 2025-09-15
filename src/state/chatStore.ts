@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { shallow } from 'zustand/shallow';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChatMessage, TypingIndicator, ChatConnection, TwintuitionMoment } from '../types/chat';
 import { ThemeColor } from './twinStore';
@@ -250,3 +251,29 @@ export const useChatStore = create<ChatState>()(
     }
   )
 );
+
+// Performance-optimized selectors for chat store
+export const useChatStoreShallow = {
+  // Message-related selectors
+  messages: () => useChatStore((state) => state.messages, shallow),
+  messageStats: () => useChatStore((state) => ({
+    messageCount: state.messages.length,
+    unreadCount: state.connection.unreadCount
+  }), shallow),
+
+  // Connection state
+  connectionInfo: () => useChatStore((state) => ({
+    connection: state.connection,
+    typingIndicator: state.typingIndicator
+  }), shallow),
+
+  // UI state
+  uiState: () => useChatStore((state) => ({
+    isVoiceRecording: state.isVoiceRecording,
+    showQuickResponses: state.showQuickResponses,
+    selectedMessageId: state.selectedMessageId
+  }), shallow),
+
+  // Twintuition data
+  twintuitionData: () => useChatStore((state) => state.twintuitionMoments, shallow),
+};

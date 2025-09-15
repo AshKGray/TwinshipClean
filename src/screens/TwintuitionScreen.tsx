@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, ImageBackground } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInputBackground } from "react-native";
+import { ImageBackground } from "expo-image";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTwinStore } from "../state/twinStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -76,7 +78,10 @@ export const TwintuitionScreen = () => {
 
   if (showCreateAlert) {
     return (
-      <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+      <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}
+      contentFit="cover"
+      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+      transition={200}>
         <SafeAreaView className="flex-1">
           <View className="flex-1 px-6">
             {/* Header */}
@@ -166,7 +171,10 @@ export const TwintuitionScreen = () => {
   }
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}
+      contentFit="cover"
+      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+      transition={200}>
       <SafeAreaView className="flex-1">
         <View className="flex-1 px-6">
           {/* Header */}

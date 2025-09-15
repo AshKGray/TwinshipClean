@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, Text, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,16 +39,20 @@ export const SyncScoreDisplay: React.FC<SyncScoreDisplayProps> = ({
     statsOpacity.value = withSpring(1, { damping: 15 });
   }, [metrics.syncPercentage]);
   
-  const radius = compact ? 40 : 60;
-  const strokeWidth = compact ? 6 : 8;
-  const circumference = 2 * Math.PI * radius;
+  // Memoize circle calculations
+  const circleConfig = useMemo(() => {
+    const radius = compact ? 40 : 60;
+    const strokeWidth = compact ? 6 : 8;
+    const circumference = 2 * Math.PI * radius;
+    return { radius, strokeWidth, circumference };
+  }, [compact]);
   
   const animatedCircleProps = useAnimatedProps(() => {
-    const strokeDashoffset = circumference * (1 - circleProgress.value);
+    const strokeDashoffset = circleConfig.circumference * (1 - circleProgress.value);
     return {
       strokeDashoffset
     };
-  });
+  }, [circleConfig.circumference]);
   
   const statsStyle = useAnimatedStyle(() => {
     return {
@@ -57,42 +61,41 @@ export const SyncScoreDisplay: React.FC<SyncScoreDisplayProps> = ({
     };
   });
   
-  const getSyncLevel = () => {
+  // Memoize sync level calculation
+  const syncLevel = useMemo(() => {
     if (metrics.syncPercentage >= 80) return { label: 'Telepathic', color: '#10b981', icon: 'flash' };
     if (metrics.syncPercentage >= 60) return { label: 'Connected', color: accentColor, icon: 'link' };
     if (metrics.syncPercentage >= 40) return { label: 'Syncing', color: '#f59e0b', icon: 'pulse' };
     if (metrics.syncPercentage >= 20) return { label: 'Learning', color: '#8b5cf6', icon: 'school' };
     return { label: 'Exploring', color: '#6b7280', icon: 'compass' };
-  };
-  
-  const syncLevel = getSyncLevel();
+  }, [metrics.syncPercentage, accentColor]);
   
   if (compact) {
     return (
       <View className="flex-row items-center space-x-3">
         {/* Compact Circular Progress */}
         <View className="relative">
-          <Svg width={radius * 2 + strokeWidth} height={radius * 2 + strokeWidth}>
+          <Svg width={circleConfig.radius * 2 + circleConfig.strokeWidth} height={circleConfig.radius * 2 + circleConfig.strokeWidth}>
             {/* Background Circle */}
             <Circle
-              cx={radius + strokeWidth / 2}
-              cy={radius + strokeWidth / 2}
-              r={radius}
+              cx={circleConfig.radius + circleConfig.strokeWidth / 2}
+              cy={circleConfig.radius + circleConfig.strokeWidth / 2}
+              r={circleConfig.radius}
               stroke="rgba(255,255,255,0.2)"
-              strokeWidth={strokeWidth}
+              strokeWidth={circleConfig.strokeWidth}
               fill="none"
             />
             {/* Progress Circle */}
             <AnimatedCircle
-              cx={radius + strokeWidth / 2}
-              cy={radius + strokeWidth / 2}
-              r={radius}
+              cx={circleConfig.radius + circleConfig.strokeWidth / 2}
+              cy={circleConfig.radius + circleConfig.strokeWidth / 2}
+              r={circleConfig.radius}
               stroke={syncLevel.color}
-              strokeWidth={strokeWidth}
+              strokeWidth={circleConfig.strokeWidth}
               fill="none"
-              strokeDasharray={circumference}
+              strokeDasharray={circleConfig.circumference}
               strokeLinecap="round"
-              transform={`rotate(-90 ${radius + strokeWidth / 2} ${radius + strokeWidth / 2})`}
+              transform={`rotate(-90 ${circleConfig.radius + circleConfig.strokeWidth / 2} ${circleConfig.radius + circleConfig.strokeWidth / 2})`}
               animatedProps={animatedCircleProps}
             />
           </Svg>
@@ -124,34 +127,34 @@ export const SyncScoreDisplay: React.FC<SyncScoreDisplayProps> = ({
           style={{
             backgroundColor: syncLevel.color,
             opacity: 0.3,
-            width: (radius * 2) + 40,
-            height: (radius * 2) + 40,
+            width: (circleConfig.radius * 2) + 40,
+            height: (circleConfig.radius * 2) + 40,
             left: -20,
             top: -20
           }}
         />
         
-        <Svg width={radius * 2 + strokeWidth} height={radius * 2 + strokeWidth}>
+        <Svg width={circleConfig.radius * 2 + circleConfig.strokeWidth} height={circleConfig.radius * 2 + circleConfig.strokeWidth}>
           {/* Background Circle */}
           <Circle
-            cx={radius + strokeWidth / 2}
-            cy={radius + strokeWidth / 2}
-            r={radius}
+            cx={circleConfig.radius + circleConfig.strokeWidth / 2}
+            cy={circleConfig.radius + circleConfig.strokeWidth / 2}
+            r={circleConfig.radius}
             stroke="rgba(255,255,255,0.1)"
-            strokeWidth={strokeWidth}
+            strokeWidth={circleConfig.strokeWidth}
             fill="none"
           />
           {/* Progress Circle */}
           <AnimatedCircle
-            cx={radius + strokeWidth / 2}
-            cy={radius + strokeWidth / 2}
-            r={radius}
+            cx={circleConfig.radius + circleConfig.strokeWidth / 2}
+            cy={circleConfig.radius + circleConfig.strokeWidth / 2}
+            r={circleConfig.radius}
             stroke={syncLevel.color}
-            strokeWidth={strokeWidth}
+            strokeWidth={circleConfig.strokeWidth}
             fill="none"
-            strokeDasharray={circumference}
+            strokeDasharray={circleConfig.circumference}
             strokeLinecap="round"
-            transform={`rotate(-90 ${radius + strokeWidth / 2} ${radius + strokeWidth / 2})`}
+            transform={`rotate(-90 ${circleConfig.radius + circleConfig.strokeWidth / 2} ${circleConfig.radius + circleConfig.strokeWidth / 2})`}
             animatedProps={animatedCircleProps}
           />
         </Svg>

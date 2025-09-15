@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, Alert, ScrollView, TextInput, Modal, ImageBackground } from "react-native";
+import { View, Text, Pressable, Alert, ScrollView, TextInput, ModalBackground } from "react-native";
+import { ImageBackground } from "expo-image";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { useTwinStore } from "../state/twinStore";
@@ -72,7 +74,10 @@ export const SettingsScreen = () => {
   };
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}
+      contentFit="cover"
+      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+      transition={200}>
       <SafeAreaView className="flex-1">
         <ScrollView className="flex-1 px-6">
           {/* Header */}
@@ -234,17 +239,17 @@ export const SettingsScreen = () => {
               </Pressable>
               
               <Pressable
-                onPress={() => setResearchParticipation(!researchParticipation)}
+                onPress={() => navigation.navigate("ResearchVoluntary")}
                 className="flex-row items-center justify-between"
               >
                 <View className="flex-row items-center">
                   <Ionicons name="flask" size={20} color="white" />
-                  <Text className="text-white ml-3">Twinquiry Participation</Text>
+                  <Text className="text-white ml-3">Research Participation (Voluntary)</Text>
                 </View>
                 <Ionicons 
-                  name={researchParticipation ? "toggle" : "toggle-outline"} 
-                  size={24} 
-                  color={researchParticipation ? getNeonAccentColor(themeColor) : "rgba(255,255,255,0.5)"} 
+                  name="chevron-forward" 
+                  size={20} 
+                  color="rgba(255,255,255,0.7)" 
                 />
               </Pressable>
 

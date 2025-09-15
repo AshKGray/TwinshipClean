@@ -15,6 +15,7 @@ export interface ResearchStudy {
   consentVersion: number;
   dataTypes: ResearchDataType[];
   benefits: string[];
+  voluntaryDisclaimer?: string;
 }
 
 export interface ResearchDataType {

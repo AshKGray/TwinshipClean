@@ -11,7 +11,7 @@ export interface WebSocketConfig {
 
 // Default WebSocket configuration
 const DEFAULT_CONFIG: WebSocketConfig = {
-  url: __DEV__ ? 'http://localhost:3001' : 'https://api.twinship.app',
+  url: __DEV__ ? 'http://localhost:3000' : 'https://api.twinship.app',
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
   timeout: 20000,

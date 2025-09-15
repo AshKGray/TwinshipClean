@@ -32,6 +32,8 @@ export interface ChatConnection {
   status: 'connected' | 'connecting' | 'disconnected' | 'reconnecting';
   lastSeen?: string;
   unreadCount: number;
+  roomId?: string;
+  lastConnected?: string;
 }
 
 export interface TwintuitionMoment {

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twinship Research Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated cosmic background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at random, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(ellipse at random, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(ellipse at random, rgba(255, 255, 0, 0.1) 0%, transparent 50%);
+            animation: twinkle 4s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.8; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 390px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00ffff, #ffff00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* Glass card base */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+        }
+
+        .glass-card:hover::before {
+            left: 100%;
+        }
+
+        /* Overview Stats */
+        .overview-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00ffff;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Study Cards */
+        .studies-section h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #ffff00;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .study-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .study-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 0, 0.4);
+            box-shadow: 0 12px 40px rgba(255, 255, 0, 0.15);
+        }
+
+        .study-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .study-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .study-institution {
+            font-size: 12px;
+            color: #00ffff;
+            margin-bottom: 8px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .status-eligible {
+            background: rgba(255, 255, 0, 0.2);
+            color: #ffff00;
+            border: 1px solid rgba(255, 255, 0, 0.3);
+        }
+
+        .status-completed {
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .study-description {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.4;
+            margin-bottom: 16px;
+        }
+
+        .study-progress {
+            margin-bottom: 16px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .progress-percentage {
+            font-size: 12px;
+            color: #00ffff;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ffff, #ffff00);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .study-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ffff, #0088ff);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Consent Management */
+        .consent-section {
+            margin-top: 30px;
+        }
+
+        .consent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .consent-info h4 {
+            font-size: 14px;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .consent-info p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(135deg, #00ffff, #ffff00);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #ffffff;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(26px);
+        }
+
+        /* Data Contribution Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffff00;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Icons */
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .icon-research {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%2300ffff" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>');
+        }
+
+        .icon-data {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23ffff00" viewBox="0 0 24 24"><path d="M3 5v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2zm12 4c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zm-9 8c0-2 4-3.1 6-3.1s6 1.1 6 3.1v1H6v-1z"/></svg>');
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 360px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .overview-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .study-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Scroll animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header fade-in">
+            <h1>Research Hub</h1>
+            <p>Contribute to groundbreaking twin research and unlock insights about your unique connection</p>
+        </div>
+
+        <!-- Overview Stats -->
+        <div class="overview-stats fade-in delay-1">
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Active Studies</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">127</div>
+                <div class="stat-label">Data Points</div>
+            </div>
+        </div>
+
+        <!-- Available Studies -->
+        <div class="studies-section fade-in delay-2">
+            <h2>
+                <span class="icon icon-research"></span>
+                Available Studies
+            </h2>
+
+            <!-- Active Study -->
+            <div class="study-card glass-card">
+                <div class="study-header">
+                    <div>
+                        <div class="study-title">Twin Telepathy Assessment</div>
+                        <div class="study-institution">Stanford Twin Research Lab</div>
+                    </div>
+                    <div class="status-badge status-active">Active</div>
+                </div>
+                <div class="study-description">
+                    Investigating the neural synchronization patterns between twin pairs during intuitive communication tasks. Participate in daily 5-minute exercises to contribute to groundbreaking research.
+                </div>
+                <div class="study-progress">
+                    <div class="progress-header">
+                        <span class="progress-label">Study Progress</span>
+                        <span class="progress-percentage">73%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 73%"></div>
+                    </div>
+                </div>
+                <div class="study-actions">
+                    <button class="btn btn-primary">Continue Study</button>
+                    <button class="btn btn-secondary">View Details</button>
+                </div>
+            </div>
+
+            <!-- Eligible Study -->
+            <div class="study-card glass-card">
+                <div class="study-header">
+                    <div>
+                        <div class="study-title">Emotional Synchrony in Twins</div>
+                        <div class="study-institution">MIT Cognitive Science</div>
+                    </div>
+                    <div class="status-badge status-eligible">Eligible</div>
+                </div>
+                <div class="study-description">
+                    Explore how twins experience and process emotions together. This 4-week study examines emotional resonance patterns through mood tracking and response assessments.
+                </div>
+                <div class="study-actions">
+                    <button class="btn btn-primary">Join Study</button>
+                    <button class="btn btn-secondary">Learn More</button>
+                </div>
+            </div>
+
+            <!-- Completed Study -->
+            <div class="study-card glass-card">
+                <div class="study-header">
+                    <div>
+                        <div class="study-title">Twin Communication Patterns</div>
+                        <div class="study-institution">Oxford Psychology Dept</div>
+                    </div>
+                    <div class="status-badge status-completed">Completed</div>
+                </div>
+                <div class="study-description">
+                    Analysis of communication frequencies and patterns between twin pairs across different life stages. Your contribution helped identify key connection factors.
+                </div>
+                <div class="study-progress">
+                    <div class="progress-header">
+                        <span class="progress-label">Completed</span>
+                        <span class="progress-percentage">100%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="study-actions">
+                    <button class="btn btn-secondary">View Results</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consent Management -->
+        <div class="consent-section glass-card fade-in delay-3">
+            <h2>
+                <span class="icon icon-data"></span>
+                Data & Consent
+            </h2>
+
+            <div class="consent-item">
+                <div class="consent-info">
+                    <h4>Anonymous Data Sharing</h4>
+                    <p>Share anonymized interaction data with research partners</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+            </div>
+
+            <div class="consent-item">
+                <div class="consent-info">
+                    <h4>Follow-up Studies</h4>
+                    <p>Receive invitations for related research opportunities</p>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+            </div>
+
+            <div class="consent-item">
+                <div class="consent-info">
+                    <h4>Results Notification</h4>
+                    <p>Get notified when study results are published</p>
+                </div>
+                <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+            </div>
+        </div>
+
+        <!-- Data Contribution Metrics -->
+        <div class="glass-card fade-in delay-4">
+            <h2>Your Research Impact</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">1,247</div>
+                    <div class="metric-label">Data Points</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">23</div>
+                    <div class="metric-label">Days Active</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">89%</div>
+                    <div class="metric-label">Accuracy Score</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">5</div>
+                    <div class="metric-label">Studies Joined</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+
+        // Add fade-in animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards
+        document.querySelectorAll('.glass-card, .study-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Smooth progress bar animations
+        function animateProgressBars() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+        }
+
+        // Trigger progress animations when page loads
+        window.addEventListener('load', () => {
+            setTimeout(animateProgressBars, 1000);
+        });
+
+        // Add hover effects for study cards
+        document.querySelectorAll('.study-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.02)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Simulate real-time updates
+        function updateStats() {
+            const statNumbers = document.querySelectorAll('.stat-number, .metric-value');
+            statNumbers.forEach(stat => {
+                if (Math.random() > 0.7) { // 30% chance to update
+                    const currentValue = parseInt(stat.textContent);
+                    const change = Math.random() > 0.5 ? 1 : -1;
+                    const newValue = Math.max(0, currentValue + change);
+
+                    stat.style.transform = 'scale(1.1)';
+                    stat.style.color = '#ffff00';
+
+                    setTimeout(() => {
+                        stat.textContent = newValue + (stat.textContent.includes('%') ? '%' : '');
+                        stat.style.transform = 'scale(1)';
+                        stat.style.color = '';
+                    }, 200);
+                }
+            });
+        }
+
+        // Update stats every 10 seconds
+        setInterval(updateStats, 10000);
+    </script>
+</body>
+</html>

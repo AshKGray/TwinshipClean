@@ -1,6 +1,7 @@
 import { getZodiacSign } from "../utils/zodiac";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { shallow } from "zustand/shallow";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type TwinType = "identical" | "fraternal" | "other";
@@ -399,3 +400,34 @@ export const useTempTwinStore = create<TempTwinState>((set) => ({
   
   setConnectionStatus: (status) => set({ connectionStatus: status }),
 }));
+
+// Performance-optimized selectors for common use cases
+export const useTwinStoreShallow = {
+  // Profile-only selectors to prevent unnecessary re-renders
+  userProfile: () => useTwinStore((state) => state.userProfile, shallow),
+  twinProfile: () => useTwinStore((state) => state.twinProfile, shallow),
+  profiles: () => useTwinStore((state) => ({ userProfile: state.userProfile, twinProfile: state.twinProfile }), shallow),
+
+  // Theme and UI selectors
+  themeInfo: () => useTwinStore((state) => ({ themeColor: state.themeColor, accentColor: state.userProfile?.accentColor }), shallow),
+
+  // Connection state selectors
+  connectionState: () => useTwinStore((state) => ({ paired: state.paired, isOnboarded: state.isOnboarded }), shallow),
+
+  // Game and activity selectors
+  gameData: () => useTwinStore((state) => ({ gameResults: state.gameResults, syncScore: state.syncScore }), shallow),
+
+  // Settings selectors
+  settingsState: () => useTwinStore((state) => ({
+    researchParticipation: state.researchParticipation,
+    notificationsEnabled: state.notificationsEnabled,
+    hasActiveResearchStudies: state.hasActiveResearchStudies
+  }), shallow),
+
+  // Invitation selectors
+  invitationState: () => useTwinStore((state) => ({
+    invitationStatus: state.invitationStatus,
+    invitationToken: state.invitationToken,
+    lastInvitationSent: state.lastInvitationSent
+  }), shallow),
+};

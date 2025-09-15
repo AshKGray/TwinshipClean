@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -35,19 +35,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
 }) => {
   const userProfile = useTwinStore((state) => state.userProfile);
   const [showReactions, setShowReactions] = useState(false);
-  const scaleValue = new Animated.Value(1);
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
-  // Use more vibrant neon colors for message bubbles
-  const bubbleColor = isOwn
-    ? getNeonCardBackground(message.accentColor, 0.9)
-    : getNeonCardBackground(message.accentColor, 0.6);
+  // Memoize expensive color calculations
+  const colors = useMemo(() => ({
+    bubbleColor: isOwn
+      ? getNeonCardBackground(message.accentColor, 0.9)
+      : getNeonCardBackground(message.accentColor, 0.6),
+    textColor: '#FFFFFF',
+    borderColor: getNeonAccentColor(message.accentColor),
+    glowEffect: getNeonSubtleGlow(message.accentColor)
+  }), [message.accentColor, isOwn]);
 
-  const textColor = '#FFFFFF';
-  const borderColor = getNeonAccentColor(message.accentColor);
-  const glowEffect = getNeonSubtleGlow(message.accentColor);
-
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
+  // Memoize time formatting function
+  const formattedTime = useMemo(() => {
+    const date = new Date(message.timestamp);
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
@@ -56,9 +58,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
     } else {
       return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
-  };
+  }, [message.timestamp]);
 
-  const handlePress = () => {
+  // Memoize event handlers
+  const handlePress = useCallback(() => {
     Animated.sequence([
       Animated.timing(scaleValue, {
         toValue: 0.95,
@@ -71,31 +74,35 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
         useNativeDriver: true,
       }),
     ]).start();
-  };
+  }, [scaleValue]);
 
-  const handleLongPress = () => {
+  const handleLongPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onLongPress?.(message);
     setShowReactions(true);
-  };
+  }, [onLongPress, message]);
 
-  const handleReaction = async (emoji: string) => {
+  const handleReaction = useCallback(async (emoji: string) => {
     if (!userProfile) return;
-    
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await chatService.sendReaction(message.id, emoji);
     setShowReactions(false);
-  };
+  }, [userProfile, message.id]);
 
-  const getReactionCount = (emoji: string) => {
+  // Memoize reaction utility functions
+  const getReactionCount = useCallback((emoji: string) => {
     return message.reactions?.filter(r => r.emoji === emoji).length || 0;
-  };
+  }, [message.reactions]);
 
-  const hasUserReacted = (emoji: string) => {
+  const hasUserReacted = useCallback((emoji: string) => {
     return message.reactions?.some(r => r.emoji === emoji && r.userId === userProfile?.id);
-  };
+  }, [message.reactions, userProfile?.id]);
 
-  const uniqueReactions = [...new Set(message.reactions?.map(r => r.emoji) || [])];
+  const uniqueReactions = useMemo(() =>
+    [...new Set(message.reactions?.map(r => r.emoji) || [])],
+    [message.reactions]
+  );
 
   return (
     <View className={`mb-3 ${isOwn ? 'items-end' : 'items-start'}`}>
@@ -114,11 +121,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
           <View
             style={[
               {
-                backgroundColor: bubbleColor,
+                backgroundColor: colors.bubbleColor,
                 borderWidth: 2,
-                borderColor: borderColor,
+                borderColor: colors.borderColor,
               },
-              isOwn ? glowEffect : {}
+              isOwn ? colors.glowEffect : {}
             ]}
             className={`px-4 py-3 rounded-2xl ${
               isOwn ? 'rounded-br-md' : 'rounded-bl-md'
@@ -126,7 +133,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
           >
             {/* Message Text */}
             <Text
-              style={{ color: textColor }}
+              style={{ color: colors.textColor }}
               className={`text-base leading-5 ${isOwn ? 'font-medium' : 'font-normal'}`}
             >
               {message.text}
@@ -136,18 +143,18 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
             {isOwn && (
               <View className="flex-row items-center justify-end mt-1">
                 <Text className="text-white/80 text-xs mr-1 font-medium">
-                  {formatTime(message.timestamp)}
+                  {formattedTime}
                 </Text>
                 <View className="flex-row">
                   <Ionicons
                     name="checkmark"
                     size={12}
-                    color={message.isDelivered ? borderColor : 'rgba(255,255,255,0.4)'}
+                    color={message.isDelivered ? colors.borderColor : 'rgba(255,255,255,0.4)'}
                   />
                   <Ionicons
                     name="checkmark"
                     size={12}
-                    color={message.isRead ? borderColor : 'rgba(255,255,255,0.4)'}
+                    color={message.isRead ? colors.borderColor : 'rgba(255,255,255,0.4)'}
                     style={{ marginLeft: -4 }}
                   />
                 </View>
@@ -172,10 +179,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
                         backgroundColor: userReacted
                           ? getNeonButtonBackground(message.accentColor)
                           : 'rgba(0,0,0,0.7)',
-                        borderColor: userReacted ? borderColor : 'rgba(255,255,255,0.3)',
+                        borderColor: userReacted ? colors.borderColor : 'rgba(255,255,255,0.3)',
                         borderWidth: 1,
                       },
-                      userReacted ? getNeonSubtleGlow(message.accentColor) : {}
+                      userReacted ? colors.glowEffect : {}
                     ]}
                     className="flex-row items-center px-2 py-1 rounded-full mr-1 mb-1"
                   >
@@ -196,10 +203,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
             style={[
               {
                 backgroundColor: getNeonCardBackground(message.accentColor, 0.95),
-                borderColor: borderColor,
+                borderColor: colors.borderColor,
                 borderWidth: 2,
               },
-              glowEffect
+              colors.glowEffect
             ]}
             className={`absolute top-0 ${isOwn ? 'right-0' : 'left-0'} flex-row items-center px-3 py-2 rounded-full`}
           >
@@ -223,9 +230,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
       </Animated.View>
 
       {/* Timestamp (for twin's messages) */}
-      {!isOwn && (showTimestamp || message.reactions?.length > 0) && (
+      {!isOwn && (showTimestamp || (message.reactions && message.reactions.length > 0)) && (
         <Text className="text-white/60 text-xs mt-1 ml-1 font-medium">
-          {formatTime(message.timestamp)}
+          {formattedTime}
         </Text>
       )}
     </View>

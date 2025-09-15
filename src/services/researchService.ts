@@ -28,9 +28,9 @@ class ResearchService {
       id: 'twin-sync-2024',
       title: 'Twin Synchronicity & Intuition Study',
       description: 'Investigating intuitive connections and synchronicity between twins',
-      fullDescription: 'This comprehensive study explores the phenomenon of twin telepathy, synchronicity, and intuitive connections. We analyze communication patterns, simultaneous experiences, and predictive behaviors between twin pairs.',
+      fullDescription: 'This comprehensive study explores the phenomenon of twin telepathy, synchronicity, and intuitive connections. We analyze communication patterns, simultaneous experiences, and predictive behaviors between twin pairs. Participation is completely voluntary and does not affect your app experience.',
       duration: '12 months',
-      compensation: ['Research insights', 'Early feature access', 'Scientific publications acknowledgment'],
+      compensation: ['Acknowledgment in scientific publications', 'Research newsletter updates', 'Study results when published'],
       participants: 1247,
       status: 'recruiting',
       category: 'synchronicity',
@@ -55,7 +55,8 @@ class ResearchService {
           sharingScope: 'academic'
         }
       ],
-      benefits: ['Contributing to twin psychology research', 'Understanding your twin connection', 'Access to anonymized comparison data']
+      benefits: ['Contributing to scientific understanding of twin bonds', 'Helping future twins understand their connections', 'Supporting psychological research'],
+      voluntaryDisclaimer: 'Participation is completely voluntary and will not affect your access to any app features. You may withdraw at any time without penalty.'
     },
     {
       id: 'emotional-mirror-2024',
@@ -63,7 +64,7 @@ class ResearchService {
       description: 'Understanding emotional connections and empathic responses between twins',
       fullDescription: 'This study examines how twins experience and share emotions across distances, investigating the neurological and psychological basis of twin empathy.',
       duration: '6 months',
-      compensation: ['Personalized empathy insights', 'Emotional intelligence reports', 'Research participation certificate'],
+      compensation: ['Research participation certificate', 'Study results when published', 'Research newsletter updates'],
       participants: 892,
       status: 'active',
       category: 'psychology',
@@ -88,7 +89,8 @@ class ResearchService {
           sharingScope: 'internal'
         }
       ],
-      benefits: ['Understanding emotional patterns', 'Improving twin communication', 'Contributing to empathy research']
+      benefits: ['Contributing to empathy research', 'Supporting twin psychology studies', 'Helping advance scientific knowledge'],
+      voluntaryDisclaimer: 'This is a voluntary research study. Your app experience remains the same whether you participate or not.'
     }
   ];
 

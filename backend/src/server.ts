@@ -6,19 +6,22 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { createServer } from 'http';
 import { PrismaClient } from '@prisma/client';
 import { errorHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimiter';
 import authRoutes from './routes/auth.routes';
 import { logger } from './utils/logger';
+import { initializeSocketIO, getSocketIOService } from './services/socketio';
 
 // Initialize Prisma Client
 export const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });
 
-// Initialize Express app
+// Initialize Express app and HTTP server
 const app = express();
+const httpServer = createServer(app);
 const PORT = process.env.PORT || 3000;
 
 // Middleware
@@ -34,9 +37,16 @@ app.use(morgan('combined', { stream: { write: (message) => logger.info(message.t
 // Rate limiting
 app.use('/auth', rateLimiter);
 
-// Health check endpoint
+// Health check endpoint with Socket.io stats
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const socketService = getSocketIOService();
+  const socketStats = socketService ? socketService.getStats() : null;
+
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    socketio: socketStats,
+  });
 });
 
 // Routes
@@ -48,6 +58,18 @@ app.use(errorHandler);
 // Graceful shutdown
 const gracefulShutdown = async () => {
   logger.info('Shutting down gracefully...');
+
+  // Close Socket.io connections
+  const socketService = getSocketIOService();
+  if (socketService) {
+    socketService.broadcastToAll('Server is shutting down for maintenance', 'info');
+  }
+
+  // Close HTTP server
+  httpServer.close(() => {
+    logger.info('HTTP server closed');
+  });
+
   await prisma.$disconnect();
   process.exit(0);
 };
@@ -62,8 +84,14 @@ const startServer = async () => {
     await prisma.$connect();
     logger.info('Database connected successfully');
 
-    app.listen(PORT, () => {
+    // Initialize Socket.io
+    const socketService = initializeSocketIO(httpServer);
+    logger.info('Socket.io service initialized');
+
+    // Start HTTP server
+    httpServer.listen(PORT, () => {
       logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+      logger.info(`Socket.io available at ws://localhost:${PORT}`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

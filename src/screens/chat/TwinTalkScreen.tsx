@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  FlatList,
   Pressable,
   Alert,
   RefreshControl,
@@ -155,6 +156,7 @@ const ChatHeader = memo(({
 export const TwinTalkScreen = memo(() => {
   const navigation = useNavigation<any>();
   const scrollViewRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [isUserTyping, setIsUserTyping] = useState(false);
@@ -183,7 +185,7 @@ export const TwinTalkScreen = memo(() => {
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
+        flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
   }, [messages.length]);
@@ -195,7 +197,9 @@ export const TwinTalkScreen = memo(() => {
       () => {
         setIsKeyboardVisible(true);
         // Immediate scroll to bottom when keyboard appears
-        scrollViewRef.current?.scrollToEnd({ animated: false });
+        if (messages.length > 0) {
+          flatListRef.current?.scrollToEnd({ animated: false });
+        }
       }
     );
     const keyboardWillHideListener = Keyboard.addListener(
@@ -301,9 +305,38 @@ export const TwinTalkScreen = memo(() => {
   };
 
   const scrollToBottom = () => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
+    if (messages.length > 0) {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }
     setShowScrollToBottom(false);
   };
+
+  // Memoized renderItem for FlatList performance
+  const renderMessage = useCallback(({ item: message, index }: { item: ChatMessage; index: number }) => {
+    const isOwn = message.senderId === userProfile?.id;
+    const showTimestamp = index === 0 ||
+      new Date(message.timestamp).getTime() - new Date(messages[index - 1]?.timestamp || 0).getTime() > 300000; // 5 minutes
+
+    return (
+      <MessageBubble
+        key={message.id}
+        message={message}
+        isOwn={isOwn}
+        showTimestamp={showTimestamp}
+        onLongPress={handleMessageLongPress}
+      />
+    );
+  }, [userProfile?.id, messages, handleMessageLongPress]);
+
+  // Key extractor for FlatList
+  const keyExtractor = useCallback((message: ChatMessage) => message.id, []);
+
+  // Get item layout for performance optimization
+  const getItemLayout = useCallback((_: any, index: number) => ({
+    length: 80, // Estimated height - adjust based on your MessageBubble height
+    offset: 80 * index,
+    index,
+  }), []);
 
   const handleTwintuitionAlert = async () => {
     if (!userProfile || !twinProfile) return;
@@ -399,31 +432,8 @@ export const TwinTalkScreen = memo(() => {
         {/* Messages */}
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
           <View className="flex-1 relative">
-            <ScrollView
-              ref={scrollViewRef}
-              className="flex-1 px-6"
-              contentContainerStyle={{ 
-                paddingTop: 16, 
-                paddingBottom: isKeyboardVisible ? 8 : 16 
-              }}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              removeClippedSubviews={true}
-              maxToRenderPerBatch={15}
-              windowSize={10}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                  tintColor={neonColor}
-                  colors={[neonColor]}
-                />
-              }
-            >
             {messages.length === 0 ? (
-              <View className="flex-1 justify-center items-center py-20">
+              <View className="flex-1 justify-center items-center py-20 px-6">
                 <Ionicons name="chatbubbles-outline" size={64} color={neonColor} opacity={0.6} />
                 <Text className="text-white/70 text-lg mt-4 text-center font-medium">
                   Start your sacred twin conversation
@@ -433,42 +443,57 @@ export const TwinTalkScreen = memo(() => {
                 </Text>
               </View>
             ) : (
-              messages.map((message, index) => {
-                const isOwn = message.senderId === userProfile.id;
-                const showTimestamp = index === 0 || 
-                  new Date(message.timestamp).getTime() - new Date(messages[index - 1]?.timestamp || 0).getTime() > 300000; // 5 minutes
-                
-                return (
-                  <MessageBubble
-                    key={message.id}
-                    message={message}
-                    isOwn={isOwn}
-                    showTimestamp={showTimestamp}
-                    onLongPress={handleMessageLongPress}
+              <FlatList
+                ref={flatListRef}
+                data={messages}
+                renderItem={renderMessage}
+                keyExtractor={keyExtractor}
+                getItemLayout={getItemLayout}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                removeClippedSubviews={true}
+                maxToRenderPerBatch={10}
+                windowSize={10}
+                initialNumToRender={15}
+                contentContainerStyle={{
+                  paddingTop: 16,
+                  paddingBottom: isKeyboardVisible ? 8 : 16,
+                  paddingHorizontal: 24,
+                }}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                    tintColor={neonColor}
+                    colors={[neonColor]}
                   />
-                );
-              })
-            )}
-            
-            {/* Twin's Typing Indicator - only show if twin is typing */}
-            {typingIndicator && typingIndicator.userId !== userProfile?.id && (
-              <TypingIndicator typingIndicator={typingIndicator} />
-            )}
-            
-            {/* Your own typing indicator - show on your side when you're typing */}
-            {isUserTyping && userProfile && (
-              <View className="items-end mb-4">
-                <View className="flex-row items-center">
-                  <Text className="text-white/50 text-xs mr-2">You are typing</Text>
-                  <View className="flex-row space-x-1">
-                    <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" />
-                    <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                    <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                }
+                ListFooterComponent={
+                  <View>
+                    {/* Twin's Typing Indicator - only show if twin is typing */}
+                    {typingIndicator && typingIndicator.userId !== userProfile?.id && (
+                      <TypingIndicator typingIndicator={typingIndicator} />
+                    )}
+
+                    {/* Your own typing indicator - show on your side when you're typing */}
+                    {isUserTyping && userProfile && (
+                      <View className="items-end mb-4">
+                        <View className="flex-row items-center">
+                          <Text className="text-white/50 text-xs mr-2">You are typing</Text>
+                          <View className="flex-row space-x-1">
+                            <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" />
+                            <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+                            <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                          </View>
+                        </View>
+                      </View>
+                    )}
                   </View>
-                </View>
-              </View>
+                }
+              />
             )}
-            </ScrollView>
 
             {/* Scroll to Bottom Button */}
             {showScrollToBottom && (
@@ -572,7 +597,9 @@ export const TwinTalkScreen = memo(() => {
                     onFocus={() => {
                       setIsKeyboardVisible(true);
                       // Immediate scroll to bottom when input is focused
-                      scrollViewRef.current?.scrollToEnd({ animated: false });
+                      if (messages.length > 0) {
+                        flatListRef.current?.scrollToEnd({ animated: false });
+                      }
                     }}
                     onBlur={() => setIsKeyboardVisible(false)}
                     placeholder="Type your message..."

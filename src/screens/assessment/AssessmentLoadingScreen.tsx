@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ImageBackground } from "react-native";
+import { View, TextBackground } from "react-native";
+import { ImageBackground } from "expo-image";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTwinStore } from "../../state/twinStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -157,7 +159,10 @@ export const AssessmentLoadingScreen = () => {
   }, []);
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}
+      contentFit="cover"
+      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+      transition={200}>
       <SafeAreaView className="flex-1">
         <View className="flex-1 px-6 justify-center items-center">
           {/* Processing Icon */}
