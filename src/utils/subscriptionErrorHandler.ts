@@ -163,12 +163,18 @@ export class SubscriptionErrorHandler {
    * Track error for analytics
    */
   static trackError(error: SubscriptionError, context?: Record<string, any>) {
-    telemetryService.trackEvent('subscription_error', {
-      error_code: error.code,
-      error_message: error.message,
-      retryable: error.retryable,
-      ...context
-    });
+    // Track subscription errors as performance metrics
+    telemetryService.trackPerformance(
+      'subscription_error',
+      1,
+      {
+        error_code: error.code,
+        error_message: error.message,
+        retryable: error.retryable,
+        appVersion: '1.0.0',
+        ...context
+      }
+    );
   }
 
   /**

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, Image, Alert, AnimatedBackground } from "react-native";
-import { ImageBackground } from "expo-image";
-import { Image } from "expo-image";
+import { View, Text, Pressable, Alert, Animated } from "react-native";
+import { ImageBackground, Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,15 +12,20 @@ interface PhotoSetupScreenProps {
   onBack: () => void;
 }
 
-export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({ 
-  onContinue, 
-  onBack 
+export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
+  onContinue,
+  onBack
 }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { userProfile, setUserProfile } = useTwinStore();
-  
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
+  // Debug: Log whenever selectedImage changes
+  useEffect(() => {
+    console.log('Selected image changed:', selectedImage);
+  }, [selectedImage]);
 
   useEffect(() => {
     Animated.parallel([
@@ -84,8 +88,11 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
       quality: 0.8,
     });
 
-    if (!result.canceled && result.assets[0]) {
-      setSelectedImage(result.assets[0].uri);
+    console.log('Camera result:', result);
+    if (!result.canceled && result.assets && result.assets[0]) {
+      const imageUri = result.assets[0].uri;
+      console.log('Setting image URI:', imageUri);
+      setSelectedImage(imageUri);
     }
   };
 
@@ -188,19 +195,20 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
             </Text>
 
             {/* Current Photo Preview */}
-            {selectedImage && (
+            {selectedImage ? (
               <View className="items-center mb-8">
                 <View className="relative">
-                  <Image 
-                    source={{ uri: selectedImage }} 
-                    className="w-32 h-32 rounded-full"
+                  <Image
+                    source={{ uri: selectedImage }}
+                    style={{ width: 128, height: 128, borderRadius: 64 }}
+                    contentFit="cover"
                   />
                   <View className="absolute -inset-1 w-34 h-34 rounded-full border-2 border-white/50" />
                   <View className="absolute -inset-2 w-36 h-36 rounded-full border border-white/20" />
                 </View>
                 <Text className="text-white/60 text-sm mt-4">Perfect! Your twin will love this.</Text>
               </View>
-            )}
+            ) : null}
 
             {/* Photo Options */}
             <View className="space-y-4 mb-12">

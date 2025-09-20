@@ -4,12 +4,27 @@
  */
 
 import {
-  PrivacyConsent,
   AssessmentResults,
-  TwinPairData,
-} from '../types/assessment/types';
-import { EncryptionService } from '../services/encryptionService';
-import { storageService } from '../services/storageService';
+} from '../../types/assessment';
+import { EncryptionService } from '../../services/encryptionService';
+import { storageService } from '../../services/storageService';
+
+// Define missing types locally
+export interface PrivacyConsent {
+  userId: string;
+  consentDate: string;
+  dataCollection: boolean;
+  researchParticipation: boolean;
+  anonymizedSharing: boolean;
+  version: string;
+}
+
+export interface TwinPairData {
+  user1Id: string;
+  user2Id: string;
+  pairId: string;
+  createdAt: string;
+}
 
 export interface PrivacySettings {
   dataCollection: boolean;
@@ -200,26 +215,20 @@ class DataPrivacyManager {
     const anonymized = {
       // Remove direct identifiers
       id: this.generateAnonymousId(),
-      templateId: results.templateId,
-      completedAt: this.anonymizeTimestamp(results.completedAt, anonymizationLevel),
+      sessionId: results.sessionId,
+      completedAt: this.anonymizeTimestamp(results.completionDate, anonymizationLevel),
       
       // Generalize scores
-      scores: results.scores.map(score => ({
+      scores: results.subscaleScores.map((score: any) => ({
         category: score.category,
-        normalizedScore: this.generalizeScore(score.normalizedScore, anonymizationLevel),
-        confidence: Math.round(score.confidence * 10) / 10, // Round to 1 decimal
+        normalizedScore: this.generalizeScore(score.scaledScore, anonymizationLevel),
+        confidence: Math.round((score.percentile || 50) * 10) / 100, // Round to 1 decimal
       })),
       
       // Remove or generalize sensitive fields
-      overallScore: results.overallScore ? 
-        this.generalizeScore(results.overallScore, anonymizationLevel) : null,
-      
-      // Add noise to prevent re-identification
-      reliability: this.addNoise(results.reliability, 0.05),
-      validity: this.addNoise(results.validity, 0.05),
-      
-      // Generalize insights
-      insights: this.anonymizeInsights(results.insights),
+      overallProfile: results.overallProfile || null,
+
+      // Generalize recommendations
       recommendations: this.anonymizeRecommendations(results.recommendations),
       
       // Add anonymization metadata
@@ -564,10 +573,18 @@ class DataPrivacyManager {
     );
   }
 
-  private anonymizeRecommendations(recommendations: string[]): string[] {
-    return recommendations.map(rec => 
-      rec.replace(/\b(you|your)\b/gi, 'users')
-         .replace(/\b(twin|sibling)\b/gi, 'pair member')
+  private anonymizeRecommendations(recommendations: any[]): any[] {
+    return recommendations.map(rec =>
+      typeof rec === 'string' ?
+        rec.replace(/\b(you|your)\b/gi, 'users')
+           .replace(/\b(twin|sibling)\b/gi, 'pair member')
+        : {
+            ...rec,
+            title: rec.title?.replace(/\b(you|your)\b/gi, 'users')
+                             .replace(/\b(twin|sibling)\b/gi, 'pair member'),
+            description: rec.description?.replace(/\b(you|your)\b/gi, 'users')
+                                        .replace(/\b(twin|sibling)\b/gi, 'pair member')
+          }
     );
   }
 

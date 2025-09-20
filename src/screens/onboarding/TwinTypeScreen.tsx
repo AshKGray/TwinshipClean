@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, ScrollView, Animated, TextInputBackground } from "react-native";
+import { View, Text, Pressable, ScrollView, Animated, TextInput } from "react-native";
 import { ImageBackground } from "expo-image";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";

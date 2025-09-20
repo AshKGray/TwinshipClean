@@ -13,7 +13,7 @@ import {
 export const compareTwinScores = (
   user1Results: AssessmentResults,
   user2Results: AssessmentResults
-): PairAnalytics => {
+): any => {
   const compatibilityScore = calculateCompatibilityScore(user1Results, user2Results);
   const strengthAreas = identifyStrengthAreas(user1Results, user2Results);
   const growthAreas = identifyGrowthAreas(user1Results, user2Results);
@@ -338,7 +338,7 @@ const generatePairRecommendations = (
 
   // Address communication issues
   // Handle both array and object structures for growthAreas
-  const sharedGrowthAreas = Array.isArray(growthAreas) ? growthAreas : (growthAreas.shared || []);
+  const sharedGrowthAreas = Array.isArray(growthAreas) ? growthAreas : [];
   if (sharedGrowthAreas.includes('communication')) {
     recommendations.push({
       id: 'PAIR002',
@@ -476,12 +476,17 @@ export const calculateCompatibilityMetrics = (
   else if (metrics.independenceCompatibility < 50) potentialChallenges.push('Independence level mismatch');
 
   return {
-    ...metrics,
     overallCompatibility: Math.round(overallCompatibility),
     dimensionCompatibility: metrics, // Individual dimension scores
     compatibilityLevel,
     relationshipStrengths,
-    potentialChallenges
+    potentialChallenges,
+    communicationCompatibility: metrics.communicationCompatibility,
+    autonomyCompatibility: metrics.autonomyCompatibility,
+    codependencyCompatibility: metrics.codependencyCompatibility,
+    identityCompatibility: metrics.identityCompatibility,
+    boundaryCompatibility: metrics.boundaryCompatibility,
+    independenceCompatibility: metrics.independenceCompatibility
   };
 };
 
@@ -547,11 +552,11 @@ export const identifyGrowthAreas = (twin1: any, twin2: any): any => {
     };
     
     // Use core identifyGrowthAreas function for shared areas
-    const sharedGrowthAreas = identifyGrowthAreasCore(adaptedTwin1, adaptedTwin2);
+    const sharedGrowthAreas = identifyGrowthAreasCore(adaptedTwin1 as any, adaptedTwin2 as any);
     
     // Identify individual growth areas for each twin
-    const twin1IndividualAreas = [];
-    const twin2IndividualAreas = [];
+    const twin1IndividualAreas: any[] = [];
+    const twin2IndividualAreas: any[] = [];
     
     // Check individual weaknesses in Big Five traits
     Object.entries(twin1.bigFive).forEach(([trait, score]) => {

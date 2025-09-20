@@ -5,6 +5,7 @@
     "scheme": "twinship",
     "version": "1.0",
     "orientation": "portrait",
+    "icon": "./assets/twinshipAppIcon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {

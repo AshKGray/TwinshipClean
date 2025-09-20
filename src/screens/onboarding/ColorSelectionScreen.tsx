@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, ScrollView, Animated, DimensionsBackground } from "react-native";
-import { ImageBackground } from "expo-image";
-import { Image } from "expo-image";
+import { View, Text, Pressable, ScrollView, Animated, Dimensions } from "react-native";
+import { ImageBackground, Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ColorPicker } from "../../components/onboarding/ColorPicker";
 import { LinearGradient } from "expo-linear-gradient";

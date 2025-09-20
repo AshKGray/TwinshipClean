@@ -10,6 +10,7 @@ import { useAuth } from "../state/authStore";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { v4 as uuidv4 } from "uuid";
+import { appIconService } from "../services/appIconService";
 
 export const PairScreen = () => {
   console.log("=== PairScreen component rendering ===");
@@ -52,15 +53,15 @@ export const PairScreen = () => {
     }
   };
 
-  const createDevPair = (meName: string, twinName: string) => {
-    console.log("createDevPair called with:", meName, twinName);
+  const createDevPair = async (meName: string, twinName: string, myGender: string = "male", twinGender: string = "female") => {
+    console.log("createDevPair called with:", meName, twinName, myGender, twinGender);
     const state = useTwinStore.getState();
     ensureDevUser(meName);
     const me: TwinProfile = {
       id: "test-user-" + Date.now(),
       name: meName,
       age: 26,
-      gender: "Non-binary",
+      gender: myGender,
       twinType: "identical" as TwinType,
       birthDate: new Date().toISOString(),
       accentColor: "neon-purple" as ThemeColor,
@@ -73,7 +74,7 @@ export const PairScreen = () => {
       id: "test-twin-" + Date.now(),
       name: twinName,
       age: 25,
-      gender: "Non-binary",
+      gender: twinGender,
       twinType: "identical" as TwinType,
       birthDate: new Date().toISOString(),
       accentColor: accent,
@@ -85,14 +86,32 @@ export const PairScreen = () => {
     state.setTwinProfile(mockTwin);
     setPaired(true);
     setConnectionStatus("connected");
-    setStatusText(`Connected to test twin: ${mockTwin.name}! 🎉`);
+
+    // Set app icon based on twin genders
+    try {
+      const success = await appIconService.setIconForTwinType(
+        myGender as 'male' | 'female',
+        twinGender as 'male' | 'female'
+      );
+      if (success) {
+        console.log("App icon updated successfully for twin type:", myGender, "/", twinGender);
+        setStatusText(`Connected to test twin: ${mockTwin.name}! App icon updated! 🎉`);
+      } else {
+        console.log("App icon update failed, but continuing...");
+        setStatusText(`Connected to test twin: ${mockTwin.name}! 🎉`);
+      }
+    } catch (error) {
+      console.error("Error updating app icon:", error);
+      setStatusText(`Connected to test twin: ${mockTwin.name}! 🎉`);
+    }
+
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     setTimeout(() => {
       const { useChatStore } = require('../state/chatStore');
       const chatStore = useChatStore.getState();
       chatStore.addMessage({
-        text: `Hey twin! I'm ${mockTwin.name}. This is a dev pairing.`,
+        text: `Hey twin! I'm ${mockTwin.name}. This is a dev pairing with dynamic icons!`,
         senderId: mockTwin.id,
         senderName: mockTwin.name,
         type: 'text' as const,
@@ -173,13 +192,13 @@ export const PairScreen = () => {
     console.log("Cleaned code:", cleaned);
     console.log("Checking if code is TEST:", cleaned.toUpperCase() === "TEST");
     
-    // Special test codes for development
+    // Special test codes for development with different twin combinations
     if (cleaned.toUpperCase() === "TEST") {
-      console.log("TEST code detected, creating dev pair");
-      setStatusText("TEST code detected! Creating dev pair...");
-      // Default: you as Jordan, twin as Alex
+      console.log("TEST code detected, creating boy/girl twin pair");
+      setStatusText("TEST code detected! Creating boy/girl twin pair (mixed icon)...");
+      // Mixed twins - boy/girl - default mixed icon
       try {
-        createDevPair("Jordan", "Alex");
+        createDevPair("Jordan", "Alex", "male", "female");
       } catch (error) {
         console.error("Error in createDevPair:", error);
         setStatusText("Error creating dev pair: " + String(error));
@@ -187,11 +206,23 @@ export const PairScreen = () => {
       return;
     }
     if (cleaned.toUpperCase() === "TESTTWIN") {
-      console.log("TESTTWIN code detected, creating dev pair");
-      setStatusText("TESTTWIN code detected! Creating dev pair...");
-      // Swap roles: you as Alex, twin as Jordan
+      console.log("TESTTWIN code detected, creating girl/girl twin pair");
+      setStatusText("TESTTWIN code detected! Creating girl/girl twin pair (pink icon)...");
+      // Girl/Girl twins - pink icon
       try {
-        createDevPair("Alex", "Jordan");
+        createDevPair("Alex", "Jordan", "female", "female");
+      } catch (error) {
+        console.error("Error in createDevPair:", error);
+        setStatusText("Error creating dev pair: " + String(error));
+      }
+      return;
+    }
+    if (cleaned.toUpperCase() === "TESTBLUE") {
+      console.log("TESTBLUE code detected, creating boy/boy twin pair");
+      setStatusText("TESTBLUE code detected! Creating boy/boy twin pair (blue icon)...");
+      // Boy/Boy twins - blue icon
+      try {
+        createDevPair("Marcus", "Michael", "male", "male");
       } catch (error) {
         console.error("Error in createDevPair:", error);
         setStatusText("Error creating dev pair: " + String(error));

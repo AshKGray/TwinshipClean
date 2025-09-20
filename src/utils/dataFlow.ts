@@ -18,7 +18,7 @@ import { usePairStore } from '../state/stores/pairStore';
 import { SyncService } from '../services/syncService';
 import { storageService } from '../services/storageService';
 import { EncryptionService } from '../services/encryptionService';
-import { pairAnalyticsEngine } from './analytics/pairAnalytics';
+import { analyzeTwinCompatibility } from './analytics/pairAnalytics';
 import { dataPrivacyManager } from './encryption/dataPrivacy';
 
 export interface DataFlowConfig {
@@ -333,15 +333,10 @@ class DataFlowOrchestrator {
       throw new Error('Both twins must consent to data merging for analytics');
     }
 
-    // Generate analytics using pair analytics engine
-    const analytics = await pairAnalyticsEngine.generatePairAnalytics(
+    // Generate analytics using pair analytics function
+    const analytics = analyzeTwinCompatibility(
       twin1Results,
-      twin2Results,
-      {
-        privacyLevel: this.config.privacyLevel,
-        normalizeScores: true,
-        confidenceThreshold: 0.7,
-      } as any
+      twin2Results
     );
 
     // Store analytics securely
@@ -349,8 +344,6 @@ class DataFlowOrchestrator {
       `pair_analytics_${pairId}`,
       analytics,
       {
-        encrypt: this.config.enableEncryption,
-        tier: 'secure',
         backup: true,
       }
     );

@@ -220,8 +220,8 @@ export class PerformanceDashboard {
   exportDashboardData(): {
     current: DashboardMetrics;
     history: DashboardMetrics[];
-    trends: ReturnType<typeof this.getTrends>;
-    alerts: ReturnType<typeof this.generateAlerts>;
+    trends: any;
+    alerts: any;
     timestamp: number;
   } {
     return {
@@ -258,7 +258,7 @@ export class PerformanceDashboard {
 
     if (dashboard.alerts.length > 0) {
       console.log('\n⚠️  Performance Alerts:');
-      dashboard.alerts.forEach((alert, index) => {
+      dashboard.alerts.forEach((alert: any, index: number) => {
         const emoji = alert.severity === 'critical' ? '🔴' : alert.severity === 'high' ? '🟡' : '🟠';
         console.log(`   ${emoji} ${alert.message}`);
         console.log(`      → ${alert.action}`);

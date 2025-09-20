@@ -230,7 +230,7 @@ export const PREMIUM_CATEGORIES = {
  */
 export const getFeatureCategory = (featureId: string) => {
   return Object.values(PREMIUM_CATEGORIES).find(
-    category => category.features.includes(featureId)
+    (category: any) => category.features.includes(featureId)
   );
 };
 

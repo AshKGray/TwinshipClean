@@ -131,7 +131,7 @@ export class PerformanceTracker {
   generateStartupReport(): {
     metrics: Partial<StartupMetrics>;
     timings: { [key: string]: number };
-    budget: ReturnType<typeof this.getPerformanceBudgetStatus>;
+    budget: any;
     recommendations: string[];
   } {
     const timings: { [key: string]: number } = {};
@@ -218,7 +218,7 @@ export class PerformanceTracker {
   exportForBMAD(): {
     startupMetrics: Partial<StartupMetrics>;
     performanceMarks: Array<PerformanceMark>;
-    budgetStatus: ReturnType<typeof this.getPerformanceBudgetStatus>;
+    budgetStatus: any;
   } {
     return {
       startupMetrics: this.startupMetrics,

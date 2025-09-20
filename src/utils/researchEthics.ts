@@ -56,8 +56,8 @@ export const validateStudyEthics = (study: ResearchStudy): boolean => {
   const hasLeadResearcher = study.leadResearcher && study.leadResearcher.length > 0;
   const hasDataTypes = study.dataTypes && study.dataTypes.length > 0;
   const hasValidRetention = study.dataTypes.every(dt => dt.retentionPeriod && dt.retentionPeriod.length > 0);
-  
-  return hasEthicsApproval && hasInstitution && hasLeadResearcher && hasDataTypes && hasValidRetention;
+
+  return hasEthicsApproval && hasInstitution && hasLeadResearcher && hasDataTypes && Boolean(hasValidRetention);
 };
 
 /**

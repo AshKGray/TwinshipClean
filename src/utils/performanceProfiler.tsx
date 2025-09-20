@@ -19,7 +19,7 @@ interface PerformanceMetrics {
 const performanceData: Map<string, PerformanceMetrics> = new Map();
 
 // Callback for React Profiler
-const onRenderCallback: ProfilerOnRenderCallback = (
+const onRenderCallback = (
   id: string,
   phase: 'mount' | 'update',
   actualDuration: number,
