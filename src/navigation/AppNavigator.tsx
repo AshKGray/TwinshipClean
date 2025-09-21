@@ -80,6 +80,11 @@ const AssessmentResultsScreen = lazyScreenWithSkeleton(
   'assessment',
   'Analyzing results...'
 );
+const AssessmentResultsScreen_Premium = lazyScreenWithSkeleton(
+  () => import("../screens/assessment/AssessmentResultsScreen_Premium").then(m => ({ default: m.AssessmentResultsScreen })),
+  'assessment',
+  'Preparing premium insights...'
+);
 const AssessmentRecommendationsScreen = lazyScreenWithSkeleton(
   () => import("../screens/assessment/AssessmentRecommendationsScreen").then(m => ({ default: m.AssessmentRecommendationsScreen })),
   'assessment',
@@ -89,6 +94,33 @@ const PairComparisonScreen = lazyScreenWithSkeleton(
   () => import("../screens/assessment/PairComparisonScreen").then(m => ({ default: m.PairComparisonScreen })),
   'assessment',
   'Loading comparison...'
+);
+
+const PremiumDashboardScreen = lazyScreenWithSkeleton(
+  () => import("../screens/premium/PremiumDashboardScreen").then(m => ({ default: m.PremiumDashboardScreen })),
+  'premium',
+  'Loading premium analytics...'
+);
+
+const StoriesScreen = lazyScreenWithSkeleton(
+  () => import("../screens/stories/StoriesScreen").then(m => ({ default: m.StoriesScreen })),
+  'generic',
+  'Loading stories...'
+);
+const CreateStoryScreen = lazyScreenWithSkeleton(
+  () => import("../screens/stories/CreateStoryScreen").then(m => ({ default: m.CreateStoryScreen })),
+  'generic',
+  'Preparing story editor...'
+);
+const StoryDetailScreen = lazyScreenWithSkeleton(
+  () => import("../screens/stories/StoryDetailScreen").then(m => ({ default: m.StoryDetailScreen })),
+  'generic',
+  'Loading story details...'
+);
+const EditStoryScreen = lazyScreenWithSkeleton(
+  () => import("../screens/stories/EditStoryScreen").then(m => ({ default: m.EditStoryScreen })),
+  'generic',
+  'Preparing story editor...'
 );
 
 // Story Screens removed - integrated into Twincidence Log
@@ -152,11 +184,12 @@ type RootStackParamList = {
   AssessmentSurvey: undefined;
   AssessmentLoading: { responses: Record<number, number> };
   AssessmentResults: { results: any };
-  AssessmentRecommendations: { results: any };
+  AssessmentRecommendations: { results?: any; sessionId?: string };
   PairComparison: undefined;
   // Premium screens
   Premium: { feature?: string; source?: 'assessment' | 'settings' | 'dashboard' | 'onboarding' };
   PremiumFeatures: undefined;
+  PremiumDashboard: undefined;
   // Story screens removed - integrated into Twincidence Log
   // Missing routes identified in navigation calls
   GameStats: undefined;
@@ -172,6 +205,11 @@ type RootStackParamList = {
   ResearchParticipation: undefined;
   // Pair route
   Pair: undefined;
+  // Story routes
+  Stories: undefined;
+  CreateStory: { draftId?: string } | undefined;
+  StoryDetail: { storyId: string };
+  EditStory: { storyId: string };
 };
 
 const TabNavigator = () => {
@@ -452,14 +490,15 @@ export const AppNavigator = () => {
             <Stack.Screen name="AssessmentRecommendations" component={AssessmentRecommendationsScreen} />
             <Stack.Screen name="PairComparison" component={PairComparisonScreen} />
             {/* Premium Screens */}
-            <Stack.Screen 
-              name="Premium" 
+            <Stack.Screen
+              name="Premium"
               component={PremiumScreen}
             />
-            <Stack.Screen 
-              name="PremiumFeatures" 
+            <Stack.Screen
+              name="PremiumFeatures"
               component={PremiumScreen}
             />
+            <Stack.Screen name="PremiumDashboard" component={PremiumDashboardScreen} />
             {/* Twin Connection Game Screens */}
             <Stack.Screen name="TwinGamesHub" component={TwinGamesHub} />
             <Stack.Screen name="CognitiveSyncMaze" component={CognitiveSyncMaze} />
@@ -481,8 +520,13 @@ export const AppNavigator = () => {
             <Stack.Screen name="Home" component={TabNavigator} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Recommendations" component={AssessmentRecommendationsScreen} />
-            <Stack.Screen name="AssessmentDetails" component={AssessmentResultsScreen} />
+            <Stack.Screen name="AssessmentDetails" component={AssessmentResultsScreen_Premium} />
             <Stack.Screen name="Pair" component={require("../screens/PairScreen").PairScreen} />
+            {/* Story Screens */}
+            <Stack.Screen name="Stories" component={StoriesScreen} />
+            <Stack.Screen name="CreateStory" component={CreateStoryScreen} />
+            <Stack.Screen name="StoryDetail" component={StoryDetailScreen} />
+            <Stack.Screen name="EditStory" component={EditStoryScreen} />
           </>
         )}
       </Stack.Navigator>

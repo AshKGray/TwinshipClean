@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, Dimensions, ImageBackground } from 'react-native';
+import { View, Text, ScrollView, Pressable, Dimensions, ImageBackground, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -130,7 +130,7 @@ const ProgressRing: React.FC<{
 export const PremiumDashboardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { userProfile, twinProfile } = useTwinStore();
-  const { getAllResults } = useAssessmentStore();
+  const getAllResults = useAssessmentStore((state) => state.getAllResults);
   
   const {
     canViewAdvancedAnalytics,
@@ -199,6 +199,28 @@ export const PremiumDashboardScreen: React.FC = () => {
     } catch (error) {
       console.error('Export failed:', error);
     }
+  };
+
+  const handleOpenRecommendations = () => {
+    const allResults = getAllResults();
+
+    if (!allResults || allResults.length === 0) {
+      Alert.alert(
+        'No assessments yet',
+        'Complete your first assessment to unlock personalized recommendations.',
+        [
+          { text: 'Later', style: 'cancel' },
+          { text: 'Start Assessment', onPress: () => navigation.navigate('AssessmentIntro') },
+        ]
+      );
+      return;
+    }
+
+    const latestResult = allResults[allResults.length - 1];
+    navigation.navigate('AssessmentRecommendations', {
+      sessionId: latestResult.sessionId,
+      results: latestResult,
+    });
   };
 
   return (
@@ -395,7 +417,7 @@ export const PremiumDashboardScreen: React.FC = () => {
               
               <View className="flex-row space-x-3">
                 <Pressable 
-                  onPress={() => navigation.navigate('AssessmentRecommendations')}
+                  onPress={handleOpenRecommendations}
                   className="flex-1 bg-white/10 rounded-xl p-3"
                 >
                   <Text className="text-white text-center font-medium">View Coaching</Text>

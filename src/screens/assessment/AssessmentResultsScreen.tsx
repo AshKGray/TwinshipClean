@@ -248,7 +248,7 @@ export const AssessmentResultsScreen = () => {
                 </Pressable>
                 
                 <Pressable
-                  onPress={() => navigation.navigate('AssessmentRecommendations', { results: session })}
+                  onPress={() => navigation.navigate('AssessmentRecommendations', { sessionId, results })}
                   className="bg-white/10 rounded-xl p-4 mb-3"
                 >
                   <Text className="text-white text-center font-medium">
