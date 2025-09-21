@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, Pressable, ScrollViewBackground } from "react-native";
 import { ImageBackground } from "expo-image";
 import { Image } from "expo-image";
@@ -118,6 +118,31 @@ export const PairComparisonScreen = () => {
   };
   
   const compatibilityScore = calculateCompatibility();
+
+  const recommendationLevel = useMemo(() => {
+    if (compatibilityScore >= 85) return 'Extraordinary';
+    if (compatibilityScore >= 70) return 'Strong';
+    if (compatibilityScore >= 55) return 'Moderate';
+    return 'Developing';
+  }, [compatibilityScore]);
+
+  const recommendationPayload = useMemo(() => ({
+    overallScore: Math.round((MOCK_TWIN_RESULTS.user.overallScore + MOCK_TWIN_RESULTS.twin.overallScore) / 2),
+    categoryScores: {
+      emotionalConnection: Math.round((MOCK_TWIN_RESULTS.user.categoryScores.emotionalConnection + MOCK_TWIN_RESULTS.twin.categoryScores.emotionalConnection) / 2),
+      telepathicExperiences: Math.round((MOCK_TWIN_RESULTS.user.categoryScores.telepathicExperiences + MOCK_TWIN_RESULTS.twin.categoryScores.telepathicExperiences) / 2),
+      behavioralSynchrony: Math.round((MOCK_TWIN_RESULTS.user.categoryScores.behavioralSynchrony + MOCK_TWIN_RESULTS.twin.categoryScores.behavioralSynchrony) / 2),
+      sharedExperiences: Math.round((MOCK_TWIN_RESULTS.user.categoryScores.sharedExperiences + MOCK_TWIN_RESULTS.twin.categoryScores.sharedExperiences) / 2),
+      physicalSensations: Math.round((MOCK_TWIN_RESULTS.user.categoryScores.physicalSensations + MOCK_TWIN_RESULTS.twin.categoryScores.physicalSensations) / 2),
+    },
+    level: recommendationLevel,
+    insights: COMPATIBILITY_INSIGHTS.map((insight) => insight.description),
+    recommendations: COMPATIBILITY_INSIGHTS.map((insight) => insight.description),
+  }), [recommendationLevel]);
+
+  const handleViewRecommendations = () => {
+    navigation.navigate('AssessmentRecommendations', { results: recommendationPayload });
+  };
   
   // Animation
   const fadeIn = useSharedValue(0);
@@ -333,8 +358,8 @@ export const PairComparisonScreen = () => {
 
             {/* Action Buttons */}
             <View className="space-y-3">
-              <Pressable 
-                onPress={() => navigation.navigate("AssessmentRecommendations" as never)}
+              <Pressable
+                onPress={handleViewRecommendations}
                 className="rounded-xl py-4 px-6 flex-row items-center justify-center"
                 style={{ backgroundColor: accentColor }}
               >

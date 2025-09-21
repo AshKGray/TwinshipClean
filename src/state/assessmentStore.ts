@@ -51,6 +51,7 @@ interface AssessmentState {
   canSubmit: () => boolean;
   getSessionById: (sessionId: string) => AssessmentSession | undefined;
   getResultsById: (sessionId: string) => AssessmentResults | undefined;
+  getAllResults: () => AssessmentResults[];
 }
 
 // Flatten all items from categories into a single array
@@ -285,6 +286,10 @@ export const useAssessmentStore = create<AssessmentState>()(
 
       getResultsById: (sessionId: string) => {
         return get().results.find(r => r.sessionId === sessionId);
+      },
+
+      getAllResults: () => {
+        return get().results;
       }
     }),
     {
