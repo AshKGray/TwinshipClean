@@ -9,6 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -138,7 +139,11 @@ export const LoginScreen = () => {
               {/* Logo - Centered in upper area */}
               <View className="items-center mt-16 mb-12">
                 <View className="bg-white rounded-2xl p-4 mb-6">
-                  <Text className="text-2xl">👥</Text>
+                  <Image
+                    source={require('../../../assets/twinshipAppIcon.png')}
+                    resizeMode="contain"
+                    className="w-16 h-16"
+                  />
                 </View>
                 <Text className="text-white text-4xl font-bold">Twinship</Text>
               </View>
