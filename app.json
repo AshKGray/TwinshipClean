@@ -18,7 +18,8 @@
         "NSCameraUsageDescription": "This app uses the camera for profile photos and sharing moments with your twin.",
         "NSPhotoLibraryUsageDescription": "This app accesses your photos to let you share memories with your twin.",
         "NSLocationWhenInUseUsageDescription": "This app uses your location to show distance from your twin and for location-based features.",
-        "NSMicrophoneUsageDescription": "This app uses the microphone for voice messages and audio recording."
+        "NSMicrophoneUsageDescription": "This app uses the microphone for voice messages and audio recording.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -30,6 +31,17 @@
       "expo-mail-composer",
       "expo-secure-store",
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6f528a8b-3cb3-46ce-8276-218c4ba2b92c"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6f528a8b-3cb3-46ce-8276-218c4ba2b92c"
+    }
   }
 }

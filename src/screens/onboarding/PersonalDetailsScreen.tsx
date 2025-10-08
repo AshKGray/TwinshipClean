@@ -131,7 +131,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
   );
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+    <ImageBackground source={require("../../../assets/galaxybackground.png")} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
           {/* Header */}
           <View className="flex-row items-center justify-between pt-4 pb-8 px-8">
@@ -143,14 +143,14 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
             </Pressable>
             
             <View className="flex-1 items-center">
-              <Text className="text-white/60 text-sm">Step 2 of 5</Text>
+              <Text className="text-white/60 text-sm">Step 3 of 6</Text>
               <View className="flex-row mt-2 space-x-1">
-                {[...Array(5)].map((_, i) => (
-                  <View 
-                    key={i} 
+                {[...Array(6)].map((_, i) => (
+                  <View
+                    key={i}
                     className={`h-1 w-8 rounded-full ${
-                      i <= 1 ? 'bg-white' : 'bg-white/20'
-                    }`} 
+                      i <= 2 ? 'bg-white' : 'bg-white/20'
+                    }`}
                   />
                 ))}
               </View>

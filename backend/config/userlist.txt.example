@@ -1,0 +1,20 @@
+;; PgBouncer User Authentication File
+;; Format: "username" "password"
+;;
+;; Password can be:
+;; - Plain text (not recommended)
+;; - MD5 hash: "md5" + md5(password + username)
+;; - SCRAM-SHA-256 hash
+
+;; Generate MD5 hash:
+;; echo -n "passwordusername" | md5sum | awk '{print "md5"$1}'
+
+;; Example entries:
+"twinship_user" "md5abcdef1234567890abcdef1234567890"
+"readonly_user" "md5fedcba0987654321fedcba0987654321"
+"twinship_admin" "md5adminpasswordhashgoeshere123456"
+"stats_monitor" "md5statspasswordhashgoeshere123456"
+
+;; Production users (replace with actual hashed passwords)
+;; "prod_app_user" "md5<your_hash_here>"
+;; "prod_readonly" "md5<your_hash_here>"

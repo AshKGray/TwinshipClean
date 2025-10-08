@@ -129,22 +129,22 @@ export const LoginScreen = () => {
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
+          keyboardVerticalOffset={0}
         >
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{ paddingBottom: 40 }}
             keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <View className="flex-1 px-6">
+            <View className="px-6">
               {/* Logo - Centered in upper area */}
               <View className="items-center mt-16 mb-12">
-                <View className="bg-white rounded-2xl p-4 mb-6">
-                  <Image
-                    source={require('../../../assets/twinshipAppIcon.png')}
-                    resizeMode="contain"
-                    className="w-16 h-16"
-                  />
-                </View>
+                <Image
+                  source={require('../../../assets/twinshipAppIcon.png')}
+                  resizeMode="contain"
+                  className="w-24 h-24 mb-6"
+                />
                 <Text className="text-white text-4xl font-bold">Twinship</Text>
               </View>
 
@@ -230,7 +230,7 @@ export const LoginScreen = () => {
                   </Text>
                 </Pressable>
 
-                {/* Sign Up Button */}
+                {/* Create Account Button */}
                 <Pressable
                   onPress={() => navigation.navigate('Register')}
                   disabled={isLoading}
@@ -242,7 +242,7 @@ export const LoginScreen = () => {
                     },
                   ]}
                 >
-                  <Text className="text-white font-semibold text-lg">Sign Up</Text>
+                  <Text className="text-white font-semibold text-lg">Create Account</Text>
                 </Pressable>
 
                 {/* Forgot Password - Centered */}

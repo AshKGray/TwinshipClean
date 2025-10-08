@@ -78,10 +78,15 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (data: RegisterData) => {
         set({ isLoading: true, error: null });
-        
+
         try {
           const response = await authService.register(data);
-          
+
+          // Import and reset onboarding state for new users
+          const { useTwinStore } = await import('./twinStore');
+          const { setOnboarded } = useTwinStore.getState();
+          setOnboarded(false);
+
           set({
             user: response.user,
             isAuthenticated: true,
@@ -90,8 +95,8 @@ export const useAuthStore = create<AuthState>()(
           });
 
           if (response.requiresEmailVerification) {
-            set({ 
-              error: 'Please check your email to verify your account. A verification email has been sent.' 
+            set({
+              error: 'Please check your email to verify your account. A verification email has been sent.'
             });
           }
         } catch (error: any) {

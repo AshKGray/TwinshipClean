@@ -51,7 +51,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onContinue }) => {
   }, []);
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+    <ImageBackground source={require("../../../assets/galaxybackground.png")} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="flex-1 justify-center items-center px-8">
           {/* Twinship Logo */}

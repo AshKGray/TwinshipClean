@@ -110,11 +110,12 @@ export const HomeScreen = memo(() => {
       transition={200}
     >
       <SafeAreaView className="flex-1">
-        <ScrollView 
+        <ScrollView
           className="flex-1 px-6"
           showsVerticalScrollIndicator={false}
           removeClippedSubviews={true}
           maxToRenderPerBatch={10}
+          contentContainerStyle={{ paddingBottom: 100 }}
         >
           {/* Header with Neon Glow */}
           <View className="pt-4 pb-8">

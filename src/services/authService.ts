@@ -229,23 +229,24 @@ class AuthService {
 
   async register(data: RegisterData): Promise<AuthResponse> {
     try {
-      // Development-only bypass for testing
-      if (__DEV__ && (data.email.includes('test') || data.displayName.toLowerCase().includes('test'))) {
-        console.log('🚀 DEV: Using mock registration for testing');
+      // Mock registration for testing (works in dev/preview/staging without backend)
+      const isTestEnvironment = __DEV__ || process.env.EXPO_PUBLIC_APP_ENV !== 'production';
+      if (isTestEnvironment) {
+        console.log('🚀 Using mock registration (no backend required)');
         const mockUser: User = {
           id: `test-user-${Date.now()}`,
           email: data.email,
           displayName: data.displayName,
           emailVerified: true,
         };
-        
+
         const mockTokens: AuthTokens = {
           accessToken: 'dev-access-token',
           refreshToken: 'dev-refresh-token',
           accessTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
           refreshTokenExpires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         };
-        
+
         await this.storeTokens(mockTokens);
         return {
           user: mockUser,
@@ -277,23 +278,24 @@ class AuthService {
 
   async login(data: LoginData): Promise<AuthResponse> {
     try {
-      // Development-only bypass for testing
-      if (__DEV__ && (data.email.includes('test') || data.email === 'dev@twinship.app')) {
-        console.log('🚀 DEV: Using mock login for testing');
+      // Mock login for testing (works in dev/preview/staging without backend)
+      const isTestEnvironment = __DEV__ || process.env.EXPO_PUBLIC_APP_ENV !== 'production';
+      if (isTestEnvironment) {
+        console.log('🚀 Using mock login (no backend required)');
         const mockUser: User = {
           id: `dev-user-${Date.now()}`,
           email: data.email,
           displayName: data.email.includes('test') ? 'Test User' : 'Dev User',
           emailVerified: true,
         };
-        
+
         const mockTokens: AuthTokens = {
           accessToken: 'dev-access-token',
           refreshToken: 'dev-refresh-token',
           accessTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
           refreshTokenExpires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         };
-        
+
         await this.storeTokens(mockTokens);
         return {
           user: mockUser,
