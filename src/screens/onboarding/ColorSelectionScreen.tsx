@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, ScrollView, Animated, Dimensions } from "react-native";
-import { ImageBackground, Image } from "expo-image";
+import { View, Text, Pressable, ScrollView, Animated, Dimensions, ImageBackground, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ColorPicker } from "../../components/onboarding/ColorPicker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -129,7 +128,7 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
   };
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}
+    <ImageBackground source={require("../../../assets/galaxybackground.png")} style={{ flex: 1 }}
       contentFit="cover"
       placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
       transition={200}>
@@ -145,14 +144,14 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
             </Pressable>
             
             <View className="flex-1 items-center">
-              <Text className="text-white/60 text-sm">Step 4 of 5</Text>
+              <Text className="text-white/60 text-sm">Step 5 of 6</Text>
               <View className="flex-row mt-2 space-x-1">
-                {[...Array(5)].map((_, i) => (
-                  <View 
-                    key={i} 
+                {[...Array(6)].map((_, i) => (
+                  <View
+                    key={i}
                     className={`h-1 w-8 rounded-full ${
-                      i <= 3 ? 'bg-white' : 'bg-black/80'
-                    }`} 
+                      i <= 4 ? 'bg-white' : 'bg-black/80'
+                    }`}
                   />
                 ))}
               </View>

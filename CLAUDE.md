@@ -8,13 +8,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Twinship** - A specialized mobile platform for twins to strengthen their bond and connent
 
 ### Brief Description
-Twinship is a React Native/Expo mobile app designed for twins to connect, communicate, and explore their unique bond through various features including chat, games, assessments, and stories.
+Twinship is a React Native/Expo mobile app designed for twins to connect, communicate, and explore their unique bond through various features including chat, games, assessments, and Twincidences (twin synchronicity moments).
 
 ### Business Purpose
 Transform the abstract concept of "twin connection" into tangible, measurable insights while providing tools for meaningful interaction. The app serves to:
 - **Quantify Twin Bonds**: Convert subjective twin experiences into objective, measurable data through psychological games
 - **Enable Meaningful Communication**: Provide purpose-built communication tools designed specifically for twin dynamics
-- **Document Shared Journey**: Collaborative storytelling platform for celebrating the twin experience
+- **Document Twin Moments**: Privacy-first Twincidences system for logging synchronicities and special twin moments with granular consent controls
 - **Advance Scientific Research**: Optional participation in twin studies contributing to scientific understanding
 
 ### Target Audience
@@ -144,7 +144,7 @@ Components are feature-grouped in `/src/components/`:
 - `chat/` - Chat interface components
 - `games/` - Game-related components
 - `premium/` - Subscription and premium features
-- `stories/` - Story creation and viewing
+- `twincidences/` - Twincidence logging and consent management
 - `research/` - Research participation components
 
 ### Screen Flow Patterns

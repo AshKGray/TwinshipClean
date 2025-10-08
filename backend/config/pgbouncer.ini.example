@@ -1,0 +1,185 @@
+;; PgBouncer Configuration for Twinship Production
+;; Copy this file to /etc/pgbouncer/pgbouncer.ini and customize
+
+[databases]
+; Database connections
+; Format: dbname = host=hostname port=5432 dbname=database_name
+twinship_prod = host=localhost port=5432 dbname=twinship_prod user=twinship_user password=YOUR_PASSWORD
+twinship_staging = host=localhost port=5432 dbname=twinship_staging user=twinship_user password=YOUR_PASSWORD
+
+; Fallback/read replica (optional)
+; twinship_readonly = host=replica-host port=5432 dbname=twinship_prod user=readonly_user password=YOUR_PASSWORD
+
+[pgbouncer]
+;;; Administrative settings
+
+; Listen on all interfaces (change to specific IP in production)
+listen_addr = 0.0.0.0
+listen_port = 6432
+
+; Unix socket location (optional, for local connections)
+unix_socket_dir = /var/run/pgbouncer
+
+; Unix socket permissions
+unix_socket_mode = 0777
+
+;;; Authentication settings
+
+; Authentication type: pam, hba, cert, md5, scram-sha-256, plain, trust, any
+auth_type = md5
+
+; Authentication file (userlist.txt format: "username" "password")
+auth_file = /etc/pgbouncer/userlist.txt
+
+; HBA configuration file (if using auth_type = hba)
+; auth_hba_file = /etc/pgbouncer/pg_hba.conf
+
+; Query to get user password from database (alternative to auth_file)
+; auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1
+
+;;; Pooling mode and connection limits
+
+; Pooling mode: session, transaction, or statement
+; - session: Server connection released when client disconnects (most compatible)
+; - transaction: Server connection released after transaction (recommended)
+; - statement: Server connection released after query (for specific use cases)
+pool_mode = transaction
+
+; Maximum number of client connections
+max_client_conn = 1000
+
+; Default pool size per user/database pair
+default_pool_size = 25
+
+; Minimum pool size (idle connections to keep open)
+min_pool_size = 5
+
+; How many additional connections to allow to a pool
+reserve_pool_size = 10
+
+; Timeout for reserve pool connections (seconds)
+reserve_pool_timeout = 5
+
+; Maximum connections to database (hard limit)
+max_db_connections = 100
+
+; Maximum connections per user (0 = unlimited)
+max_user_connections = 100
+
+; Maximum prepared statements per connection (0 = unlimited)
+max_prepared_statements = 0
+
+;;; Connection timing
+
+; Server idle timeout (seconds)
+; How long unused connections stay open
+server_idle_timeout = 600
+
+; Client idle timeout (seconds)
+; How long clients can stay idle before being disconnected
+client_idle_timeout = 0
+
+; Server lifetime (seconds)
+; Close server connection if it's been connected longer than this
+server_lifetime = 3600
+
+; Server connection timeout (seconds)
+server_connect_timeout = 15
+
+; Query timeout (seconds, 0 = disabled)
+query_timeout = 0
+
+; Query wait timeout (seconds)
+; Max time queries are allowed to wait for connection to become available
+query_wait_timeout = 120
+
+;;; TLS settings (for encrypted connections)
+
+; Disable, allow, prefer, require, verify-ca, verify-full
+client_tls_sslmode = prefer
+
+; TLS certificate files
+; client_tls_key_file = /path/to/client-key.pem
+; client_tls_cert_file = /path/to/client-cert.pem
+; client_tls_ca_file = /path/to/ca-cert.pem
+
+; Server-side TLS
+; server_tls_sslmode = prefer
+; server_tls_ca_file = /path/to/ca-cert.pem
+; server_tls_key_file = /path/to/server-key.pem
+; server_tls_cert_file = /path/to/server-cert.pem
+
+;;; Logging
+
+; Log file location (or 'syslog' for syslog, or 'stdout')
+logfile = /var/log/pgbouncer/pgbouncer.log
+
+; Log connections/disconnections
+log_connections = 1
+log_disconnections = 1
+
+; Log pooling stats every N seconds (0 = disabled)
+log_pooler_errors = 1
+
+; Log stats every N seconds (0 = disabled)
+stats_period = 60
+
+; Verbosity: 0 = quiet, 1 = normal, 2 = verbose
+verbose = 0
+
+;;; Console access control
+
+; Admin users (comma-separated, can access admin console)
+admin_users = postgres, twinship_admin
+
+; Stats users (comma-separated, can access stats but not admin commands)
+stats_users = stats_monitor
+
+;;; Advanced settings
+
+; Buffer size for streaming queries
+pkt_buf = 4096
+
+; Buffer size for SCRAM authentication
+sbuf_loopcnt = 5
+
+; TCP socket options
+so_reuseport = 1
+tcp_keepalive = 1
+tcp_keepidle = 60
+tcp_keepintvl = 10
+tcp_keepcnt = 5
+
+; DNS lookup caching (seconds)
+dns_max_ttl = 15
+dns_nxdomain_ttl = 15
+
+; Application name to send to server
+; application_name = pgbouncer
+
+; Track session state (needed for transaction pooling with certain features)
+; track_extra_parameters = all
+
+;;; Performance tuning
+
+; Disable LISTEN/NOTIFY support (improves performance if not needed)
+; disable_pqexec = 0
+
+; Server check query (to verify server is alive)
+server_check_query = SELECT 1;
+
+; How often to run server_check_query (seconds, 0 = disabled)
+server_check_delay = 30
+
+; Server fast close (don't wait for server response on close)
+server_fast_close = 0
+
+; Auto-database creation
+; autodb_idle_timeout = 3600
+
+[users]
+; Per-user pool size overrides
+; Format: username = pool_size=N
+
+; Example: Give specific user larger pool
+; high_priority_user = pool_size=50

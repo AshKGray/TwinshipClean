@@ -1,183 +1,58 @@
-import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { AuthError, AuthErrorCodes, JWTPayload } from '../types/auth';
-import { prisma } from '../server';
-import { logger } from '../utils/logger';
+import { Request, Response, NextFunction } from 'express';
 
-// Extend Request interface to include user data
+// Extend Express Request type globally
 declare global {
   namespace Express {
     interface Request {
       user?: {
+        userId: string;
         id: string;
         email: string;
-        emailVerified: boolean;
+        emailVerified?: boolean;
       };
     }
   }
 }
 
-export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new AuthError(
-        'Authorization token is required',
-        AuthErrorCodes.UNAUTHORIZED,
-        401
-      );
-    }
+export interface AuthenticatedRequest extends Request {
+  user: {
+    userId: string;
+    id: string;
+    email: string;
+    emailVerified?: boolean;
+  };
+}
 
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '') || req.header('x-auth-token');
 
     if (!token) {
-      throw new AuthError(
-        'Authorization token is required',
-        AuthErrorCodes.UNAUTHORIZED,
-        401
-      );
+      return res.status(401).json({
+        success: false,
+        error: 'No token, authorization denied',
+      });
     }
 
-    // Verify JWT token
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      logger.error('JWT_SECRET not configured');
-      throw new AuthError(
-        'Server configuration error',
-        AuthErrorCodes.UNAUTHORIZED,
-        500
-      );
-    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
 
-    let decoded: JWTPayload;
-    try {
-      decoded = jwt.verify(token, jwtSecret) as JWTPayload;
-    } catch (jwtError: any) {
-      if (jwtError.name === 'TokenExpiredError') {
-        throw new AuthError(
-          'Access token has expired',
-          AuthErrorCodes.TOKEN_EXPIRED,
-          401
-        );
-      } else if (jwtError.name === 'JsonWebTokenError') {
-        throw new AuthError(
-          'Invalid access token',
-          AuthErrorCodes.TOKEN_INVALID,
-          401
-        );
-      }
-      throw new AuthError(
-        'Token verification failed',
-        AuthErrorCodes.TOKEN_INVALID,
-        401
-      );
-    }
-
-    // Verify user still exists and is active
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.sub },
-      select: {
-        id: true,
-        email: true,
-        emailVerified: true,
-        accountLockedUntil: true,
-      },
-    });
-
-    if (!user) {
-      throw new AuthError(
-        'User not found',
-        AuthErrorCodes.USER_NOT_FOUND,
-        401
-      );
-    }
-
-    // Check if account is locked
-    if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
-      throw new AuthError(
-        'Account is locked',
-        AuthErrorCodes.ACCOUNT_LOCKED,
-        401
-      );
-    }
-
-    // Check email verification if required
-    if (!user.emailVerified && process.env.EMAIL_VERIFICATION_REQUIRED === 'true') {
-      throw new AuthError(
-        'Email verification required',
-        AuthErrorCodes.EMAIL_NOT_VERIFIED,
-        401
-      );
-    }
-
-    // Attach user to request object
     req.user = {
-      id: user.id,
-      email: user.email,
-      emailVerified: user.emailVerified,
+      userId: decoded.userId || decoded.sub,
+      id: decoded.userId || decoded.sub,
+      email: decoded.email,
+      emailVerified: decoded.emailVerified,
     };
 
     next();
   } catch (error) {
-    if (error instanceof AuthError) {
-      return res.status(error.statusCode).json({
-        success: false,
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      });
-    }
-
-    logger.error('Authentication middleware error:', error);
-    return res.status(500).json({
+    console.error('Auth middleware error:', error);
+    res.status(401).json({
       success: false,
-      error: {
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Internal server error',
-      },
+      error: 'Token is not valid',
     });
   }
 };
 
-// Optional middleware that doesn't throw errors if no token is provided
-export const optionalAuthenticate = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next(); // No token provided, continue without user
-    }
-
-    // Use the main authenticate middleware
-    await authenticate(req, res, next);
-  } catch (error) {
-    // Continue without user if authentication fails
-    next();
-  }
-};
-
-// Middleware to require email verification
-export const requireEmailVerification = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      error: {
-        code: AuthErrorCodes.UNAUTHORIZED,
-        message: 'Authentication required',
-      },
-    });
-  }
-
-  if (!req.user.emailVerified) {
-    return res.status(401).json({
-      success: false,
-      error: {
-        code: AuthErrorCodes.EMAIL_NOT_VERIFIED,
-        message: 'Email verification required',
-      },
-    });
-  }
-
-  next();
-};
+// Alias for consistency
+export const authenticateToken = authMiddleware;

@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, ScrollView, Animated, TextInput } from "react-native";
-import { ImageBackground } from "expo-image";
-import { Image } from "expo-image";
+import { View, Text, Pressable, ScrollView, Animated, TextInput, ImageBackground, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TwinTypeSelector } from "../../components/onboarding/TwinTypeSelector";
 import { LinearGradient } from "expo-linear-gradient";
@@ -94,7 +92,7 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
   ];
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}
+    <ImageBackground source={require("../../../assets/galaxybackground.png")} style={{ flex: 1 }}
       contentFit="cover"
       placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
       transition={200}>
@@ -110,14 +108,14 @@ export const TwinTypeScreen: React.FC<TwinTypeScreenProps> = ({
             </Pressable>
             
             <View className="flex-1 items-center">
-              <Text className="text-white/60 text-sm">Step 3 of 5</Text>
+              <Text className="text-white/60 text-sm">Step 4 of 6</Text>
               <View className="flex-row mt-2 space-x-1">
-                {[...Array(5)].map((_, i) => (
-                  <View 
-                    key={i} 
+                {[...Array(6)].map((_, i) => (
+                  <View
+                    key={i}
                     className={`h-1 w-8 rounded-full ${
-                      i <= 2 ? 'bg-white' : 'bg-black/80'
-                    }`} 
+                      i <= 3 ? 'bg-white' : 'bg-black/80'
+                    }`}
                   />
                 ))}
               </View>

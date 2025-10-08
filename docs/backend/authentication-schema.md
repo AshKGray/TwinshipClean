@@ -99,7 +99,6 @@ CREATE INDEX idx_password_resets_token ON password_resets(token);
 CREATE INDEX idx_password_resets_user_id ON password_resets(user_id);
 CREATE INDEX idx_password_resets_expires_at ON password_resets(expires_at);
 ```
-
 ### 4. LoginHistory Model (Optional - for security auditing)
 
 Tracks login attempts and security events.
