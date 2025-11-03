@@ -176,7 +176,7 @@ type RootStackParamList = {
 
 const TabNavigator = () => {
   const userProfile = useTwinStore((state) => state.userProfile);
-  const themeColor = userProfile?.accentColor || "neon-purple";
+  const themeColor = userProfile?.accentColor || "celestial-indigo";
   
   // Preload heavy screens when tab navigator mounts
   useEffect(() => {
@@ -210,24 +210,24 @@ const TabNavigator = () => {
   
   const getTabBarColors = () => {
     switch (themeColor) {
-      case "neon-pink":
-        return { active: "#ff1493", inactive: "#9ca3af", background: "rgba(26, 10, 26, 0.95)" };
-      case "neon-blue":
-        return { active: "#00bfff", inactive: "#9ca3af", background: "rgba(10, 26, 46, 0.95)" };
-      case "neon-green":
-        return { active: "#00ff7f", inactive: "#9ca3af", background: "rgba(10, 26, 10, 0.95)" };
-      case "neon-yellow":
-        return { active: "#ffff00", inactive: "#9ca3af", background: "rgba(26, 26, 10, 0.95)" };
-      case "neon-purple":
-        return { active: "#8a2be2", inactive: "#9ca3af", background: "rgba(26, 10, 26, 0.95)" };
-      case "neon-orange":
-        return { active: "#ff4500", inactive: "#9ca3af", background: "rgba(26, 10, 10, 0.95)" };
-      case "neon-cyan":
-        return { active: "#00ffff", inactive: "#9ca3af", background: "rgba(10, 26, 26, 0.95)" };
-      case "neon-red":
-        return { active: "#ff0000", inactive: "#9ca3af", background: "rgba(26, 10, 10, 0.95)" };
+      case "nebula-rose":
+        return { active: "#C66BC4", inactive: "#9ca3af", background: "rgba(40, 18, 36, 0.95)" };
+      case "stellar-blue":
+        return { active: "#2F6BB5", inactive: "#9ca3af", background: "rgba(20, 36, 58, 0.95)" };
+      case "orbit-sage":
+        return { active: "#6FBF92", inactive: "#9ca3af", background: "rgba(16, 30, 24, 0.95)" };
+      case "solar-amber":
+        return { active: "#F4C16E", inactive: "#9ca3af", background: "rgba(42, 32, 14, 0.95)" };
+      case "celestial-indigo":
+        return { active: "#5D63C7", inactive: "#9ca3af", background: "rgba(30, 24, 54, 0.95)" };
+      case "comet-coral":
+        return { active: "#E8846B", inactive: "#9ca3af", background: "rgba(42, 22, 18, 0.95)" };
+      case "aurora-teal":
+        return { active: "#2BB5A0", inactive: "#9ca3af", background: "rgba(16, 36, 36, 0.95)" };
+      case "meteor-copper":
+        return { active: "#B9825A", inactive: "#9ca3af", background: "rgba(44, 26, 18, 0.95)" };
       default:
-        return { active: "#8a2be2", inactive: "#9ca3af", background: "rgba(26, 10, 26, 0.95)" };
+        return { active: "#5D63C7", inactive: "#9ca3af", background: "rgba(30, 24, 54, 0.95)" };
     }
   };
 

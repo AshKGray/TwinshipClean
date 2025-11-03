@@ -12,22 +12,22 @@ module.exports = {
     // NOTE to AI: You can extend the theme with custom colors or styles here.
     extend: {
       colors: {
-        // Neon accent colors for twin themes
-        "neon-pink": "#ff1493",
-        "neon-blue": "#00bfff",
-        "neon-green": "#00ff7f",
-        "neon-yellow": "#ffff00",
-        "neon-purple": "#8a2be2",
-        "neon-orange": "#ff4500",
-        "neon-cyan": "#00ffff",
-        "neon-red": "#ff0000",
+        // Accent colors aligned with the galaxy background palette
+        "nebula-rose": "#C66BC4",
+        "stellar-blue": "#2F6BB5",
+        "orbit-sage": "#6FBF92",
+        "solar-amber": "#F4C16E",
+        "celestial-indigo": "#5D63C7",
+        "comet-coral": "#E8846B",
+        "aurora-teal": "#2BB5A0",
+        "meteor-copper": "#B9825A",
         // Assessment specific colors
         "assessment": {
-          "emotional": "#ff1493",
-          "telepathic": "#8a2be2", 
-          "behavioral": "#00bfff",
-          "shared": "#00ff7f",
-          "physical": "#ff4500"
+          "emotional": "#C66BC4",
+          "telepathic": "#5D63C7",
+          "behavioral": "#2F6BB5",
+          "shared": "#6FBF92",
+          "physical": "#E8846B"
         }
       },
       fontSize: {

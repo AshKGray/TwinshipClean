@@ -11,7 +11,7 @@ export const AssessmentIntroScreen = () => {
   const { userProfile, twinProfile } = useTwinStore();
   const { startAssessment, sessions } = useAssessmentStore();
   
-  const themeColor = userProfile?.accentColor || 'neon-purple';
+  const themeColor = userProfile?.accentColor || 'celestial-indigo';
   
   // Check if user has incomplete assessment
   const incompleteSession = sessions.find(

@@ -33,7 +33,7 @@ export const TwintuitionSettingsCard: React.FC<TwintuitionSettingsCardProps> = (
   const [isExpanded, setIsExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const primaryColor = getNeonAccentColor(accentColor);
   const [color1, color2, color3] = getNeonGradientColors(accentColor);
 

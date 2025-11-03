@@ -77,7 +77,7 @@ export const AssessmentResultsScreen = () => {
   
   const [showPaywall, setShowPaywall] = useState(!isPremium && !hasSeenTeaser);
   
-  const themeColor = userProfile?.accentColor || 'neon-purple';
+  const themeColor = userProfile?.accentColor || 'celestial-indigo';
   const sessionId = route.params?.sessionId;
   const results = getResultsById(sessionId);
 

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getNeonAccentColor } from "../../utils/neonColors";
 import { View, Text, Pressable, ScrollViewBackground } from "react-native";
 import { ImageBackground } from "expo-image";
 import { Image } from "expo-image";
@@ -85,23 +86,9 @@ export const PairComparisonScreen = () => {
   const navigation = useNavigation<any>();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
-  const themeColor = userProfile?.accentColor || "neon-purple";
-  
-  const getAccentColor = () => {
-    switch (themeColor) {
-      case "neon-pink": return "#ff1493";
-      case "neon-blue": return "#00bfff";
-      case "neon-green": return "#00ff7f";
-      case "neon-yellow": return "#ffff00";
-      case "neon-purple": return "#8a2be2";
-      case "neon-orange": return "#ff4500";
-      case "neon-cyan": return "#00ffff";
-      case "neon-red": return "#ff0000";
-      default: return "#8a2be2";
-    }
-  };
+  const themeColor = userProfile?.accentColor || "celestial-indigo";
 
-  const accentColor = getAccentColor();
+  const accentColor = getNeonAccentColor(themeColor);
   
   // Calculate overall compatibility (0-100)
   const calculateCompatibility = () => {

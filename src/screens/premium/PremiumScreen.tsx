@@ -46,7 +46,7 @@ export const PremiumScreen: React.FC<PremiumScreenProps> = () => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   
-  const themeColor = userProfile?.accentColor || "neon-purple";
+  const themeColor = userProfile?.accentColor || "celestial-indigo";
   const neonColor = getNeonAccentColor(themeColor);
   const [gradientStart, gradientMid, gradientEnd] = getNeonGradientColors(themeColor);
 

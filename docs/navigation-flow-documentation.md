@@ -348,12 +348,12 @@ Navigation components adapt to user-selected theme colors:
 // Theme-Aware Tab Bar
 const TabNavigator = () => {
   const userProfile = useTwinStore((state) => state.userProfile);
-  const themeColor = userProfile?.accentColor || "neon-purple";
+  const themeColor = userProfile?.accentColor || "celestial-indigo";
   
   const getTabBarColors = () => {
     switch (themeColor) {
-      case "neon-pink": return { active: "#ff1493", inactive: "#6b7280" };
-      case "neon-blue": return { active: "#00bfff", inactive: "#6b7280" };
+      case "nebula-rose": return { active: "#C66BC4", inactive: "#6b7280" };
+      case "stellar-blue": return { active: "#2F6BB5", inactive: "#6b7280" };
       // ... additional theme colors
     }
   };

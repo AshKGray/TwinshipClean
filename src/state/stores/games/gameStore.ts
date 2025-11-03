@@ -197,7 +197,7 @@ export const useGameStore = create<GameStore>()(
           
           let twinChoice;
           if (session.gameType === 'color_sync') {
-            const colors = ['#ff1493', '#00bfff', '#00ff7f', '#ffff00', '#8a2be2', '#ff4500'];
+            const colors = ['#C66BC4', '#2F6BB5', '#6FBF92', '#F4C16E', '#5D63C7', '#E8846B'];
             twinChoice = isMatch ? session.hostChoice : colors[Math.floor(Math.random() * colors.length)];
           } else if (session.gameType === 'number_intuition') {
             twinChoice = isMatch ? session.hostChoice : Math.floor(Math.random() * 10) + 1;

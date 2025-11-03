@@ -34,7 +34,7 @@ export const AssessmentSurveyScreen = () => {
 
   const [selectedValue, setSelectedValue] = useState<LikertScale | null>(null);
   
-  const themeColor = userProfile?.accentColor || 'neon-purple';
+  const themeColor = userProfile?.accentColor || 'celestial-indigo';
   const currentQuestion = getCurrentQuestion();
   const progress = getProgress();
   const totalQuestions = 210; // From item bank

@@ -26,7 +26,7 @@ export const PremiumFeatureTeaser: React.FC<PremiumFeatureTeaserProps> = ({
   const hasAccessTo = useSubscriptionStore((state) => state.hasAccessTo);
   const trackConversionEvent = useSubscriptionStore((state) => state.trackConversionEvent);
   
-  const accentColor = userProfile?.accentColor || "neon-purple";
+  const accentColor = userProfile?.accentColor || "celestial-indigo";
   const neonColor = getNeonAccentColor(accentColor);
 
   const hasAccess = hasAccessTo(feature.id);

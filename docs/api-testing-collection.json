@@ -84,7 +84,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"jordan.test@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"name\": \"Jordan Test\",\n  \"age\": 25,\n  \"gender\": \"female\",\n  \"birthDate\": \"1998-06-15\",\n  \"twinType\": \"identical\",\n  \"accentColor\": \"neon-purple\",\n  \"placeOfBirth\": \"San Francisco, CA\"\n}"
+              "raw": "{\n  \"email\": \"jordan.test@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"name\": \"Jordan Test\",\n  \"age\": 25,\n  \"gender\": \"female\",\n  \"birthDate\": \"1998-06-15\",\n  \"twinType\": \"identical\",\n  \"accentColor\": \"celestial-indigo\",\n  \"placeOfBirth\": \"San Francisco, CA\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
@@ -250,7 +250,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Jordan Updated\",\n  \"age\": 26,\n  \"accentColor\": \"neon-blue\"\n}"
+              "raw": "{\n  \"name\": \"Jordan Updated\",\n  \"age\": 26,\n  \"accentColor\": \"stellar-blue\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users/profile",

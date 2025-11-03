@@ -21,7 +21,7 @@ export const InvitationAnalyticsScreen: React.FC = () => {
   const { refreshAnalytics, retryFailedInvitation } = useInvitationStore();
   const analytics = useInvitationAnalytics();
   
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const themeColor = getNeonAccentColor(accentColor);
   const themeColorWithOpacity = getNeonAccentColorWithOpacity(accentColor, 0.3);
 

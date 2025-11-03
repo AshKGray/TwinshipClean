@@ -1069,8 +1069,8 @@ components:
     
     ThemeColor:
       type: string
-      enum: [neon-pink, neon-blue, neon-green, neon-yellow, neon-purple, neon-orange, neon-cyan, neon-red]
-      example: "neon-purple"
+      enum: [nebula-rose, stellar-blue, orbit-sage, solar-amber, celestial-indigo, comet-coral, aurora-teal, meteor-copper]
+      example: "celestial-indigo"
     
     UserProfile:
       type: object

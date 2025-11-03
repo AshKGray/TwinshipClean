@@ -57,23 +57,23 @@ src/components/
 The app uses a dynamic neon color system that adapts to user preferences:
 
 ```typescript
-// Core neon palette in tailwind.config.js
+// Core accent palette in tailwind.config.js
 colors: {
-  "neon-pink": "#ff1493",
-  "neon-blue": "#00bfff", 
-  "neon-green": "#00ff7f",
-  "neon-yellow": "#ffff00",
-  "neon-purple": "#8a2be2",
-  "neon-orange": "#ff4500",
-  "neon-cyan": "#00ffff",
-  "neon-red": "#ff0000",
+  "nebula-rose": "#C66BC4",
+  "stellar-blue": "#2F6BB5",
+  "orbit-sage": "#6FBF92",
+  "solar-amber": "#F4C16E",
+  "celestial-indigo": "#5D63C7",
+  "comet-coral": "#E8846B",
+  "aurora-teal": "#2BB5A0",
+  "meteor-copper": "#B9825A",
   // Assessment-specific semantic colors
   "assessment": {
-    "emotional": "#ff1493",
-    "telepathic": "#8a2be2",
-    "behavioral": "#00bfff",
-    "shared": "#00ff7f", 
-    "physical": "#ff4500"
+    "emotional": "#C66BC4",
+    "telepathic": "#5D63C7",
+    "behavioral": "#2F6BB5",
+    "shared": "#6FBF92",
+    "physical": "#E8846B"
   }
 }
 ```
@@ -336,7 +336,7 @@ interface ThemedComponentProps {
 ```typescript
 // Selective state subscription
 const userProfile = useTwinStore((state) => state.userProfile);
-const themeColor = useTwinStore((state) => state.userProfile?.accentColor || 'neon-purple');
+const themeColor = useTwinStore((state) => state.userProfile?.accentColor || 'celestial-indigo');
 
 // Action usage
 const { addTwintuitionAlert, markAlertAsRead } = useTwinStore();

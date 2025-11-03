@@ -22,7 +22,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
   isRecording = false,
 }) => {
   const userProfile = useTwinStore((state) => state.userProfile);
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const neonColor = getNeonAccentColor(accentColor);
 
   const handleQuickResponse = async (text: string) => {

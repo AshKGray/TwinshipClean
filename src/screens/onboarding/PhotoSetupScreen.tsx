@@ -112,7 +112,7 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
         gender: "",
         twinType: "identical",
         birthDate: new Date().toISOString(),
-        accentColor: "neon-purple",
+        accentColor: "celestial-indigo",
         isConnected: false,
       };
       setUserProfile(tempProfile);

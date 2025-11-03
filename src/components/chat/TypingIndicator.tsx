@@ -15,7 +15,7 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({ typingIndicato
   const dot3Anim = useRef(new Animated.Value(0.3)).current;
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
-  const accentColor = twinProfile?.accentColor || 'neon-purple';
+  const accentColor = twinProfile?.accentColor || 'celestial-indigo';
   const neonColor = getNeonAccentColor(accentColor);
 
   useEffect(() => {

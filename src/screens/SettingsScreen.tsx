@@ -11,7 +11,7 @@ import { getNeonAccentColor } from "../utils/neonColors";
 export const SettingsScreen = () => {
   const navigation = useNavigation<any>();
   const { userProfile, twinProfile, signOut, researchParticipation, setResearchParticipation, notificationsEnabled, setNotificationsEnabled, setUserProfile } = useTwinStore();
-  const themeColor = userProfile?.accentColor || "neon-purple";
+  const themeColor = userProfile?.accentColor || "celestial-indigo";
   
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValue, setTempValue] = useState("");

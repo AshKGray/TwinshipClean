@@ -27,7 +27,11 @@ import {
   usePendingInvitationToken,
 } from "../state/invitationStore";
 import { useDeepLinkHandler } from "../utils/deepLinking";
-import { getNeonAccentColor, getNeonAccentColorWithOpacity } from "../utils/neonColors";
+import {
+  getAccentDisplayName,
+  getNeonAccentColor,
+  getNeonAccentColorWithOpacity
+} from "../utils/neonColors";
 import { Invitation } from "../services/invitationService";
 
 type InvitationMode = 'send' | 'receive' | 'manual';
@@ -80,7 +84,7 @@ export const InvitationScreen: React.FC<InvitationScreenProps> = ({
   
   const [animatedValue] = useState(new Animated.Value(0));
   
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const themeColor = getNeonAccentColor(accentColor);
   const themeColorWithOpacity = getNeonAccentColorWithOpacity(accentColor, 0.3);
 
@@ -522,8 +526,8 @@ export const InvitationScreen: React.FC<InvitationScreenProps> = ({
             
             <View className="flex-row items-center mb-4">
               <Ionicons name="color-palette" size={24} color={getNeonAccentColor(currentInvitation.accentColor)} />
-              <Text className="text-white text-lg ml-3 capitalize">
-                {currentInvitation.accentColor.replace('neon-', '')} Theme
+              <Text className="text-white text-lg ml-3">
+                {getAccentDisplayName(currentInvitation.accentColor)} Theme
               </Text>
             </View>
             

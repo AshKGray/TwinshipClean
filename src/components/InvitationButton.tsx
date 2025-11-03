@@ -27,7 +27,7 @@ export const InvitationButton: React.FC<InvitationButtonProps> = ({
   const { userProfile, paired } = useTwinStore();
   const { isLoading, invitationStep } = useInvitationStore();
   
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const themeColor = getNeonAccentColor(accentColor);
   const themeColorWithOpacity = getNeonAccentColorWithOpacity(accentColor, 0.3);
 

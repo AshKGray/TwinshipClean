@@ -87,7 +87,7 @@ export const HomeScreen = memo(() => {
   const navigation = useNavigation<any>();
   
   const unreadAlerts = twintuitionAlerts.filter(alert => !alert.isRead).length;
-  const accentColor = themeColor || 'neon-purple';
+  const accentColor = themeColor || 'celestial-indigo';
   const neonColor = getNeonAccentColor(accentColor);
   const cardBg = getNeonCardBackground(accentColor);
   const buttonBg = getNeonButtonBackground(accentColor);

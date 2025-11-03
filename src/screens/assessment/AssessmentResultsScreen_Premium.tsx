@@ -112,7 +112,7 @@ export const AssessmentResultsScreen = () => {
   
   const [isExporting, setIsExporting] = useState(false);
   
-  const themeColor = userProfile?.accentColor || 'neon-purple';
+  const themeColor = userProfile?.accentColor || 'celestial-indigo';
   const neonColor = getNeonAccentColor(themeColor);
   const sessionId = route.params?.sessionId;
   const results = getResultsById(sessionId);

@@ -35,7 +35,7 @@ export const PremiumGatedContent: React.FC<PremiumGatedContentProps> = ({
 }) => {
   const { hasAccessTo, navigateToUpgrade } = usePremiumFeatures();
   const userProfile = useTwinStore((state) => state.userProfile);
-  const accentColor = userProfile?.accentColor || "neon-purple";
+  const accentColor = userProfile?.accentColor || "celestial-indigo";
   const neonColor = getNeonAccentColor(accentColor);
   
   const hasAccess = hasAccessTo(featureId);

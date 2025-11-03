@@ -22,7 +22,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   loading = false
 }) => {
   const userProfile = useTwinStore((state) => state.userProfile);
-  const accentColor = userProfile?.accentColor || "neon-purple";
+  const accentColor = userProfile?.accentColor || "celestial-indigo";
   const neonColor = getNeonAccentColor(accentColor);
   const [gradientStart, gradientMid, gradientEnd] = getNeonGradientColors(accentColor);
 
