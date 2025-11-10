@@ -97,6 +97,7 @@ export const HomeScreen = memo(() => {
   const handleNavigateToPair = useCallback(() => navigation.navigate("Twinvitation"), [navigation]);
   const handleNavigateToChat = useCallback(() => navigation.navigate("TwinTalk"), [navigation]);
   const handleNavigateToTwintuition = useCallback(() => navigation.navigate("Twintuition"), [navigation]);
+  const handleNavigateToTwincidences = useCallback(() => navigation.navigate("Twincidences"), [navigation]);
   const handleNavigateToAssessment = useCallback(() => navigation.navigate("AssessmentIntro"), [navigation]);
   const handleNavigateToGames = useCallback(() => navigation.navigate("Twingames"), [navigation]);
   const handleNavigateToResearch = useCallback(() => navigation.navigate("Twinquiry"), [navigation]);
@@ -231,11 +232,11 @@ export const HomeScreen = memo(() => {
             />
             
             <ActionButton
-              onPress={handleNavigateToTwintuition}
+              onPress={handleNavigateToTwincidences}
               icon="library"
               bgColor={buttonBg}
               title="Twincidence Log"
-              subtitle="Track your twin moments & stories"
+              subtitle="Track synchronicity moments"
               accentColor={accentColor}
             />
             

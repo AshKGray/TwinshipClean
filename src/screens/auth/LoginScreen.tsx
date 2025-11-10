@@ -5,10 +5,10 @@ import {
   TextInput,
   Pressable,
   ImageBackground,
+  Image,
   Alert,
   Platform,
   KeyboardAvoidingView,
-  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -129,18 +129,18 @@ export const LoginScreen = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{ flexGrow: 1 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View className="flex-1 px-6">
-              {/* Logo - Centered in upper area */}
-              <View className="items-center mt-16 mb-12">
-                <View className="bg-white rounded-2xl p-4 mb-6">
-                  <Text className="text-2xl">👥</Text>
-                </View>
-                <Text className="text-white text-4xl font-bold">Twinship</Text>
+          <View className="flex-1 justify-center px-6">
+              {/* Logo - Centered */}
+              <View className="items-center mb-8">
+                <Image 
+                  source={require('../../../assets/twinshipAppIcon.png')}
+                  style={{ 
+                    width: 125, 
+                    height: 125, 
+                    borderRadius: 25,
+                  }}
+                  resizeMode="cover"
+                />
               </View>
 
               {/* Error Message */}
@@ -162,7 +162,7 @@ export const LoginScreen = () => {
                     }}
                     placeholder="Email"
                     placeholderTextColor="rgba(255,255,255,0.6)"
-                    className="bg-white/15 rounded-xl px-4 py-4 text-white text-base"
+                    className="bg-white/15 rounded-xl px-4 py-4 text-white text-lg"
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -184,7 +184,7 @@ export const LoginScreen = () => {
                       }}
                       placeholder="Password"
                       placeholderTextColor="rgba(255,255,255,0.6)"
-                      className="bg-white/15 rounded-xl px-4 py-4 text-white text-base pr-12"
+                      className="bg-white/15 rounded-xl px-4 py-4 text-white text-lg pr-12"
                       secureTextEntry={!showPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -287,7 +287,6 @@ export const LoginScreen = () => {
                 )}
               </View>
             </View>
-          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </ImageBackground>

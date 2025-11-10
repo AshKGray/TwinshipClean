@@ -3,6 +3,7 @@ import { View, Text, Pressable, ScrollView, Image, Animated, ImageBackground } f
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useTwinStore } from "../../state/twinStore";
 import { getAccentDisplayName, getNeonAccentColor } from "../../utils/neonColors";
 
@@ -17,7 +18,8 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
   onBack,
   onEdit 
 }) => {
-  const { userProfile, setOnboarded } = useTwinStore();
+  const navigation = useNavigation<any>();
+  const { userProfile } = useTwinStore();
   const [isCompleting, setIsCompleting] = useState(false);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -55,8 +57,9 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setOnboarded(true);
-      onComplete();
+      // Navigate to twin invitation screen instead of setting onboarded
+      // Onboarding will be marked complete only after twin accepts invitation
+      navigation.navigate('SendInvitation');
     });
   };
 

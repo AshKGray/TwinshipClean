@@ -3,8 +3,7 @@ import {
   View, 
   Text, 
   Pressable, 
-  Alert, 
-  TextInput, 
+  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +11,7 @@ import {
   Animated,
   ImageBackground,
 } from "react-native";
+import { CustomTextInput as TextInput } from "../components/CustomTextInput";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -185,6 +185,10 @@ export const InvitationScreen: React.FC<InvitationScreenProps> = ({
 
         setTwinProfile(twinProfile);
         setPaired(true);
+        
+        // IMPORTANT: Mark onboarding as complete now that twin invitation is accepted
+        const { setOnboarded } = useTwinStore.getState();
+        setOnboarded(true);
         
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         

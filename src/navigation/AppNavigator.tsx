@@ -6,8 +6,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTwinStore } from "../state/twinStore";
 import { useAuthStore } from "../state/authStore";
 import { deepLinkService } from "../services/deepLinkService";
-import { BMadNavigationTracker } from "../../.bmad-mobile-app/navigation-tracker";
-import { MobilePerformanceAgent } from "../../.bmad-mobile-app/mobile-performance.agent";
+// BMAD performance tracking temporarily disabled - files removed
+// import { BMadNavigationTracker } from "../../.bmad-mobile-app/navigation-tracker";
+// import { MobilePerformanceAgent } from "../../.bmad-mobile-app/mobile-performance.agent";
 import { preloadManager } from "../utils/preloadManager";
 import { performanceTracker as startupPerformanceTracker } from "../utils/performanceTracker";
 import { performanceTracker } from "../utils/performanceMeasurement";
@@ -93,6 +94,28 @@ const PairComparisonScreen = lazyScreenWithSkeleton(
 
 // Story Screens removed - integrated into Twincidence Log
 
+// Twincidence Screens (lazy loaded)
+const TwincidencesScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twincidences/TwincidencesScreen").then(m => ({ default: m.TwincidencesScreen })),
+  'generic',
+  'Loading twincidences...'
+);
+const CreateTwincidenceScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twincidences/CreateTwincidenceScreen").then(m => ({ default: m.CreateTwincidenceScreen })),
+  'generic',
+  'Preparing to create...'
+);
+const TwincidenceDetailScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twincidences/TwincidenceDetailScreen").then(m => ({ default: m.TwincidenceDetailScreen })),
+  'generic',
+  'Loading details...'
+);
+const TwincidencePrivacyScreen = lazyScreenWithSkeleton(
+  () => import("../screens/settings/TwincidencePrivacyScreen").then(m => ({ default: m.TwincidencePrivacyScreen })),
+  'generic',
+  'Loading privacy settings...'
+);
+
 // Premium Screen (lazy loaded with premium skeleton)  
 const PremiumScreen = lazyScreenWithSkeleton(
   () => import("../screens/premium/PremiumScreen").then(m => ({ default: m.PremiumScreen })),
@@ -158,6 +181,13 @@ type RootStackParamList = {
   Premium: { feature?: string; source?: 'assessment' | 'settings' | 'dashboard' | 'onboarding' };
   PremiumFeatures: undefined;
   // Story screens removed - integrated into Twincidence Log
+  // Twincidence screens
+  Twincidences: undefined;
+  CreateTwincidence: undefined;
+  TwincidenceDetail: { twincidenceId: string };
+  EditTwincidence: { twincidenceId: string };
+  TwincidencePrivacy: undefined;
+  TwincidenceAnalytics: undefined;
   // Missing routes identified in navigation calls
   GameStats: undefined;
   Home: undefined;
@@ -312,8 +342,9 @@ export const AppNavigator = () => {
   const { isAuthenticated, isLoading, initializeAuth } = useAuthStore();
   const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
   const routeNameRef = useRef<string | undefined>(undefined);
-  const bmadTracker = useRef(new BMadNavigationTracker());
-  const performanceAgent = useRef(new MobilePerformanceAgent());
+  // BMAD tracking disabled - files removed
+  // const bmadTracker = useRef(new BMadNavigationTracker());
+  // const performanceAgent = useRef(new MobilePerformanceAgent());
 
   // Initialize authentication and deep links
   useEffect(() => {
@@ -321,19 +352,19 @@ export const AppNavigator = () => {
     deepLinkService.initialize();
   }, []);
 
-  // BMAD Navigation Tracking
-  useEffect(() => {
-    // Performance monitoring interval
-    const interval = setInterval(() => {
-      // Measure current performance metrics
-      const memoryUsage = (performance as any).memory?.usedJSHeapSize / 1048576; // MB
-      if (memoryUsage) {
-        performanceAgent.current.measure('memory', memoryUsage);
-      }
-    }, 5000);
+  // BMAD Navigation Tracking - DISABLED
+  // useEffect(() => {
+  //   // Performance monitoring interval
+  //   const interval = setInterval(() => {
+  //     // Measure current performance metrics
+  //     const memoryUsage = (performance as any).memory?.usedJSHeapSize / 1048576; // MB
+  //     if (memoryUsage) {
+  //       performanceAgent.current.measure('memory', memoryUsage);
+  //     }
+  //   }, 5000);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   return (
     <NavigationContainer
@@ -350,52 +381,52 @@ export const AppNavigator = () => {
         const currentRoute = navigationRef.current?.getCurrentRoute();
 
         if (previousRouteName !== currentRouteName && currentRouteName) {
-          // Track screen view with BMAD
-          bmadTracker.current.trackScreenView(currentRouteName, currentRoute?.params);
-          
-          // Track navigation timing
-          if (previousRouteName) {
-            const navStartTime = Date.now();
-            requestAnimationFrame(() => {
-              const navEndTime = Date.now();
-              const duration = navEndTime - navStartTime;
-              bmadTracker.current.trackNavigationTime(previousRouteName, currentRouteName, duration);
-              performanceAgent.current.measure('renderTime', duration);
-            });
-          }
+          // Track screen view with BMAD - DISABLED
+          // bmadTracker.current.trackScreenView(currentRouteName, currentRoute?.params);
+
+          // Track navigation timing - DISABLED
+          // if (previousRouteName) {
+          //   const navStartTime = Date.now();
+          //   requestAnimationFrame(() => {
+          //     const navEndTime = Date.now();
+          //     const duration = navEndTime - navStartTime;
+          //     bmadTracker.current.trackNavigationTime(previousRouteName, currentRouteName, duration);
+          //     performanceAgent.current.measure('renderTime', duration);
+          //   });
+          // }
 
           // Log analytics (can be sent to backend)
-          console.log('[BMAD] Screen View:', currentRouteName);
-          
-          // Export metrics periodically
-          if (Math.random() < 0.1) { // 10% chance to export
-            const analytics = bmadTracker.current.getNavigationAnalytics();
-            const perfAnalysis = performanceAgent.current.analyze();
-            const startupMetrics = startupPerformanceTracker.exportForBMAD();
+          console.log('[Navigation] Screen View:', currentRouteName);
 
-            console.log('[BMAD] Navigation Analytics:', analytics);
-            console.log('[BMAD] Performance Analysis:', perfAnalysis);
-            console.log('[BMAD] Startup Metrics:', startupMetrics);
+          // Export metrics periodically - DISABLED
+          // if (Math.random() < 0.1) { // 10% chance to export
+          //   const analytics = bmadTracker.current.getNavigationAnalytics();
+          //   const perfAnalysis = performanceAgent.current.analyze();
+          //   const startupMetrics = startupPerformanceTracker.exportForBMAD();
 
-            // Export performance dashboard data
-            const dashboardData = performanceDashboard.exportDashboardData();
-            console.log('[BMAD] Performance Dashboard:', dashboardData);
-
-            // Log React Profiler metrics in development
-            if (__DEV__) {
-              PerformanceUtils.logReport();
-
-              // Log comprehensive startup report
-              const startupReport = startupPerformanceTracker.generateStartupReport();
-              console.log('[BMAD] Startup Performance Report:', startupReport);
-
-              // Generate performance alerts
-              const alerts = performanceDashboard.generateAlerts();
-              if (alerts.length > 0) {
-                console.warn('[BMAD] Performance Alerts:', alerts);
-              }
-            }
-          }
+          //   console.log('[BMAD] Navigation Analytics:', analytics);
+          //   console.log('[BMAD] Performance Analysis:', perfAnalysis);
+          //   console.log('[BMAD] Startup Metrics:', startupMetrics);
+          //
+          //   // Export performance dashboard data
+          //   const dashboardData = performanceDashboard.exportDashboardData();
+          //   console.log('[BMAD] Performance Dashboard:', dashboardData);
+          //
+          //   // Log React Profiler metrics in development
+          //   if (__DEV__) {
+          //     PerformanceUtils.logReport();
+          //
+          //     // Log comprehensive startup report
+          //     const startupReport = startupPerformanceTracker.generateStartupReport();
+          //     console.log('[BMAD] Startup Performance Report:', startupReport);
+          //
+          //     // Generate performance alerts
+          //     const alerts = performanceDashboard.generateAlerts();
+          //     if (alerts.length > 0) {
+          //       console.warn('[BMAD] Performance Alerts:', alerts);
+          //     }
+          //   }
+          // }
         }
 
         // Save the current route name for comparison next time
@@ -428,6 +459,11 @@ export const AppNavigator = () => {
             <Stack.Screen name="Twinquiry" component={ResearchScreen} />
             <Stack.Screen name="Twinsettings" component={SettingsScreen} />
             {/* Story screens removed - functionality integrated into Twincidence Log */}
+            {/* Twincidence Screens */}
+            <Stack.Screen name="Twincidences" component={TwincidencesScreen} />
+            <Stack.Screen name="CreateTwincidence" component={CreateTwincidenceScreen} />
+            <Stack.Screen name="TwincidenceDetail" component={TwincidenceDetailScreen} />
+            <Stack.Screen name="TwincidencePrivacy" component={TwincidencePrivacyScreen} />
             <Stack.Screen name="Twinvitation" component={require("../screens/PairScreen").PairScreen} />
             {/* New invitation screens */}
             <Stack.Screen 

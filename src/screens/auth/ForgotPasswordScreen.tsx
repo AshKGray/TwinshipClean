@@ -178,7 +178,7 @@ export const ForgotPasswordScreen = () => {
                   }}
                   placeholder="Enter your email"
                   placeholderTextColor="rgba(255,255,255,0.5)"
-                  className="bg-white/10 rounded-xl px-4 py-4 text-white text-base"
+                  className="bg-white/10 rounded-xl px-4 py-4 text-white text-lg"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
