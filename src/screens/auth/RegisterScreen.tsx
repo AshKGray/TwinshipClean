@@ -172,16 +172,13 @@ export const RegisterScreen = () => {
       className="flex-1"
     >
       <SafeAreaView className="flex-1" edges={['top']}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        <ScrollView
           className="flex-1"
+          contentContainerStyle={{ paddingBottom: 40, flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
         >
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{ paddingBottom: 40 }}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
             {/* Header */}
             <View className="flex-row items-center justify-between px-6 py-4">
               <Pressable
@@ -268,12 +265,14 @@ export const RegisterScreen = () => {
                     onChangeText={(text) => updateFormData('password', text)}
                     placeholder="Create a strong password"
                     placeholderTextColor="rgba(255,255,255,0.5)"
-                  className="bg-white/10 rounded-xl px-4 py-4 text-white text-lg pr-12"
+                    className="bg-white/10 rounded-xl px-4 py-4 text-white text-lg pr-12"
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!isLoading}
                     autoComplete="off"
+                    textContentType="none"
+                    passwordRules=""
                   />
                   <Pressable
                     onPress={() => setShowPassword(!showPassword)}
@@ -313,12 +312,14 @@ export const RegisterScreen = () => {
                     onChangeText={(text) => updateFormData('confirmPassword', text)}
                     placeholder="Confirm your password"
                     placeholderTextColor="rgba(255,255,255,0.5)"
-                  className="bg-white/10 rounded-xl px-4 py-4 text-white text-lg pr-12"
+                    className="bg-white/10 rounded-xl px-4 py-4 text-white text-lg pr-12"
                     secureTextEntry={!showConfirmPassword}
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!isLoading}
                     autoComplete="off"
+                    textContentType="none"
+                    passwordRules=""
                     returnKeyType="done"
                     onSubmitEditing={handleRegister}
                   />
@@ -379,7 +380,6 @@ export const RegisterScreen = () => {
               </View>
             </View>
           </ScrollView>
-        </KeyboardAvoidingView>
       </SafeAreaView>
     </ImageBackground>
   );

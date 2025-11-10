@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { View } from "react-native";
 import { useTwinStore } from "../state/twinStore";
 
-// Import all onboarding screens
-import { WelcomeScreen } from "./onboarding/WelcomeScreen";
+// Import onboarding screens (WelcomeScreen removed - skipping directly to PhotoSetup)
 import { PhotoSetupScreen } from "./onboarding/PhotoSetupScreen";
 import { PersonalDetailsScreen } from "./onboarding/PersonalDetailsScreen";
 import { TwinTypeScreen } from "./onboarding/TwinTypeScreen";
@@ -17,6 +16,7 @@ interface OnboardingScreenProps {
 export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   onComplete,
 }) => {
+  // Start at step 0 which is now PhotoSetupScreen (skipping WelcomeScreen)
   const [currentStep, setCurrentStep] = useState(0);
   const { userProfile } = useTwinStore();
 
@@ -36,16 +36,16 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     onComplete();
   };
 
+  // Removed WelcomeScreen - now starts directly at PhotoSetupScreen
   const screens = [
-    <WelcomeScreen key="welcome" onContinue={handleNext} />,
     <PhotoSetupScreen key="photo" onContinue={handleNext} onBack={handleBack} />,
     <PersonalDetailsScreen key="details" onContinue={handleNext} onBack={handleBack} />,
     <TwinTypeScreen key="twintype" onContinue={handleNext} onBack={handleBack} />,
     <ColorSelectionScreen key="color" onContinue={handleNext} onBack={handleBack} />,
-    <ProfileReviewScreen 
-      key="review" 
-      onComplete={handleComplete} 
-      onBack={handleBack} 
+    <ProfileReviewScreen
+      key="review"
+      onComplete={handleComplete}
+      onBack={handleBack}
       onEdit={handleEdit}
     />,
   ];

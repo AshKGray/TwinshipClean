@@ -3,7 +3,6 @@ import { View, Text, Pressable, ScrollView, Image, Animated, ImageBackground } f
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import { useTwinStore } from "../../state/twinStore";
 import { getAccentDisplayName, getNeonAccentColor } from "../../utils/neonColors";
 
@@ -13,12 +12,11 @@ interface ProfileReviewScreenProps {
   onEdit: (step: number) => void;
 }
 
-export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({ 
-  onComplete, 
+export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
+  onComplete,
   onBack,
-  onEdit 
+  onEdit
 }) => {
-  const navigation = useNavigation<any>();
   const { userProfile } = useTwinStore();
   const [isCompleting, setIsCompleting] = useState(false);
   
@@ -57,9 +55,8 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
         useNativeDriver: true,
       }),
     ]).start(() => {
-      // Navigate to twin invitation screen instead of setting onboarded
-      // Onboarding will be marked complete only after twin accepts invitation
-      navigation.navigate('SendInvitation');
+      // Complete onboarding - parent component will handle navigation
+      onComplete();
     });
   };
 
