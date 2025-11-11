@@ -443,10 +443,14 @@ export const AppNavigator = () => {
         ) : !isOnboarded ? (
           // Onboarding Flow  
           <Stack.Screen name="Onboarding">
-            {(props) => (
+            {({ navigation }) => (
               <OnboardingScreen
-                {...props}
-                onComplete={() => {}}
+                onComplete={() => {
+                  // Mark user as onboarded
+                  useTwinStore.getState().setOnboarded(true);
+                  // Navigate to Twinvitation (pairing) screen
+                  navigation.navigate('Twinvitation' as never);
+                }}
               />
             )}
           </Stack.Screen>
