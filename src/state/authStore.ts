@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authService, User, AuthTokens, RegisterData, LoginData } from '../services/authService';
+// NOTE: Old auth service - replaced with Firebase auth in Story 7-2
+// Kept for backward compatibility with screens not yet migrated
+import { authService, User, AuthTokens, RegisterData, LoginData } from '../services/authService.old';
 
 export interface AuthState {
   // State

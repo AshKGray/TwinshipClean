@@ -253,6 +253,87 @@ class EncryptionServiceClass {
     };
   }
 
+  /**
+   * Derive encryption key from password using PBKDF2-like derivation
+   * Used for Firebase auth integration
+   */
+  async deriveKeyFromPassword(password: string, salt: string): Promise<string> {
+    const keyMaterial = `${password}:${salt}:${this.KEY_VERSION}`;
+    const derivedKey = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      keyMaterial,
+      { encoding: Crypto.CryptoEncoding.HEX }
+    );
+    return derivedKey;
+  }
+
+  /**
+   * Encrypt data with a specific key (for Firebase auth)
+   */
+  async encryptWithProvidedKey(plaintext: string, key: string): Promise<string> {
+    try {
+      // Generate random IV
+      const iv = await Crypto.getRandomBytesAsync(this.IV_LENGTH);
+      const ivHex = this.arrayBufferToHex(iv);
+
+      // Create encryption key from provided key and IV
+      const encryptionKey = await this.deriveKey(key, ivHex);
+
+      // Encrypt the data
+      const encryptedBuffer = await this.encryptWithKey(plaintext, encryptionKey, iv);
+      const encryptedHex = this.arrayBufferToHex(encryptedBuffer.encrypted);
+      const tagHex = this.arrayBufferToHex(encryptedBuffer.tag);
+
+      const result: EncryptionResult = {
+        encrypted: encryptedHex,
+        iv: ivHex,
+        tag: tagHex,
+        algorithm: this.ALGORITHM,
+        keyVersion: this.KEY_VERSION,
+      };
+
+      // Return base64 encoded result for storage
+      return btoa(JSON.stringify(result));
+    } catch (error) {
+      throw new Error(`Encryption failed: ${error}`);
+    }
+  }
+
+  /**
+   * Decrypt data with a specific key (for Firebase auth)
+   */
+  async decryptWithProvidedKey(encryptedData: string, key: string): Promise<string> {
+    try {
+      // Parse encrypted data structure
+      const encryptionResult: EncryptionResult = JSON.parse(atob(encryptedData));
+
+      // Validate encryption metadata
+      if (encryptionResult.algorithm !== this.ALGORITHM) {
+        throw new Error(`Unsupported algorithm: ${encryptionResult.algorithm}`);
+      }
+
+      if (encryptionResult.keyVersion !== this.KEY_VERSION) {
+        throw new Error(`Unsupported key version: ${encryptionResult.keyVersion}`);
+      }
+
+      // Derive decryption key
+      const decryptionKey = await this.deriveKey(key, encryptionResult.iv);
+
+      // Decrypt the data
+      const plaintext = await this.decryptWithKey({
+        encrypted: encryptionResult.encrypted,
+        iv: encryptionResult.iv,
+        tag: encryptionResult.tag,
+        algorithm: encryptionResult.algorithm,
+        keyVersion: encryptionResult.keyVersion,
+      }, decryptionKey);
+
+      return plaintext;
+    } catch (error) {
+      throw new Error(`Decryption failed: ${error}`);
+    }
+  }
+
   // Private methods
   private async ensureInitialized(): Promise<void> {
     if (!this.initialized) {

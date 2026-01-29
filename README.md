@@ -196,12 +196,12 @@ Regular security audits are performed:
 ## 📱 App Store Information
 
 ### iOS App Store
-- **Bundle ID**: com.vibecode.twinship
+- **Bundle ID**: com.twinship.app
 - **Category**: Social Networking
 - **Age Rating**: 12+
 
 ### Google Play Store
-- **Package Name**: com.vibecode.twinship
+- **Package Name**: com.twinship.app
 - **Category**: Social
 - **Content Rating**: Teen
 

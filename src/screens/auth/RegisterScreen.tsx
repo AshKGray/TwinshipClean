@@ -16,11 +16,12 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import { useAuth } from '../../state/authStore';
+import { useFirebaseAuth } from '../../state/firebaseAuthStore';
+import { firebaseAuthService } from '../../services/firebase/auth';
 
 export const RegisterScreen = () => {
   const navigation = useNavigation<any>();
-  const { register, isLoading, error, clearError } = useAuth();
+  const { isLoading, error, clearError } = useFirebaseAuth();
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -139,14 +140,23 @@ export const RegisterScreen = () => {
     }
 
     try {
-      await register({
-        displayName: formData.displayName.trim(),
-        email: formData.email.toLowerCase().trim(),
-        password: formData.password,
-      });
-      
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      navigation.navigate('Onboarding');
+      const result = await firebaseAuthService.signUp(
+        formData.email.toLowerCase().trim(),
+        formData.password,
+        {
+          name: formData.displayName.trim(),
+          birthdate: new Date().toISOString(), // Placeholder - will be updated in onboarding
+          twinType: 'other', // Default - will be updated in onboarding
+          accentColor: 'celestial-indigo', // Default - will be updated in color selection
+        }
+      );
+
+      if (result.success) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        navigation.navigate('Onboarding');
+      } else {
+        Alert.alert('Registration Failed', result.error || 'Please try again');
+      }
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }

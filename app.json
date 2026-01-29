@@ -4,6 +4,7 @@
     "slug": "twinship",
     "scheme": "twinship",
     "version": "1.0",
+    "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/twinshipAppIcon.png",
     "userInterfaceStyle": "light",
@@ -18,7 +19,8 @@
         "NSCameraUsageDescription": "This app uses the camera for profile photos and sharing moments with your twin.",
         "NSPhotoLibraryUsageDescription": "This app accesses your photos to let you share memories with your twin.",
         "NSLocationWhenInUseUsageDescription": "This app uses your location to show distance from your twin and for location-based features.",
-        "NSMicrophoneUsageDescription": "This app uses the microphone for voice messages and audio recording."
+        "NSMicrophoneUsageDescription": "This app uses the microphone for voice messages and audio recording.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -29,7 +31,13 @@
       "expo-asset",
       "expo-mail-composer",
       "expo-secure-store",
-      "expo-web-browser"
-    ]
+      "expo-web-browser",
+      "expo-dev-client"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6f528a8b-3cb3-46ce-8276-218c4ba2b92c"
+      }
+    }
   }
 }

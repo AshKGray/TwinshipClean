@@ -3,6 +3,8 @@ import { View, Text, Pressable, ScrollView, ImageBackground } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTwinStore } from '../../state/twinStore';
+import { useGamesStore, DecisionData, DecisionScenario as GameDecisionScenario, DecisionCategory } from '../../state/gamesStore';
+import { decisionAnalysisService } from '../../services/games/decisionAnalysis';
 import * as Haptics from 'expo-haptics';
 
 interface Scenario {
@@ -71,8 +73,17 @@ const scenarios: Scenario[] = [
   }
 ];
 
+// Map our scenario categories to gamesStore categories
+const categoryMap: Record<string, DecisionCategory> = {
+  'crisis': 'risk',
+  'resource': 'practical',
+  'social': 'emotional',
+  'ethical': 'ethics'
+};
+
 export const TemporalDecisionSync = ({ navigation }: any) => {
-  const { themeColor, twinProfile, addGameResult } = useTwinStore();
+  const { themeColor, twinProfile, addGameResult, userProfile } = useTwinStore();
+  const { startGameSession, completeGameSession } = useGamesStore();
   const [gamePhase, setGamePhase] = useState<'intro' | 'scenario' | 'deciding' | 'timeout' | 'result'>('intro');
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -80,10 +91,11 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [scenarioStartTime, setScenarioStartTime] = useState(0);
   const [stressIndicator, setStressIndicator] = useState(0);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
+
     if (gamePhase === 'deciding' && timeRemaining > 0) {
       timer = setInterval(() => {
         setTimeRemaining(prev => {
@@ -91,7 +103,7 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
             handleTimeout();
             return 0;
           }
-          
+
           // Increase stress as time runs out
           if (prev <= 10) {
             setStressIndicator(3);
@@ -101,19 +113,35 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
           } else {
             setStressIndicator(1);
           }
-          
+
           return prev - 1;
         });
       }, 1000);
     }
-    
+
     return () => clearInterval(timer);
   }, [gamePhase, timeRemaining]);
+
+  const handleStartGame = () => {
+    // Start a new game session in gamesStore
+    try {
+      const newSessionId = startGameSession(
+        'decision',
+        userProfile?.id || 'unknown',
+        twinProfile?.id
+      );
+      setSessionId(newSessionId);
+    } catch (error) {
+      console.error('Error starting game session:', error);
+    }
+
+    startScenario();
+  };
 
   const startScenario = () => {
     const scenario = scenarios[currentScenarioIndex];
     setGamePhase('scenario');
-    
+
     // Show scenario for 5 seconds
     setTimeout(() => {
       setGamePhase('deciding');
@@ -125,7 +153,7 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
   const handleOptionToggle = (option: string) => {
     const scenario = scenarios[currentScenarioIndex];
     const maxSelections = scenario.id === 'zombie_team' || scenario.id === 'desert_island' ? 5 : 3;
-    
+
     if (selectedOptions.includes(option)) {
       setSelectedOptions(prev => prev.filter(o => o !== option));
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -138,7 +166,7 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
   const handleConfirmDecision = () => {
     const timeToDecide = (Date.now() - scenarioStartTime) / 1000;
     const scenario = scenarios[currentScenarioIndex];
-    
+
     const decision: Decision = {
       scenarioId: scenario.id,
       choices: selectedOptions,
@@ -146,9 +174,9 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
       timestamp: Date.now(),
       stressLevel: stressIndicator === 3 ? 'high' : stressIndicator === 2 ? 'medium' : 'low'
     };
-    
+
     setDecisions(prev => [...prev, decision]);
-    
+
     // Move to next scenario or finish
     if (currentScenarioIndex < scenarios.length - 1) {
       setCurrentScenarioIndex(prev => prev + 1);
@@ -163,18 +191,18 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
   const handleTimeout = () => {
     setGamePhase('timeout');
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    
+
     // Auto-select if not enough choices
     const scenario = scenarios[currentScenarioIndex];
     const minRequired = scenario.id === 'zombie_team' || scenario.id === 'desert_island' ? 5 : 3;
-    
+
     if (selectedOptions.length < minRequired) {
       const remaining = scenario.options
         .filter(o => !selectedOptions.includes(o))
         .slice(0, minRequired - selectedOptions.length);
       setSelectedOptions(prev => [...prev, ...remaining]);
     }
-    
+
     setTimeout(handleConfirmDecision, 1000);
   };
 
@@ -186,7 +214,7 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
 
   const generateDecisionInsights = (): DecisionInsight[] => {
     const insights: DecisionInsight[] = [];
-    
+
     // Analyze value priorities
     const valueCounts: Record<string, number> = {
       practical: 0,
@@ -195,7 +223,7 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
       survival: 0,
       ethical: 0
     };
-    
+
     decisions.forEach(d => {
       d.choices.forEach(choice => {
         if (['Laptop/work', 'Important documents', 'Investments', 'Water purifier'].includes(choice)) {
@@ -209,53 +237,89 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
         }
       });
     });
-    
+
     const dominantValue = Object.entries(valueCounts)
       .sort(([,a], [,b]) => b - a)[0][0];
-    
+
     insights.push({
       type: 'value_system',
       message: `Your decisions reveal a ${dominantValue} value system under pressure`,
       data: { valueCounts, dominant: dominantValue }
     });
-    
+
     // Analyze decision speed
     const avgDecisionTime = decisions.reduce((acc, d) => acc + d.timeToDecide, 0) / decisions.length;
     const speedCategory = avgDecisionTime < 20 ? 'rapid' : avgDecisionTime < 40 ? 'moderate' : 'deliberate';
-    
+
     insights.push({
       type: 'decision_speed',
       message: `You make ${speedCategory} decisions (avg ${avgDecisionTime.toFixed(1)}s)`,
       data: { avgTime: avgDecisionTime, category: speedCategory }
     });
-    
+
     // Analyze stress impact
     const highStressDecisions = decisions.filter(d => d.stressLevel === 'high');
     const stressImpact = highStressDecisions.length / decisions.length;
-    
+
     insights.push({
       type: 'stress_response',
       message: `${Math.round(stressImpact * 100)}% of your decisions were made under high stress`,
       data: { stressImpact, highStressCount: highStressDecisions.length }
     });
-    
+
     // Analyze risk tolerance
     const riskChoices = decisions.flatMap(d => d.choices)
       .filter(c => ['Nothing - preserve timeline', 'Save it', 'Investments'].includes(c));
     const riskScore = riskChoices.length > 2 ? 'conservative' : 'moderate';
-    
+
     insights.push({
       type: 'risk_profile',
       message: `Your risk tolerance appears to be ${riskScore}`,
       data: { riskChoices, profile: riskScore }
     });
-    
+
     return insights;
   };
 
   const saveResults = (insights: DecisionInsight[]) => {
     const score = calculateDecisionScore();
-    
+
+    // Convert decisions to DecisionData format for gamesStore
+    const gameScenarios: GameDecisionScenario[] = decisions.map((decision, index) => {
+      const scenario = scenarios.find(s => s.id === decision.scenarioId)!;
+      const selectedOption = scenario.options.indexOf(decision.choices[0]); // First choice as main selection
+
+      return {
+        id: scenario.id,
+        category: categoryMap[scenario.category] || 'practical',
+        question: scenario.prompt,
+        options: scenario.options,
+        selectedOption,
+        responseTime: decision.timeToDecide,
+        changed: decision.choices.length > 1, // If multiple selections, consider it changed
+        timerPressure: ((scenario.timeLimit - decision.timeToDecide) / scenario.timeLimit) * 100
+      };
+    });
+
+    const avgResponseTime = decisions.reduce((sum, d) => sum + d.timeToDecide, 0) / decisions.length;
+    const changeCount = decisions.filter(d => d.stressLevel === 'high').length;
+
+    const decisionData: DecisionData = {
+      scenarios: gameScenarios,
+      averageResponseTime: avgResponseTime,
+      changeCount
+    };
+
+    // Complete the game session in gamesStore
+    if (sessionId) {
+      try {
+        completeGameSession(sessionId, decisionData);
+      } catch (error) {
+        console.error('Error completing game session:', error);
+      }
+    }
+
+    // Also save to legacy twinStore format for backward compatibility
     addGameResult({
       gameType: 'temporal_decision',
       score,
@@ -277,11 +341,11 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
       const expectedChoices = scenario.id === 'zombie_team' || scenario.id === 'desert_island' ? 5 : 3;
       return acc + (d.choices.length === expectedChoices ? 20 : 10);
     }, 0) / decisions.length;
-    
+
     const speedScore = decisions.reduce((acc, d) => {
       return acc + Math.max(0, 20 - d.timeToDecide / 3);
     }, 0) / decisions.length;
-    
+
     return Math.round(decisiveness + speedScore);
   };
 
@@ -315,7 +379,7 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
               Make rapid-fire decisions in high-pressure scenarios. We'll analyze how your values and instincts align with {twinProfile?.name}.
             </Text>
             <Pressable
-              onPress={startScenario}
+              onPress={handleStartGame}
               className="bg-yellow-500 px-8 py-4 rounded-xl"
             >
               <Text className="text-white text-lg font-semibold">Start Challenge</Text>
@@ -360,7 +424,7 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
   if (gamePhase === 'deciding') {
     const scenario = scenarios[currentScenarioIndex];
     const maxSelections = scenario.id === 'zombie_team' || scenario.id === 'desert_island' ? 5 : 3;
-    
+
     return (
       <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
         <SafeAreaView className="flex-1">
@@ -370,7 +434,7 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
               <Ionicons name="arrow-back" size={24} color="white" />
             </Pressable>
             <View className="flex-row items-center">
-              <View 
+              <View
                 className="w-4 h-4 rounded-full mr-2"
                 style={{ backgroundColor: getStressColor() }}
               />
@@ -406,8 +470,8 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
                     key={index}
                     onPress={() => handleOptionToggle(option)}
                     className={`w-[48%] mb-3 p-4 rounded-xl border-2 ${
-                      isSelected 
-                        ? 'bg-yellow-500/20 border-yellow-500' 
+                      isSelected
+                        ? 'bg-yellow-500/20 border-yellow-500'
                         : 'bg-white/10 border-white/30'
                     }`}
                   >
@@ -466,7 +530,7 @@ export const TemporalDecisionSync = ({ navigation }: any) => {
             <Text className="text-white text-3xl font-bold text-center mb-6">
               Decision Analysis
             </Text>
-            
+
             {/* Generate insights display */}
             <View className="space-y-4">
               {generateDecisionInsights().map((insight, index) => (

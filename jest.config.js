@@ -1,5 +1,6 @@
 module.exports = {
   preset: 'react-native',
+  setupFiles: ['<rootDir>/src/tests/jest-setup.js'],
   setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
@@ -7,7 +8,7 @@ module.exports = {
     '<rootDir>/ios/',
   ],
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation|react-native-.*|expo-notifications|expo-location)/)',
+    'node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation|react-native-.*|expo-notifications|expo-location|expo-haptics)/)',
   ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
@@ -49,7 +50,10 @@ module.exports = {
     'expo-notifications': '<rootDir>/src/tests/mocks/expo-notifications.js',
     'expo-location': '<rootDir>/src/tests/mocks/expo-location.js',
     'expo-crypto': '<rootDir>/src/tests/mocks/expo-crypto.js',
+    'expo-haptics': '<rootDir>/src/tests/mocks/expo-haptics.js',
+    'expo-blur': '<rootDir>/src/tests/mocks/expo-blur.js',
     'nanoid': '<rootDir>/src/tests/mocks/nanoid.js',
     'react-native-purchases': '<rootDir>/src/tests/mocks/react-native-purchases.js',
+    'react-native-css-interop/jsx-runtime': 'react/jsx-runtime',
   },
 };

@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Slider from '@react-native-community/slider';
 import { useTwinStore } from '../../state/twinStore';
+import { useGamesStore, EmotionData, EmotionAssociation, EmotionWord } from '../../state/gamesStore';
+import { emotionAnalysisService } from '../../services/games/emotionAnalysis';
 import * as Haptics from 'expo-haptics';
 
 interface EmotionalResponse {
@@ -52,14 +54,26 @@ const wordOptions = [
   'ancient', 'new', 'familiar', 'strange', 'peaceful', 'energetic'
 ];
 
+// Map internal emotion names to EmotionWord type
+const emotionWordMap: Record<string, EmotionWord> = {
+  joy: 'joy',
+  sadness: 'sadness',
+  peace: 'surprise', // Mapping as best fit
+  anxiety: 'fear',
+  love: 'trust',
+  curiosity: 'anticipation'
+};
+
 export const EmotionalResonanceMapping = ({ navigation }: any) => {
-  const { themeColor, twinProfile, addGameResult } = useTwinStore();
+  const { themeColor, twinProfile, addGameResult, userProfile } = useTwinStore();
+  const { startGameSession, completeGameSession } = useGamesStore();
   const [gamePhase, setGamePhase] = useState<'intro' | 'viewing' | 'rating' | 'mapping' | 'words' | 'result'>('intro');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [responses, setResponses] = useState<EmotionalResponse[]>([]);
   const [currentResponse, setCurrentResponse] = useState<Partial<EmotionalResponse>>({});
   const [startTime, setStartTime] = useState<number>(0);
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const startNewImage = () => {
     setGamePhase('viewing');
@@ -76,7 +90,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
       }
     });
     setSelectedWords([]);
-    
+
     // Auto-advance after viewing time
     setTimeout(() => {
       setGamePhase('rating');
@@ -94,15 +108,15 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
   };
 
   const handleBodyMapping = (location: { x: number, y: number }) => {
-    const area = location.y < 100 ? 'head' : 
-                 location.y < 200 ? 'chest' : 
+    const area = location.y < 100 ? 'head' :
+                 location.y < 200 ? 'chest' :
                  location.y < 300 ? 'stomach' : 'full';
-    
+
     setCurrentResponse(prev => ({
       ...prev,
       somaticLocation: { x: location.x, y: location.y, area }
     }));
-    
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
@@ -127,9 +141,9 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
       wordAssociations: selectedWords,
       responseTime
     };
-    
+
     setResponses(prev => [...prev, completeResponse]);
-    
+
     // Move to next image or finish
     if (currentImageIndex < abstractImages.length - 1) {
       setCurrentImageIndex(prev => prev + 1);
@@ -147,7 +161,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
 
   const generateEmotionalInsights = (): EmotionalInsight[] => {
     const insights: EmotionalInsight[] = [];
-    
+
     // Analyze dominant emotions
     const emotionTotals: Record<string, number> = {};
     responses.forEach(r => {
@@ -155,28 +169,28 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
         emotionTotals[emotion] = (emotionTotals[emotion] || 0) + rating;
       });
     });
-    
+
     const dominantEmotion = Object.entries(emotionTotals)
       .sort(([,a], [,b]) => b - a)[0][0];
-    
+
     insights.push({
       type: 'dominant_emotion',
       message: `Your emotional responses are primarily driven by ${dominantEmotion}`,
       data: { emotionTotals, dominant: dominantEmotion }
     });
-    
+
     // Analyze somatic patterns
     const bodyAreas = responses.map(r => r.somaticLocation.area);
-    const mostCommonArea = bodyAreas.sort((a, b) => 
+    const mostCommonArea = bodyAreas.sort((a, b) =>
       bodyAreas.filter(v => v === a).length - bodyAreas.filter(v => v === b).length
     ).pop();
-    
+
     insights.push({
       type: 'somatic_pattern',
       message: `You tend to feel emotions most strongly in your ${mostCommonArea}`,
       data: { areas: bodyAreas, dominant: mostCommonArea }
     });
-    
+
     // Analyze color-emotion associations
     const colorEmotionMap: Record<string, string[]> = {};
     responses.forEach(r => {
@@ -187,31 +201,65 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
       }
       colorEmotionMap[r.colorAssociation].push(topEmotion);
     });
-    
+
     insights.push({
       type: 'color_associations',
       message: `Your color-emotion synesthesia shows unique patterns`,
       data: colorEmotionMap
     });
-    
+
     // Analyze word patterns
     const allWords = responses.flatMap(r => r.wordAssociations);
     const wordFrequency = allWords.reduce((acc, word) => {
       acc[word] = (acc[word] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
+
     const emotionalVocabulary = Object.keys(wordFrequency).length;
     insights.push({
       type: 'emotional_vocabulary',
       message: `Your emotional vocabulary contains ${emotionalVocabulary} unique descriptors`,
       data: { wordFrequency, vocabularySize: emotionalVocabulary }
     });
-    
+
     return insights;
   };
 
   const saveResults = (insights: EmotionalInsight[]) => {
+    // Convert responses to EmotionData format for gamesStore
+    const associations: EmotionAssociation[] = [];
+
+    responses.forEach((response, index) => {
+      // Get the dominant emotions for this response
+      const sortedEmotions = Object.entries(response.emotionalRatings)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 3); // Top 3 emotions
+
+      sortedEmotions.forEach(([emotionKey, rating]) => {
+        const emotion = emotionWordMap[emotionKey] || 'joy';
+        associations.push({
+          emotion,
+          selectedImages: [index], // Use image index as image ID
+          selectionOrder: [index],
+          responseTime: response.responseTime
+        });
+      });
+    });
+
+    const emotionData: EmotionData = {
+      associations
+    };
+
+    // Complete the game session in gamesStore
+    if (sessionId) {
+      try {
+        completeGameSession(sessionId, emotionData);
+      } catch (error) {
+        console.error('Error completing game session:', error);
+      }
+    }
+
+    // Also save to legacy twinStore format for backward compatibility
     addGameResult({
       gameType: 'emotional_resonance',
       score: calculateEmotionalSyncScore(),
@@ -233,8 +281,24 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
       const variance = ratings.reduce((v, rating) => v + Math.pow(rating - 5, 2), 0) / ratings.length;
       return acc + (10 - variance);
     }, 0) / responses.length;
-    
+
     return Math.round(consistency * 10);
+  };
+
+  const handleStartGame = () => {
+    // Start a new game session in gamesStore
+    try {
+      const newSessionId = startGameSession(
+        'emotion',
+        userProfile?.id || 'unknown',
+        twinProfile?.id
+      );
+      setSessionId(newSessionId);
+      startNewImage();
+    } catch (error) {
+      console.error('Error starting game session:', error);
+      startNewImage(); // Continue anyway
+    }
   };
 
   const renderBodyMap = () => {
@@ -252,7 +316,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
           <View className="absolute top-4 left-1/2 -ml-12 w-24 h-24 rounded-full bg-white/10" />
           <View className="absolute top-28 left-1/2 -ml-16 w-32 h-40 rounded-t-3xl bg-white/10" />
           <View className="absolute bottom-0 left-1/2 -ml-16 w-32 h-32 bg-white/10" />
-          
+
           {currentResponse.somaticLocation && (
             <View
               className="absolute w-8 h-8 rounded-full bg-purple-500"
@@ -263,7 +327,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
             />
           )}
         </Pressable>
-        
+
         {currentResponse.somaticLocation && (
           <Pressable
             onPress={() => setGamePhase('words')}
@@ -297,7 +361,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
               We'll show you abstract images. Feel your emotional response, where it lives in your body, and what colors and words arise.
             </Text>
             <Pressable
-              onPress={startNewImage}
+              onPress={handleStartGame}
               className="bg-pink-500 px-8 py-4 rounded-xl"
             >
               <Text className="text-white text-lg font-semibold">Begin Journey</Text>
@@ -352,7 +416,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
             <Text className="text-white text-2xl font-bold text-center mb-6">
               How does this make you feel?
             </Text>
-            
+
             <View className="space-y-4">
               {Object.entries(currentResponse.emotionalRatings!).map(([emotion, value]) => (
                 <View key={emotion}>
@@ -369,7 +433,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
                 </View>
               ))}
             </View>
-            
+
             <Pressable
               onPress={() => setGamePhase('mapping')}
               className="bg-purple-500 px-6 py-3 rounded-xl mt-6"
@@ -418,7 +482,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
             <Text className="text-white text-2xl font-bold text-center mb-6">
               Choose 3 words that resonate
             </Text>
-            
+
             <View className="flex-row flex-wrap justify-center gap-3 mb-8">
               {wordOptions.map(word => (
                 <Pressable
@@ -432,11 +496,11 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
                 </Pressable>
               ))}
             </View>
-            
+
             <Text className="text-white text-xl mb-4 text-center">
               What color feels right?
             </Text>
-            
+
             <View className="flex-row flex-wrap justify-center gap-3">
               {emotionColors.map(color => (
                 <Pressable
@@ -447,7 +511,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
                 />
               ))}
             </View>
-            
+
             {selectedWords.length === 3 && currentResponse.colorAssociation && (
               <Pressable
                 onPress={completeCurrentImage}
@@ -466,7 +530,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
 
   if (gamePhase === 'result') {
     const insights = generateEmotionalInsights();
-    
+
     return (
       <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
         <SafeAreaView className="flex-1">
@@ -474,7 +538,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
             <Text className="text-white text-2xl font-bold text-center mb-6">
               Emotional Resonance Profile
             </Text>
-            
+
             <View className="bg-white/10 rounded-2xl p-6 mb-6">
               <Text className="text-white text-xl font-semibold mb-4">Your Emotional Patterns</Text>
               {insights.map((insight, index) => (
@@ -488,7 +552,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
                 </View>
               ))}
             </View>
-            
+
             <LinearGradient
               colors={['rgba(236,72,153,0.2)', 'rgba(139,92,246,0.2)']}
               className="rounded-xl p-4 mb-6"
@@ -497,7 +561,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
                 Your emotional fingerprint is being compared with {twinProfile?.name}'s...
               </Text>
             </LinearGradient>
-            
+
             <View className="flex-row space-x-4">
               <Pressable
                 onPress={() => navigation.goBack()}

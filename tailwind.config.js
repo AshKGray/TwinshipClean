@@ -12,23 +12,28 @@ module.exports = {
     // NOTE to AI: You can extend the theme with custom colors or styles here.
     extend: {
       colors: {
-        // Accent colors aligned with the galaxy background palette
-        "nebula-rose": "#C66BC4",
-        "stellar-blue": "#2F6BB5",
-        "orbit-sage": "#6FBF92",
-        "solar-amber": "#F4C16E",
-        "celestial-indigo": "#5D63C7",
-        "comet-coral": "#E8846B",
-        "aurora-teal": "#2BB5A0",
-        "meteor-copper": "#B9825A",
-        // Assessment specific colors
-        "assessment": {
-          "emotional": "#C66BC4",
-          "telepathic": "#5D63C7",
-          "behavioral": "#2F6BB5",
-          "shared": "#6FBF92",
-          "physical": "#E8846B"
-        }
+        // Galaxy accent colors (user-selectable) - Story 6.1
+        'nebula-rose': '#FF6B9D',
+        'stellar-blue': '#00D4FF',
+        'orbit-sage': '#8FD14F',
+        'solar-amber': '#FFB347',
+        'celestial-indigo': '#7073FE',  // Adjusted for WCAG AA compliance
+        'comet-coral': '#FF7F50',
+        'aurora-teal': '#00CED1',
+        'meteor-copper': '#D4AF37',
+
+        // Base UI colors - Story 6.1
+        'deep-space': '#0B0B1E',
+        'cosmic-void': '#060612',
+        'stardust': '#E5E7EB',
+        'moonlight': '#9CA3AF',
+        'nebula-mist': '#374151',
+
+        // Semantic colors - Story 6.1
+        'success': '#10B981',
+        'error': '#EF4444',
+        'warning': '#F59E0B',
+        'info': '#3B82F6',
       },
       fontSize: {
         xs: "10px",

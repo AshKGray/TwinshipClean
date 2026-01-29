@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTwinStore } from '../../state/twinStore';
+import { useGamesStore, DuoData, DuoQuestion as GameDuoQuestion, DuoCategory } from '../../state/gamesStore';
+import { duoMatchingService } from '../../services/games/duoMatching';
 import * as Haptics from 'expo-haptics';
 
 interface Question {
@@ -152,23 +154,50 @@ const duoProfiles: DuoProfile[] = [
   }
 ];
 
+// Map question categories to DuoCategory types
+const categoryMap: Record<string, DuoCategory> = {
+  'relationship': 'relationship',
+  'communication': 'communication',
+  'humor': 'humor',
+  'conflict': 'conflict',
+  'self': 'relationship' // Map self to relationship as fallback
+};
+
 export const IconicDuoMatcher = ({ navigation }: any) => {
-  const { themeColor, twinProfile, addGameResult } = useTwinStore();
+  const { themeColor, twinProfile, addGameResult, userProfile } = useTwinStore();
+  const { startGameSession, completeGameSession } = useGamesStore();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [twinPredictions, setTwinPredictions] = useState<Record<string, any>>({});
   const [gamePhase, setGamePhase] = useState<'intro' | 'questions' | 'predictions' | 'calculating' | 'result'>('intro');
   const [matchedDuo, setMatchedDuo] = useState<DuoProfile | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  const handleStartGame = () => {
+    // Start a new game session in gamesStore
+    try {
+      const newSessionId = startGameSession(
+        'duo',
+        userProfile?.id || 'unknown',
+        twinProfile?.id
+      );
+      setSessionId(newSessionId);
+    } catch (error) {
+      console.error('Error starting game session:', error);
+    }
+
+    setGamePhase('questions');
+  };
 
   const handleAnswer = (questionId: string, option: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
+
     if (gamePhase === 'questions') {
       setAnswers(prev => ({ ...prev, [questionId]: option }));
     } else {
       setTwinPredictions(prev => ({ ...prev, [questionId]: option }));
     }
-    
+
     // Move to next question
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -186,17 +215,17 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
 
   const calculateDuoMatch = () => {
     setGamePhase('calculating');
-    
+
     // Aggregate points
     const points: Record<string, number> = {};
-    
+
     // Add points from answers
     Object.values(answers).forEach((answer: any) => {
       Object.entries(answer.points).forEach(([trait, score]) => {
         points[trait] = (points[trait] || 0) + (score as number);
       });
     });
-    
+
     // Add points from predictions (if they match)
     Object.entries(twinPredictions).forEach(([questionId, prediction]: [string, any]) => {
       if (answers[questionId]?.text === prediction.text) {
@@ -205,24 +234,24 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
         });
       }
     });
-    
+
     // Find best matching duo
     let bestMatch = duoProfiles[0];
     let bestScore = 0;
-    
+
     duoProfiles.forEach(duo => {
       const score = duo.dynamics.reduce((acc, trait) => {
         return acc + (points[trait] || 0);
       }, 0);
-      
+
       if (score > bestScore) {
         bestScore = score;
         bestMatch = duo;
       }
     });
-    
+
     setMatchedDuo(bestMatch);
-    
+
     setTimeout(() => {
       setGamePhase('result');
       saveResults(bestMatch);
@@ -231,7 +260,40 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
 
   const saveResults = (duo: DuoProfile) => {
     const perceptionGap = calculatePerceptionGap();
-    
+
+    // Convert answers to DuoData format for gamesStore
+    const gameQuestions: GameDuoQuestion[] = questions.map((question, index) => {
+      const answer = answers[question.id];
+      const prediction = twinPredictions[question.id];
+
+      // Find the option indices
+      const selfAnswerIndex = question.options.findIndex(opt => opt.text === answer?.text);
+      const twinAnswerIndex = question.options.findIndex(opt => opt.text === prediction?.text);
+
+      return {
+        id: question.id,
+        category: categoryMap[question.type] || 'relationship',
+        question: question.text,
+        options: question.options.map(opt => opt.text),
+        selfAnswer: selfAnswerIndex >= 0 ? selfAnswerIndex : 0,
+        twinAnswer: twinAnswerIndex >= 0 ? twinAnswerIndex : 0
+      };
+    });
+
+    const duoData: DuoData = {
+      questions: gameQuestions
+    };
+
+    // Complete the game session in gamesStore
+    if (sessionId) {
+      try {
+        completeGameSession(sessionId, duoData);
+      } catch (error) {
+        console.error('Error completing game session:', error);
+      }
+    }
+
+    // Also save to legacy twinStore format for backward compatibility
     addGameResult({
       gameType: 'iconic_duo',
       score: 100 - perceptionGap, // Higher score for better perception alignment
@@ -287,11 +349,11 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
               Which Iconic Duo Are You?
             </Text>
             <Text className="text-white/70 text-lg text-center mb-8 max-w-sm">
-              Answer questions about your relationship, then predict what {twinProfile?.name} would say. 
+              Answer questions about your relationship, then predict what {twinProfile?.name} would say.
               Discover which famous duo represents your twin dynamic!
             </Text>
             <Pressable
-              onPress={() => setGamePhase('questions')}
+              onPress={handleStartGame}
               className="bg-purple-500 px-8 py-4 rounded-xl"
             >
               <Text className="text-white text-lg font-semibold">Start Quiz</Text>
@@ -321,7 +383,7 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
                 {gamePhase === 'questions' ? 'Your Answers' : `Predict ${twinProfile?.name}'s Answers`}
               </Text>
               <View className="bg-white/10 h-2 rounded-full overflow-hidden">
-                <View 
+                <View
                   className="bg-purple-500 h-full rounded-full"
                   style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
                 />
@@ -330,13 +392,13 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
                 Question {currentQuestionIndex + 1} of {questions.length}
               </Text>
             </View>
-            
+
             {/* Question */}
             <View className="flex-1 justify-center">
               <Text className="text-white text-2xl font-bold text-center mb-8">
                 {currentQuestion.text}
               </Text>
-              
+
               {/* Options */}
               <View className="space-y-3">
                 {currentQuestion.options.map((option, index) => (
@@ -373,7 +435,7 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
 
   if (gamePhase === 'result' && matchedDuo) {
     const perceptionGap = calculatePerceptionGap();
-    
+
     return (
       <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
         <SafeAreaView className="flex-1">
@@ -381,7 +443,7 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
             <Text className="text-white text-2xl font-bold text-center mb-6">
               Your Iconic Duo Match
             </Text>
-            
+
             {/* Duo Result */}
             <LinearGradient
               colors={[`${matchedDuo.color}40`, `${matchedDuo.color}20`]}
@@ -398,7 +460,7 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
                 {matchedDuo.description}
               </Text>
             </LinearGradient>
-            
+
             {/* Perception Analysis */}
             <View className="bg-white/10 rounded-xl p-6 mb-6">
               <Text className="text-white text-xl font-semibold mb-4">
@@ -407,7 +469,7 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
               <Text className="text-white/80 mb-4">
                 You and {twinProfile?.name} see your relationship with {100 - perceptionGap}% alignment
               </Text>
-              
+
               {/* Show mismatches */}
               {perceptionGap > 0 && (
                 <View className="space-y-2">
@@ -419,7 +481,7 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
                         <View key={questionId} className="bg-white/10 rounded p-3">
                           <Text className="text-white/80 text-sm mb-1">{question.text}</Text>
                           <Text className="text-white/60 text-xs">
-                            You: {answers[questionId]?.text} | 
+                            You: {answers[questionId]?.text} |
                             Predicted: {twinPredictions[questionId]?.text}
                           </Text>
                         </View>
@@ -430,15 +492,15 @@ export const IconicDuoMatcher = ({ navigation }: any) => {
                 </View>
               )}
             </View>
-            
+
             {/* Social Sharing */}
             <View className="bg-purple-500/20 rounded-xl p-4 mb-6">
               <Text className="text-white text-center">
-                Share your duo match with friends! 
+                Share your duo match with friends!
                 Screenshot this result and tag your twin.
               </Text>
             </View>
-            
+
             <Pressable
               onPress={() => navigation.goBack()}
               className="bg-white/20 py-3 rounded-xl"
