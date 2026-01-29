@@ -202,7 +202,7 @@ Performance data flows through `.bmad-mobile-app/navigation-tracker.ts` and `mob
 - `src/screens/HomeScreen.tsx` - Main hub with feature grid
 - `src/screens/chat/TwinTalkScreen.tsx` - Chat interface with mock real-time messaging
 - `.bmad-core/config/bmad.config.json` - BMAD method configuration
-- `app.json` - Expo configuration (note: app identifier is "vibecode")
+- `app.json` - Expo configuration (note: app identifier is "com.twinship.app")
 
 ## New Documentation Files
 

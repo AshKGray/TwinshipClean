@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View } from "react-native";
 import { useTwinStore } from "../state/twinStore";
+import { useNavigation } from "@react-navigation/native";
 
 // Import onboarding screens (WelcomeScreen removed - skipping directly to PhotoSetup)
 import { PhotoSetupScreen } from "./onboarding/PhotoSetupScreen";
@@ -16,9 +17,10 @@ interface OnboardingScreenProps {
 export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   onComplete,
 }) => {
+  const navigation = useNavigation<any>();
   // Start at step 0 which is now PhotoSetupScreen (skipping WelcomeScreen)
   const [currentStep, setCurrentStep] = useState(0);
-  const { userProfile } = useTwinStore();
+  const { userProfile, setOnboarded } = useTwinStore();
 
   const handleNext = () => {
     setCurrentStep(prev => prev + 1);
@@ -33,7 +35,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   };
 
   const handleComplete = () => {
-    onComplete();
+    // Mark user as onboarded
+    setOnboarded(true);
+
+    // Navigate to InvitationScreen instead of calling onComplete
+    navigation.navigate('Invitation');
   };
 
   // Removed WelcomeScreen - now starts directly at PhotoSetupScreen

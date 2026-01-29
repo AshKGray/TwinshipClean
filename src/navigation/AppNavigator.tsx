@@ -26,6 +26,10 @@ import { TwinTalkScreen } from "../screens/chat/TwinTalkScreen";
 // Pairing Screen (lazy loaded)
 const PairScreen = lazyScreen(() => import("../screens/PairScreen").then(m => ({ default: m.PairScreen })));
 
+// Onboarding Screens (lazy loaded)
+const InvitationScreen = lazyScreen(() => import("../screens/onboarding/InvitationScreen").then(m => ({ default: m.InvitationScreen })));
+const TutorialScreen = lazyScreen(() => import("../screens/onboarding/TutorialScreen").then(m => ({ default: m.TutorialScreen })));
+
 // Secondary Screens (lazy loaded with enhanced skeletons)
 const TwintuitionScreen = lazyScreenWithSkeleton(
   () => import("../screens/TwintuitionScreen").then(m => ({ default: m.TwintuitionScreen })),
@@ -50,10 +54,67 @@ const SettingsScreen = lazyScreenWithSkeleton(
 );
 
 // Game Screens (lazy loaded with preload)
+const PsychicGamesHub = lazyWithPreloadAndSkeleton(
+  () => import("../screens/games/PsychicGamesHub").then(m => ({ default: m.PsychicGamesHub })),
+  'game',
+  'Loading psychic games hub...',
+  'PsychicGamesHub'
+);
+const ResultsDashboard = lazyScreenWithSkeleton(
+  () => import("../screens/games/ResultsDashboard").then(m => ({ default: m.ResultsDashboard })),
+  'generic',
+  'Loading results...'
+);
 const CognitiveSyncMaze = lazyWithPreload(() => import("../screens/games/CognitiveSyncMaze").then(m => ({ default: m.CognitiveSyncMaze })));
 const EmotionalResonanceMapping = lazyWithPreload(() => import("../screens/games/EmotionalResonanceMapping").then(m => ({ default: m.EmotionalResonanceMapping })));
 const IconicDuoMatcher = lazyWithPreload(() => import("../screens/games/IconicDuoMatcher").then(m => ({ default: m.IconicDuoMatcher })));
 const TemporalDecisionSync = lazyWithPreload(() => import("../screens/games/TemporalDecisionSync").then(m => ({ default: m.TemporalDecisionSync })));
+
+// Game Result Screens (lazy loaded)
+const MazeResults = lazyScreenWithSkeleton(
+  () => import("../screens/games/results/MazeResults").then(m => ({ default: m.MazeResults })),
+  'generic',
+  'Loading maze results...'
+);
+const EmotionResults = lazyScreenWithSkeleton(
+  () => import("../screens/games/results/EmotionResults").then(m => ({ default: m.EmotionResults })),
+  'generic',
+  'Loading emotion results...'
+);
+const DecisionResults = lazyScreenWithSkeleton(
+  () => import("../screens/games/results/DecisionResults").then(m => ({ default: m.DecisionResults })),
+  'generic',
+  'Loading decision results...'
+);
+const DuoResults = lazyScreenWithSkeleton(
+  () => import("../screens/games/results/DuoResults").then(m => ({ default: m.DuoResults })),
+  'generic',
+  'Loading duo results...'
+);
+
+// Epic 3: Twintuition Alert Screens (lazy loaded)
+const SendAlertScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twintuition/SendAlertScreen"),
+  'generic',
+  'Loading alert composer...'
+);
+const AlertHistoryScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twintuition/AlertHistoryScreen"),
+  'generic',
+  'Loading alert history...'
+);
+const PatternsScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twintuition/PatternsScreen"),
+  'generic',
+  'Loading pattern analysis...'
+);
+
+// Epic 4: Twincidences Screens (lazy loaded)
+const InsightsDashboard = lazyScreenWithSkeleton(
+  () => import("../screens/twincidences/InsightsDashboard").then(m => ({ default: m.InsightsDashboard })),
+  'generic',
+  'Loading insights...'
+);
 
 // Authentication Screens (keep non-lazy for fast auth flow)
 import { LoginScreen } from "../screens/auth/LoginScreen";
@@ -145,6 +206,23 @@ const ResearchVoluntaryScreen = lazyScreenWithSkeleton(
   'Loading research information...'
 );
 
+// Epic 5: Research Contribution Screens (lazy loaded)
+const ContributionTrackingScreen = lazyScreenWithSkeleton(
+  () => import("../screens/research/ContributionTrackingScreen").then(m => ({ default: m.ContributionTrackingScreen })),
+  'generic',
+  'Loading contribution tracking...'
+);
+const PopulationInsightsScreen = lazyScreenWithSkeleton(
+  () => import("../screens/research/PopulationInsightsScreen").then(m => ({ default: m.PopulationInsightsScreen })),
+  'generic',
+  'Loading population insights...'
+);
+const LeaderboardScreen = lazyScreenWithSkeleton(
+  () => import("../screens/research/LeaderboardScreen").then(m => ({ default: m.LeaderboardScreen })),
+  'generic',
+  'Loading leaderboard...'
+);
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -154,6 +232,11 @@ type RootStackParamList = {
   Register: undefined;
   ForgotPassword: undefined;
   
+  
+  // Epic 1 Onboarding Flow
+  Invitation: undefined;
+  Tutorial: undefined;
+  Pair: undefined;
   Onboarding: undefined;
   Main: undefined;
   Twindex: undefined;
@@ -198,10 +281,25 @@ type RootStackParamList = {
   ConsentScreen: { studyId?: string };
   ResearchParticipationScreen: undefined;
   ResearchDashboardScreen: undefined;
+  ContributionTrackingScreen: undefined;
+  PopulationInsightsScreen: undefined;
+  LeaderboardScreen: undefined;
+
   ResearchVoluntary: undefined;
   ResearchParticipation: undefined;
-  // Pair route
-  Pair: undefined;
+  // Epic 2: Psychic Games Hub
+  PsychicGamesHub: undefined;
+  ResultsDashboard: { gameType?: string };
+  MazeResults: { sessionId: string };
+  EmotionResults: { sessionId: string };
+  DecisionResults: { sessionId: string };
+  DuoResults: { sessionId: string };
+  // Epic 3: Twintuition Alert System
+  SendAlert: undefined;
+  AlertHistory: undefined;
+  AlertPatterns: undefined;
+  // Epic 4: Twincidences
+  InsightsDashboard: undefined;
 };
 
 const TabNavigator = () => {
@@ -213,6 +311,8 @@ const TabNavigator = () => {
     // Preload game screens using preload manager
     const preloadGameScreens = async () => {
       const componentsToPreload = [
+        { name: 'PsychicGamesHub', component: PsychicGamesHub as any },
+        { name: 'ResultsDashboard', component: ResultsDashboard as any },
         { name: 'TwinGamesHub', component: TwinGamesHub as any },
         { name: 'CognitiveSyncMaze', component: CognitiveSyncMaze as any },
         { name: 'EmotionalResonanceMapping', component: EmotionalResonanceMapping as any },
@@ -457,6 +557,10 @@ export const AppNavigator = () => {
         ) : (
           <>
             <Stack.Screen name="Main" component={TabNavigator} />
+            {/* Onboarding Flow Routes - Accessible after registration */}
+            <Stack.Screen name="Invitation" component={InvitationScreen} />
+            <Stack.Screen name="Tutorial" component={TutorialScreen} />
+            <Stack.Screen name="Pair" component={PairScreen} />
             <Stack.Screen name="TwinTalk" component={TwinTalkScreen} />
             <Stack.Screen name="Twintuition" component={TwintuitionScreen} />
             <Stack.Screen name="Twingames" component={TwinGamesHub} />
@@ -501,6 +605,8 @@ export const AppNavigator = () => {
               component={PremiumScreen}
             />
             {/* Twin Connection Game Screens */}
+            <Stack.Screen name="PsychicGamesHub" component={PsychicGamesHub} />
+            <Stack.Screen name="ResultsDashboard" component={ResultsDashboard} />
             <Stack.Screen name="TwinGamesHub" component={TwinGamesHub} />
             <Stack.Screen name="CognitiveSyncMaze" component={CognitiveSyncMaze} />
             <Stack.Screen name="EmotionalResonanceMapping" component={EmotionalResonanceMapping} />
@@ -510,19 +616,33 @@ export const AppNavigator = () => {
             <Stack.Screen name="emotional_resonance" component={EmotionalResonanceMapping} />
             <Stack.Screen name="temporal_decision" component={TemporalDecisionSync} />
             <Stack.Screen name="iconic_duo" component={IconicDuoMatcher} />
+            {/* Game Result Screens */}
+            <Stack.Screen name="MazeResults" component={MazeResults} />
+            <Stack.Screen name="EmotionResults" component={EmotionResults} />
+            <Stack.Screen name="DecisionResults" component={DecisionResults} />
+            <Stack.Screen name="DuoResults" component={DuoResults} />
+            {/* Epic 3: Twintuition Alert Screens */}
+            <Stack.Screen name="SendAlert" component={SendAlertScreen} />
+            <Stack.Screen name="AlertHistory" component={AlertHistoryScreen} />
+            <Stack.Screen name="AlertPatterns" component={PatternsScreen} />
+            {/* Epic 4: Twincidences Insights */}
+            <Stack.Screen name="InsightsDashboard" component={InsightsDashboard} />
             {/* Research Screens */}
             <Stack.Screen name="ConsentScreen" component={ConsentScreen} />
             <Stack.Screen name="ResearchParticipationScreen" component={ResearchParticipationScreen} />
+            <Stack.Screen name="ContributionTrackingScreen" component={ContributionTrackingScreen} />
+            <Stack.Screen name="PopulationInsightsScreen" component={PopulationInsightsScreen} />
+            <Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} />
             <Stack.Screen name="ResearchDashboardScreen" component={ResearchDashboardScreen} />
             <Stack.Screen name="ResearchVoluntary" component={ResearchVoluntaryScreen} />
             <Stack.Screen name="ResearchParticipation" component={ResearchParticipationScreen} />
+
             {/* Missing route placeholders - redirect to proper screens */}
             <Stack.Screen name="GameStats" component={TwinGamesHub} />
             <Stack.Screen name="Home" component={TabNavigator} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Recommendations" component={AssessmentRecommendationsScreen} />
             <Stack.Screen name="AssessmentDetails" component={AssessmentResultsScreen} />
-            <Stack.Screen name="Pair" component={require("../screens/PairScreen").PairScreen} />
           </>
         )}
       </Stack.Navigator>

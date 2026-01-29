@@ -1,12 +1,12 @@
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
 ./src/api/chat-service.ts
-If the user wants to use AI to generate text, answer questions, or analyze images you can use the functions defined in this file to communicate with the OpenAI, Anthropic, and Grok APIs.
+If the user wants to use AI to generate text, answer questions, or analyze images you can use the functions defined in this file to communicate with the OpenAI, Anthropic, and Gemini APIs.
 */
 import { AIMessage, AIRequestOptions, AIResponse } from "../types/ai";
 import { getAnthropicClient } from "./anthropic";
 import { getOpenAIClient } from "./openai";
-import { getGrokClient } from "./grok";
+import { getGeminiClient } from "./gemini";
 
 /**
  * Get a text response from Anthropic
@@ -105,42 +105,57 @@ export const getOpenAIChatResponse = async (prompt: string): Promise<AIResponse>
 };
 
 /**
- * Get a text response from Grok
+ * Get a text response from Gemini
  * @param messages - The messages to send to the AI
  * @param options - The options for the request
  * @returns The response from the AI
  */
-export const getGrokTextResponse = async (messages: AIMessage[], options?: AIRequestOptions): Promise<AIResponse> => {
+export const getGeminiTextResponse = async (messages: AIMessage[], options?: AIRequestOptions): Promise<AIResponse> => {
   try {
-    const client = getGrokClient();
-    const defaultModel = "grok-3-beta";
+    const client = getGeminiClient();
+    const defaultModel = "gemini-2.0-flash-exp"; // Latest experimental model with multimodal support
 
-    const response = await client.chat.completions.create({
-      model: options?.model || defaultModel,
-      messages: messages,
-      temperature: options?.temperature ?? 0.7,
-      max_tokens: options?.maxTokens || 2048,
+    const model = client.getGenerativeModel({ model: options?.model || defaultModel });
+
+    // Convert messages to Gemini format (history + current prompt)
+    const history = messages.slice(0, -1).map((msg) => ({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    }));
+
+    const currentPrompt = messages[messages.length - 1].content;
+
+    const chat = model.startChat({
+      history,
+      generationConfig: {
+        temperature: options?.temperature ?? 0.7,
+        maxOutputTokens: options?.maxTokens || 2048,
+      },
     });
 
+    const result = await chat.sendMessage(currentPrompt);
+    const response = result.response;
+    const text = response.text();
+
     return {
-      content: response.choices[0]?.message?.content || "",
+      content: text,
       usage: {
-        promptTokens: response.usage?.prompt_tokens || 0,
-        completionTokens: response.usage?.completion_tokens || 0,
-        totalTokens: response.usage?.total_tokens || 0,
+        promptTokens: response.usageMetadata?.promptTokenCount || 0,
+        completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
+        totalTokens: response.usageMetadata?.totalTokenCount || 0,
       },
     };
   } catch (error) {
-    console.error("Grok API Error:", error);
+    console.error("Gemini API Error:", error);
     throw error;
   }
 };
 
 /**
- * Get a simple chat response from Grok
+ * Get a simple chat response from Gemini
  * @param prompt - The prompt to send to the AI
  * @returns The response from the AI
  */
-export const getGrokChatResponse = async (prompt: string): Promise<AIResponse> => {
-  return await getGrokTextResponse([{ role: "user", content: prompt }]);
+export const getGeminiChatResponse = async (prompt: string): Promise<AIResponse> => {
+  return await getGeminiTextResponse([{ role: "user", content: prompt }]);
 };
