@@ -1,359 +1,156 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// NOTE: Old auth service - replaced with Firebase auth in Story 7-2
-// Kept for backward compatibility with screens not yet migrated
-import { authService, User, AuthTokens, RegisterData, LoginData } from '../services/authService.old';
+import type { User, Session } from '@supabase/supabase-js';
+import { authService } from '../services/authService';
 
 export interface AuthState {
-  // State
   user: User | null;
+  session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  
-  // Biometric state
-  biometricEnabled: boolean;
-  biometricAvailable: boolean;
-  biometricType: string[];
-  
-  // Actions
-  login: (data: LoginData) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, profileData: { name: string; twinType?: string; accentColor?: string }) => Promise<void>;
   logout: () => Promise<void>;
-  loginWithBiometrics: () => Promise<void>;
-  enableBiometricAuth: (email: string, password: string) => Promise<void>;
-  disableBiometricAuth: () => Promise<void>;
-  verifyEmail: (token: string) => Promise<void>;
-  resendVerificationEmail: (email: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
-  resetPassword: (token: string, password: string) => Promise<void>;
-  
-  // Utility actions
   clearError: () => void;
-  initializeAuth: () => Promise<void>;
-  checkBiometricAvailability: () => Promise<void>;
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
+  initializeAuth: () => Promise<() => void>;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
-      // Initial state
+    (set) => ({
       user: null,
+      session: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      biometricEnabled: false,
-      biometricAvailable: false,
-      biometricType: [],
 
-      // Actions
-      login: async (data: LoginData) => {
+      login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
-        
         try {
-          const response = await authService.login(data);
-          
-          set({
-            user: response.user,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-
-          // Check if email verification is required but don't block login
-          if (response.requiresEmailVerification) {
-            set({ 
-              error: 'Please check your email to verify your account. You can still use the app while unverified.' 
+          const result = await authService.signIn(email, password);
+          if (result.success) {
+            set({
+              user: result.user ?? null,
+              session: result.session ?? null,
+              isAuthenticated: true,
+              isLoading: false,
             });
+          } else {
+            set({ isLoading: false, error: result.error || 'Login failed' });
+            throw new Error(result.error);
           }
         } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.message || 'Login failed',
-            isAuthenticated: false,
-            user: null,
-          });
+          set({ isLoading: false, error: error.message || 'Login failed' });
           throw error;
         }
       },
 
-      register: async (data: RegisterData) => {
+      register: async (email, password, profileData) => {
         set({ isLoading: true, error: null });
-        
         try {
-          const response = await authService.register(data);
-          
-          set({
-            user: response.user,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-
-          if (response.requiresEmailVerification) {
-            set({ 
-              error: 'Please check your email to verify your account. A verification email has been sent.' 
+          const result = await authService.signUp(email, password, profileData);
+          if (result.success) {
+            set({
+              user: result.user ?? null,
+              session: result.session ?? null,
+              isAuthenticated: true,
+              isLoading: false,
             });
+          } else {
+            set({ isLoading: false, error: result.error || 'Registration failed' });
+            throw new Error(result.error);
           }
         } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.message || 'Registration failed',
-            isAuthenticated: false,
-            user: null,
-          });
+          set({ isLoading: false, error: error.message || 'Registration failed' });
           throw error;
         }
       },
 
       logout: async () => {
         set({ isLoading: true });
-        
         try {
-          await authService.logout();
-          
-          set({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-            biometricEnabled: false,
-          });
-        } catch (error: any) {
-          console.error('Logout error:', error);
-          // Always clear local state even if API call fails
-          set({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-            biometricEnabled: false,
-          });
+          await authService.signOut();
+        } catch (e) {
+          console.error('Logout error:', e);
         }
-      },
-
-      loginWithBiometrics: async () => {
-        set({ isLoading: true, error: null });
-        
-        try {
-          const response = await authService.loginWithBiometrics();
-          
-          set({
-            user: response.user,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.message || 'Biometric login failed',
-          });
-          throw error;
-        }
-      },
-
-      enableBiometricAuth: async (email: string, password: string) => {
-        set({ isLoading: true, error: null });
-        
-        try {
-          const success = await authService.enableBiometricAuth(email, password);
-          
-          if (success) {
-            set({
-              biometricEnabled: true,
-              isLoading: false,
-            });
-          } else {
-            throw new Error('Failed to enable biometric authentication');
-          }
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.message || 'Failed to enable biometric authentication',
-          });
-          throw error;
-        }
-      },
-
-      disableBiometricAuth: async () => {
-        try {
-          await authService.clearBiometricCredentials();
-          set({ biometricEnabled: false });
-        } catch (error: any) {
-          console.error('Failed to disable biometric auth:', error);
-          set({ error: 'Failed to disable biometric authentication' });
-        }
-      },
-
-      verifyEmail: async (token: string) => {
-        set({ isLoading: true, error: null });
-        
-        try {
-          const response = await authService.verifyEmail(token);
-          
-          // Update user with verified status
-          const currentUser = get().user;
-          if (currentUser) {
-            set({
-              user: { ...currentUser, emailVerified: true },
-              isLoading: false,
-              error: null,
-            });
-          } else {
-            set({
-              isLoading: false,
-              error: response.message,
-            });
-          }
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.message || 'Email verification failed',
-          });
-          throw error;
-        }
-      },
-
-      resendVerificationEmail: async (email: string) => {
-        set({ isLoading: true, error: null });
-        
-        try {
-          const response = await authService.resendVerificationEmail(email);
-          
-          set({
-            isLoading: false,
-            error: response.message, // This is actually a success message
-          });
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.message || 'Failed to resend verification email',
-          });
-          throw error;
-        }
+        set({
+          user: null,
+          session: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+        });
       },
 
       forgotPassword: async (email: string) => {
         set({ isLoading: true, error: null });
-        
         try {
-          const response = await authService.forgotPassword(email);
-          
-          set({
-            isLoading: false,
-            error: response.message, // This is actually a success message
-          });
+          const result = await authService.sendPasswordReset(email);
+          if (result.success) {
+            set({ isLoading: false, error: 'Password reset email sent. Check your inbox.' });
+          } else {
+            set({ isLoading: false, error: result.error || 'Password reset failed' });
+            throw new Error(result.error);
+          }
         } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.message || 'Password reset request failed',
-          });
+          set({ isLoading: false, error: error.message || 'Password reset failed' });
           throw error;
         }
       },
 
-      resetPassword: async (token: string, password: string) => {
-        set({ isLoading: true, error: null });
-        
-        try {
-          const response = await authService.resetPassword(token, password);
-          
-          set({
-            isLoading: false,
-            error: response.message, // This is actually a success message
-          });
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.message || 'Password reset failed',
-          });
-          throw error;
-        }
-      },
+      clearError: () => set({ error: null }),
 
-      clearError: () => {
-        set({ error: null });
-      },
+      setUser: (user) => set({ user, isAuthenticated: !!user }),
+
+      setSession: (session) => set({ session, user: session?.user ?? null, isAuthenticated: !!session }),
 
       initializeAuth: async () => {
         set({ isLoading: true });
-        
         try {
-          // Check if user is authenticated and get current user
-          const isAuthenticated = await authService.isAuthenticated();
-          
-          if (isAuthenticated) {
-            const user = await authService.getCurrentUser();
+          const session = await authService.getSession();
+          if (session) {
             set({
-              user,
+              user: session.user,
+              session,
               isAuthenticated: true,
               isLoading: false,
             });
           } else {
-            set({
-              user: null,
-              isAuthenticated: false,
-              isLoading: false,
-            });
+            set({ isLoading: false });
           }
-
-          // Check biometric availability and status
-          await get().checkBiometricAvailability();
-        } catch (error: any) {
-          console.error('Auth initialization error:', error);
-          set({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null, // Don't show error for initialization failures
-          });
+        } catch (e) {
+          console.error('Auth init error:', e);
+          set({ isLoading: false });
         }
-      },
 
-      checkBiometricAvailability: async () => {
-        try {
-          const isAvailable = await authService.isBiometricAvailable();
-          const biometricTypes = await authService.getBiometricType();
-          const hasCredentials = await authService.hasBiometricCredentials();
-          
+        const { data } = authService.onAuthStateChange((user, session) => {
           set({
-            biometricAvailable: isAvailable,
-            biometricType: biometricTypes.map(type => {
-              switch (type) {
-                case 1: return 'Touch ID';
-                case 2: return 'Face ID';
-                case 3: return 'Iris';
-                default: return 'Biometric';
-              }
-            }),
-            biometricEnabled: hasCredentials,
+            user,
+            session,
+            isAuthenticated: !!user,
           });
-        } catch (error) {
-          console.error('Failed to check biometric availability:', error);
-          set({
-            biometricAvailable: false,
-            biometricType: [],
-            biometricEnabled: false,
-          });
-        }
+        });
+
+        return () => data.subscription.unsubscribe();
       },
     }),
     {
-      name: 'auth-storage',
+      name: 'twinship-auth',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
-        // Only persist user and authentication status
-        user: state.user,
         isAuthenticated: state.isAuthenticated,
-        biometricEnabled: state.biometricEnabled,
       }),
     }
   )
 );
 
-// Helper hooks for components
+// Convenience hooks
 export const useAuth = () => {
   const store = useAuthStore();
   return {
@@ -368,35 +165,10 @@ export const useAuth = () => {
   };
 };
 
-export const useBiometricAuth = () => {
-  const store = useAuthStore();
-  return {
-    biometricEnabled: store.biometricEnabled,
-    biometricAvailable: store.biometricAvailable,
-    biometricType: store.biometricType,
-    loginWithBiometrics: store.loginWithBiometrics,
-    enableBiometricAuth: store.enableBiometricAuth,
-    disableBiometricAuth: store.disableBiometricAuth,
-    checkBiometricAvailability: store.checkBiometricAvailability,
-  };
-};
-
-export const useEmailVerification = () => {
-  const store = useAuthStore();
-  return {
-    verifyEmail: store.verifyEmail,
-    resendVerificationEmail: store.resendVerificationEmail,
-    isLoading: store.isLoading,
-    error: store.error,
-    clearError: store.clearError,
-  };
-};
-
 export const usePasswordReset = () => {
   const store = useAuthStore();
   return {
     forgotPassword: store.forgotPassword,
-    resetPassword: store.resetPassword,
     isLoading: store.isLoading,
     error: store.error,
     clearError: store.clearError,

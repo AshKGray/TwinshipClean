@@ -15,12 +15,11 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import { useFirebaseAuth } from '../../state/firebaseAuthStore';
-import { firebaseAuthService } from '../../services/firebase/auth';
+import { useAuth } from '../../state/authStore';
 
 export const LoginScreen = () => {
   const navigation = useNavigation<any>();
-  const { isLoading, error, clearError } = useFirebaseAuth();
+  const { isLoading, error, clearError, login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -77,17 +76,8 @@ export const LoginScreen = () => {
     }
 
     try {
-      const result = await firebaseAuthService.signIn(
-        email.toLowerCase().trim(),
-        password
-      );
-
-      if (result.success) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        navigation.navigate('Home');
-      } else {
-        Alert.alert('Login Failed', result.error || 'Please check your credentials');
-      }
+      await login(email.toLowerCase().trim(), password);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
