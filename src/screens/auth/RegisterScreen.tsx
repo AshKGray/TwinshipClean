@@ -275,8 +275,8 @@ export const RegisterScreen = () => {
                     autoCorrect={false}
                     editable={!isLoading}
                     autoComplete="off"
-                    textContentType="none"
-                    passwordRules=""
+                    textContentType="oneTimeCode"
+                    importantForAutofill="no"
                   />
                   <Pressable
                     onPress={() => setShowPassword(!showPassword)}
@@ -322,8 +322,8 @@ export const RegisterScreen = () => {
                     autoCorrect={false}
                     editable={!isLoading}
                     autoComplete="off"
-                    textContentType="none"
-                    passwordRules=""
+                    textContentType="oneTimeCode"
+                    importantForAutofill="no"
                     returnKeyType="done"
                     onSubmitEditing={handleRegister}
                   />

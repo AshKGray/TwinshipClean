@@ -31,16 +31,19 @@ class AuthService {
         return { success: false, error: error.message };
       }
 
-      // Update the auto-created profile with the full name
+      // Create profile and user_settings (upsert handles trigger race condition)
       if (data.user) {
-        await supabase
-          .from('profiles')
-          .update({
-            name: profileData.name,
-            twin_type: profileData.twinType || 'identical',
-            accent_color: profileData.accentColor || 'celestial-indigo',
-          })
-          .eq('id', data.user.id);
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          email,
+          name: profileData.name,
+          twin_type: profileData.twinType || 'identical',
+          accent_color: profileData.accentColor || 'celestial-indigo',
+        }, { onConflict: 'id' });
+
+        await supabase.from('user_settings').upsert({
+          user_id: data.user.id,
+        }, { onConflict: 'user_id' });
       }
 
       return {

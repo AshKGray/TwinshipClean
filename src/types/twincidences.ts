@@ -51,7 +51,7 @@ export interface MediaItem {
   size: number;
   mimeType: string;
   timestamp: string;
-  cloudUrl?: string; // Firebase Storage URL after upload
+  cloudUrl?: string; // Cloud storage URL after upload
 }
 
 /**

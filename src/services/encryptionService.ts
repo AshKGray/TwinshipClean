@@ -255,7 +255,7 @@ class EncryptionServiceClass {
 
   /**
    * Derive encryption key from password using PBKDF2-like derivation
-   * Used for Firebase auth integration
+   * Used for Supabase auth integration
    */
   async deriveKeyFromPassword(password: string, salt: string): Promise<string> {
     const keyMaterial = `${password}:${salt}:${this.KEY_VERSION}`;
@@ -268,7 +268,7 @@ class EncryptionServiceClass {
   }
 
   /**
-   * Encrypt data with a specific key (for Firebase auth)
+   * Encrypt data with a specific key (for Supabase auth)
    */
   async encryptWithProvidedKey(plaintext: string, key: string): Promise<string> {
     try {
@@ -300,7 +300,7 @@ class EncryptionServiceClass {
   }
 
   /**
-   * Decrypt data with a specific key (for Firebase auth)
+   * Decrypt data with a specific key (for Supabase auth)
    */
   async decryptWithProvidedKey(encryptedData: string, key: string): Promise<string> {
     try {

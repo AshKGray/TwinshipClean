@@ -281,34 +281,6 @@ class SyncServiceClass {
       },
     });
 
-    // Firebase provider
-    this.registerProvider('firebase', {
-      name: 'Firebase',
-      apiUrl: process.env.EXPO_PUBLIC_FIREBASE_URL || '',
-      authenticate: async () => {
-        // Implement Firebase authentication
-        return 'firebase_auth_token';
-      },
-      uploadData: async (data, metadata) => {
-        // Implement Firebase data upload
-        console.log('Uploading to Firebase:', metadata);
-        return 'upload_id';
-      },
-      downloadData: async (id) => {
-        // Implement Firebase data download
-        console.log('Downloading from Firebase:', id);
-        return {};
-      },
-      deleteData: async (id) => {
-        // Implement Firebase data deletion
-        console.log('Deleting from Firebase:', id);
-      },
-      findPairs: async (criteria) => {
-        // Implement Firebase pair matching
-        console.log('Finding pairs in Firebase:', criteria);
-        return [];
-      },
-    });
   }
 
   private queueSync(type: string, data: any, options: SyncOptions): void {

@@ -166,7 +166,7 @@ export class TwintuitionSyncService {
     console.log('[TwintuitionSync] Started monitoring for:', twinPairId);
 
     // Note: Actual implementation would use Zustand subscription
-    // or Firebase real-time listeners
+    // or Supabase real-time listeners
   }
 
   /**

@@ -9,7 +9,6 @@ import { useAlertStore } from '../../state/alertStore';
 import { useTwinStore } from '../../state/twinStore';
 
 // Mock dependencies
-jest.mock('../../services/firebase/firestore');
 jest.mock('../../services/encryptionService');
 jest.mock('expo-notifications');
 

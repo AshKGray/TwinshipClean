@@ -29,14 +29,6 @@ jest.mock('expo-crypto', () => ({
   },
 }));
 
-// Mock Firestore service
-jest.mock('../firebase/firestore', () => ({
-  firestoreService: {
-    createDocument: jest.fn(),
-    queryCollectionSimple: jest.fn(),
-  },
-}));
-
 describe('ResearchDataService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
