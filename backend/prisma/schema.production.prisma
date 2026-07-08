@@ -1,0 +1,588 @@
+// Production Prisma schema - PostgreSQL
+// This schema is identical to schema.prisma but uses PostgreSQL instead of SQLite
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User Model
+// ============================================
+model User {
+  id                       String    @id @default(uuid())
+  email                    String    @unique
+  emailNormalized          String    @unique @map("email_normalized")
+  passwordHash             String    @map("password_hash")
+  emailVerified            Boolean   @default(false) @map("email_verified")
+  emailVerificationToken   String?   @unique @map("email_verification_token")
+  emailVerificationExpires DateTime? @map("email_verification_expires")
+
+  // Profile fields
+  displayName String? @map("display_name")
+  avatarUrl   String? @map("avatar_url")
+
+  // Security fields
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  accountLockedUntil  DateTime? @map("account_locked_until")
+  lastLoginAt         DateTime? @map("last_login_at")
+  lastLoginIp         String?   @map("last_login_ip")
+
+  // Timestamps
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  refreshTokens      RefreshToken[]
+  passwordResets     PasswordReset[]
+  loginHistory       LoginHistory[]
+  twinPairs1         TwinPair[]         @relation("TwinPair_User1")
+  twinPairs2         TwinPair[]         @relation("TwinPair_User2")
+  sentMessages       Message[]          @relation("MessageSender")
+  receivedMessages   Message[]          @relation("MessageRecipient")
+  messageReactions   MessageReaction[]  @relation("MessageReactions")
+  presence           UserPresence?      @relation("UserPresence")
+
+  @@index([emailNormalized])
+  @@index([emailVerificationToken])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+// ============================================
+// Refresh Token Model
+// ============================================
+model RefreshToken {
+  id              String    @id @default(uuid())
+  token           String    @unique
+  userId          String    @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Token metadata
+  deviceId        String?   @map("device_id")
+  userAgent       String?   @map("user_agent")
+  ipAddress       String?   @map("ip_address")
+
+  // Security
+  expiresAt       DateTime  @map("expires_at")
+  revokedAt       DateTime? @map("revoked_at")
+  revokedReason   String?   @map("revoked_reason")
+  replacedByToken String?   @map("replaced_by_token")
+
+  // Timestamps
+  createdAt       DateTime  @default(now()) @map("created_at")
+  lastUsedAt      DateTime? @map("last_used_at")
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("refresh_tokens")
+}
+
+// ============================================
+// Password Reset Model
+// ============================================
+model PasswordReset {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+
+  // Security
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  ipAddress String?   @map("ip_address")
+  userAgent String?   @map("user_agent")
+  // Timestamps
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_resets")
+}
+
+// ============================================
+// Login History Model
+// ============================================
+model LoginHistory {
+  id               String   @id @default(uuid())
+  userId           String?  @map("user_id")
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email            String
+
+  // Event details
+  eventType        String   @map("event_type")
+  success          Boolean
+  failureReason    String?  @map("failure_reason")
+
+  // Metadata
+  ipAddress        String?  @map("ip_address")
+  userAgent        String?  @map("user_agent")
+  deviceFingerprint String? @map("device_fingerprint")
+
+  // Timestamp
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([email])
+  @@index([createdAt])
+  @@index([eventType])
+  @@map("login_history")
+}
+
+// ============================================
+// Twin Pair Model
+// ============================================
+model TwinPair {
+  id          String    @id @default(uuid())
+  user1Id     String    @map("user1_id")
+  user1       User      @relation("TwinPair_User1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2Id     String    @map("user2_id")
+  user2       User      @relation("TwinPair_User2", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  // Pairing details
+  pairingCode String?   @map("pairing_code")
+  pairedAt    DateTime? @map("paired_at")
+  pairType    String?   @map("pair_type")
+
+  // Status
+  status      String    @default("pending")
+
+  // Timestamps
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  messages    Message[]
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([pairingCode])
+  @@index([status])
+  @@map("twin_pairs")
+}
+
+// ============================================
+// Message Model
+// ============================================
+model Message {
+  id             String    @id @default(uuid())
+  twinPairId     String    @map("twin_pair_id")
+  twinPair       TwinPair  @relation(fields: [twinPairId], references: [id], onDelete: Cascade)
+
+  // Message content
+  senderId       String    @map("sender_id")
+  sender         User      @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId    String    @map("recipient_id")
+  recipient      User      @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  content        String
+  messageType    String    @default("text") @map("message_type")
+  accentColor    String?   @map("accent_color")
+
+  // Message metadata
+  originalMessageId String? @map("original_message_id")
+
+  // Delivery status
+  deliveredAt    DateTime? @map("delivered_at")
+  readAt         DateTime? @map("read_at")
+
+  // Offline queue support
+  queuedAt       DateTime? @map("queued_at")
+  syncedAt       DateTime? @map("synced_at")
+
+  // Timestamps
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  // Relations
+  reactions      MessageReaction[]
+
+  @@index([twinPairId])
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([createdAt])
+  @@index([deliveredAt])
+  @@index([readAt])
+  @@index([deletedAt])
+  @@index([queuedAt])
+  @@map("messages")
+}
+
+// ============================================
+// Message Reaction Model
+// ============================================
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation("MessageReactions", fields: [userId], references: [id], onDelete: Cascade)
+
+  emoji     String
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reactions")
+}
+
+// ============================================
+// Message Queue Model
+// ============================================
+model MessageQueue {
+  id             String    @id @default(uuid())
+  twinPairId     String    @map("twin_pair_id")
+  senderId       String    @map("sender_id")
+  recipientId    String    @map("recipient_id")
+
+  // Message data (JSON serialized)
+  messageData    String    @map("message_data")
+  messageType    String    @map("message_type")
+
+  // Queue metadata
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(3) @map("max_attempts")
+  nextAttemptAt  DateTime? @map("next_attempt_at")
+
+  // Status
+  status         String    @default("pending")
+  errorMessage   String?   @map("error_message")
+
+  // Timestamps
+  createdAt      DateTime  @default(now()) @map("created_at")
+  processedAt    DateTime? @map("processed_at")
+  expiresAt      DateTime  @map("expires_at")
+
+  @@index([twinPairId])
+  @@index([recipientId])
+  @@index([status])
+  @@index([nextAttemptAt])
+  @@index([expiresAt])
+  @@map("message_queue")
+}
+
+// ============================================
+// User Presence Model
+// ============================================
+model UserPresence {
+  id           String    @id @default(uuid())
+  userId       String    @unique @map("user_id")
+  user         User      @relation("UserPresence", fields: [userId], references: [id], onDelete: Cascade)
+
+  status       String    @default("offline")
+  lastSeenAt   DateTime? @map("last_seen_at")
+  deviceInfo   String?   @map("device_info")
+
+  // Timestamps
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([lastSeenAt])
+  @@map("user_presence")
+}
+
+// ============================================
+// Twin Profile Model
+// ============================================
+model TwinProfile {
+  id                       String    @id @default(uuid())
+  userId                   String    @unique @map("user_id")
+
+  // Personal details
+  name                     String
+  age                      Int
+  gender                   String
+  sexualOrientation        String?   @map("sexual_orientation")
+  showSexualOrientation    Boolean   @default(false) @map("show_sexual_orientation")
+  twinType                 String    @map("twin_type")
+  otherTwinTypeDescription String?   @map("other_twin_type_description")
+  twinDeceased             Boolean   @default(false) @map("twin_deceased")
+
+  // Birth info
+  birthDate                String    @map("birth_date")
+  zodiacSign               String?   @map("zodiac_sign")
+  placeOfBirth             String?   @map("place_of_birth")
+  timeOfBirth              String?   @map("time_of_birth")
+
+  // Profile customization
+  profilePicture           String?   @map("profile_picture")
+  accentColor              String    @default("neon-purple") @map("accent_color")
+
+  // Timestamps
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("twin_profiles")
+}
+
+// Additional models continue with same pattern...
+// (GameResult, Twincidence, TwincidenceConsent, EventTypeCatalog, Assessment, TwintuitionAlert, ResearchParticipation, Invitation)
+
+// ============================================
+// Game Result Model
+// ============================================
+model GameResult {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  twinPairId   String?   @map("twin_pair_id")
+
+  // Game details
+  gameType     String    @map("game_type")
+  score        Int
+  twinScore    Int?      @map("twin_score")
+
+  // Game-specific data (JSON)
+  cognitiveData   String? @map("cognitive_data")
+  emotionalData   String? @map("emotional_data")
+  decisionData    String? @map("decision_data")
+  duoData         String? @map("duo_data")
+  insights        String?
+
+  // Timestamps
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([twinPairId])
+  @@index([gameType])
+  @@index([createdAt])
+  @@map("game_results")
+}
+
+// ============================================
+// Twincidence Model
+// ============================================
+model Twincidence {
+  id          String    @id @default(uuid())
+  twinPairId  String    @map("twin_pair_id")
+  createdBy   String?   @map("created_by")
+
+  // Twincidence content
+  title       String
+  description String
+  photos      String?
+
+  // Event type and detection
+  eventType   String    @map("event_type")
+  detectionMethod String? @map("detection_method")
+
+  // For simultaneous events
+  user1EventTime  DateTime? @map("user1_event_time")
+  user2EventTime  DateTime? @map("user2_event_time")
+  timeDifference  Int?      @map("time_difference")
+
+  // Event-specific data
+  eventData       String?   @map("event_data")
+
+  // Consent and sharing
+  sharedWithTwin  Boolean   @default(false) @map("shared_with_twin")
+  user1Consented  Boolean   @default(false) @map("user1_consented")
+  user2Consented  Boolean   @default(false) @map("user2_consented")
+
+  // Research data
+  includedInResearch Boolean @default(false) @map("included_in_research")
+  anonymizedData     String? @map("anonymized_data")
+
+  // Metadata
+  isSpecial   Boolean   @default(false) @map("is_special")
+  severity    String?
+
+  // Timestamps
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@index([twinPairId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([isSpecial])
+  @@index([sharedWithTwin])
+  @@index([deletedAt])
+  @@map("twincidences")
+}
+
+// ============================================
+// Twincidence Consent Model
+// ============================================
+model TwincidenceConsent {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  eventType   String    @map("event_type")
+
+  consentLevel String   @map("consent_level")
+
+  // Timestamps
+  consentedAt DateTime  @default(now()) @map("consented_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  revokedAt   DateTime? @map("revoked_at")
+
+  // Audit trail
+  previousConsent String? @map("previous_consent")
+
+  @@unique([userId, eventType])
+  @@index([userId])
+  @@index([eventType])
+  @@index([consentLevel])
+  @@map("twincidence_consents")
+}
+
+// ============================================
+// Event Type Catalog
+// ============================================
+model EventTypeCatalog {
+  id                String    @id @default(uuid())
+  eventType         String    @unique @map("event_type")
+
+  // Display information
+  displayName       String    @map("display_name")
+  description       String
+  icon              String?
+  category          String
+
+  // Technical configuration
+  detectionEnabled  Boolean   @default(true) @map("detection_enabled")
+  requiresHealthKit Boolean   @default(false) @map("requires_healthkit")
+  requiresLocation  Boolean   @default(false) @map("requires_location")
+
+  // Detection thresholds
+  thresholds        String?
+
+  // Research configuration
+  researchEnabled   Boolean   @default(true) @map("research_enabled")
+  minimumDataPoints Int       @default(1) @map("minimum_data_points")
+
+  // Metadata
+  isActive          Boolean   @default(true) @map("is_active")
+  sortOrder         Int       @default(0) @map("sort_order")
+
+  // Timestamps
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("event_type_catalog")
+}
+
+// ============================================
+// Assessment Model
+// ============================================
+model Assessment {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  twinPairId      String?   @map("twin_pair_id")
+
+  // Assessment details
+  assessmentType  String    @map("assessment_type")
+  responses       String
+  results         String
+
+  // Metadata
+  completedAt     DateTime? @map("completed_at")
+  status          String    @default("in_progress")
+
+  // Timestamps
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([twinPairId])
+  @@index([assessmentType])
+  @@index([createdAt])
+  @@map("assessments")
+}
+
+// ============================================
+// Twintuition Alert Model
+// ============================================
+model TwintuitionAlert {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  twinPairId  String?   @map("twin_pair_id")
+
+  // Alert content
+  message     String
+  type        String
+  isRead      Boolean   @default(false) @map("is_read")
+
+  // Timestamps
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([twinPairId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("twintuition_alerts")
+}
+
+// ============================================
+// Research Participation Model
+// ============================================
+model ResearchParticipation {
+  id                      String    @id @default(uuid())
+  userId                  String    @unique @map("user_id")
+
+  // Consent details
+  hasConsented            Boolean   @default(false) @map("has_consented")
+  consentedAt             DateTime? @map("consented_at")
+  consentVersion          String?   @map("consent_version")
+
+  // Participation details
+  hasActiveStudies        Boolean   @default(false) @map("has_active_studies")
+  contributionsCount      Int       @default(0) @map("contributions_count")
+
+  // Timestamps
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("research_participation")
+}
+
+// ============================================
+// Invitation Model
+// ============================================
+model Invitation {
+  id            String    @id @default(uuid())
+  senderId      String    @map("sender_id")
+
+  // Invitation details
+  invitationCode String   @unique @map("invitation_code")
+  recipientEmail String?  @map("recipient_email")
+  recipientPhone String?  @map("recipient_phone")
+  recipientName  String?  @map("recipient_name")
+
+  // Status
+  status        String    @default("pending")
+  acceptedAt    DateTime? @map("accepted_at")
+  acceptedBy    String?   @map("accepted_by")
+
+  // Expiry
+  expiresAt     DateTime  @map("expires_at")
+
+  // Timestamps
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([senderId])
+  @@index([invitationCode])
+  @@index([recipientEmail])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("invitations")
+}

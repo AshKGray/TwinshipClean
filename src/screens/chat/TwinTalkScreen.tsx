@@ -12,10 +12,9 @@ import {
   ImageBackground,
   TextInput,
   Keyboard,
-  TouchableWithoutFeedback,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,14 +38,14 @@ import { ChatMessage } from '../../types/chat';
 import * as Haptics from 'expo-haptics';
 
 // Memoized header component for performance
-const ChatHeader = memo(({ 
-  onBack, 
-  onVideoCall, 
-  onSettings, 
-  twinProfile, 
-  connection, 
-  neonColor, 
-  accentColor 
+const ChatHeader = memo(({
+  onBack,
+  onVideoCall,
+  onSettings,
+  twinProfile,
+  connection,
+  neonColor,
+  accentColor
 }: {
   onBack: () => void;
   onVideoCall: () => void;
@@ -75,7 +74,7 @@ const ChatHeader = memo(({
   };
 
   return (
-    <View 
+    <View
       style={[
         { backgroundColor: getNeonCardBackground(accentColor), borderBottomColor: neonColor },
         getNeonSubtleGlow(accentColor)
@@ -88,7 +87,7 @@ const ChatHeader = memo(({
         </Pressable>
         <View className="flex-row items-center flex-1">
           {/* Twin Avatar */}
-          <View 
+          <View
             style={{
               backgroundColor: getNeonButtonBackground(accentColor),
               borderColor: neonColor,
@@ -100,15 +99,15 @@ const ChatHeader = memo(({
               {twinProfile.name.charAt(0)}
             </Text>
           </View>
-          
+
           <View className="flex-1">
             <Text className="text-white text-lg font-bold">
               {twinProfile.name}
             </Text>
             <View className="flex-row items-center">
-              <View 
+              <View
                 style={{ backgroundColor: getConnectionStatusColor() }}
-                className="w-2 h-2 rounded-full mr-2" 
+                className="w-2 h-2 rounded-full mr-2"
               />
               <Text className="text-white/90 text-sm font-medium">
                 {getConnectionStatusText()}
@@ -121,7 +120,7 @@ const ChatHeader = memo(({
             </View>
           </View>
         </View>
-        
+
         {/* Action Buttons */}
         <View className="flex-row items-center space-x-3">
           {/* Video Call Button */}
@@ -135,7 +134,7 @@ const ChatHeader = memo(({
           >
             <Ionicons name="videocam" size={20} color="white" />
           </Pressable>
-          
+
           {/* Settings Button */}
           <Pressable
             onPress={onSettings}
@@ -193,13 +192,15 @@ export const TwinTalkScreen = memo(() => {
   // Keyboard visibility listeners
   useEffect(() => {
     const keyboardWillShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', 
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       () => {
         setIsKeyboardVisible(true);
         // Immediate scroll to bottom when keyboard appears
-        if (messages.length > 0) {
-          flatListRef.current?.scrollToEnd({ animated: false });
-        }
+        setTimeout(() => {
+          if (messages.length > 0) {
+            flatListRef.current?.scrollToEnd({ animated: false });
+          }
+        }, 100);
       }
     );
     const keyboardWillHideListener = Keyboard.addListener(
@@ -213,7 +214,7 @@ export const TwinTalkScreen = memo(() => {
       keyboardWillShowListener?.remove();
       keyboardWillHideListener?.remove();
     };
-  }, []);
+  }, [messages.length]);
 
   // Mark messages as read when screen is focused
   useEffect(() => {
@@ -225,7 +226,7 @@ export const TwinTalkScreen = memo(() => {
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
-    
+
     // Mark as read immediately when component mounts
     chatService.markAllAsRead();
     resetUnreadCount();
@@ -237,7 +238,7 @@ export const TwinTalkScreen = memo(() => {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
+
     // Simulate refresh - reconnect to chat service
     chatService.disconnect();
     setTimeout(() => {
@@ -245,15 +246,15 @@ export const TwinTalkScreen = memo(() => {
       setRefreshing(false);
     }, 1000);
   }, []);
-  
+
   const handleVideoCall = useCallback(() => {
     Alert.alert(
       'Video Call',
       'Would you like to start a video call with your twin?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Call', 
+        {
+          text: 'Call',
           onPress: () => {
             // In a real app, integrate with video calling service
             Alert.alert('Feature Coming Soon', 'Video calling will be available in a future update!');
@@ -262,18 +263,18 @@ export const TwinTalkScreen = memo(() => {
       ]
     );
   }, []);
-  
+
   const handleGoBack = useCallback(() => navigation.goBack(), [navigation]);
   const handleGoToSettings = useCallback(() => navigation.navigate('Twinsettings'), [navigation]);
 
   const handleMessageLongPress = (message: ChatMessage) => {
     setSelectedMessage(selectedMessageId === message.id ? null : message.id);
-    
+
     const isOwn = message.senderId === userProfile?.id;
-    const actions = isOwn 
+    const actions = isOwn
       ? ['Delete Message', 'Copy Text', 'Cancel']
       : ['Copy Text', 'Reply', 'Cancel'];
-      
+
     Alert.alert(
       'Message Options',
       message.text.length > 50 ? message.text.substring(0, 50) + '...' : message.text,
@@ -342,10 +343,10 @@ export const TwinTalkScreen = memo(() => {
     if (!userProfile || !twinProfile) return;
 
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    
+
     const alertTimestamp = new Date().toISOString();
     const twinName = twinProfile.name;
-    
+
     // Send instant notification to twin (mock implementation)
     // In production, this would send a push notification
     console.log(`Sending Twintuition Alert to ${twinName}:`, {
@@ -353,14 +354,14 @@ export const TwinTalkScreen = memo(() => {
       body: `${userProfile.name} is thinking of you!`,
       timestamp: alertTimestamp
     });
-    
+
     // Show confirmation to user
     Alert.alert(
       'Twintuition Alert Sent! 🔮',
       `${twinName} will receive your alert instantly.`,
       [{ text: 'OK' }]
     );
-    
+
     // TODO: Check for sync moments (if twin also pressed within same timeframe)
     // This would require backend coordination to detect simultaneous presses
     // For now, just send the alert
@@ -378,9 +379,9 @@ export const TwinTalkScreen = memo(() => {
             <Text className="text-white text-xl font-bold">Twin Talk</Text>
             <View className="w-10" />
           </View>
-          
+
           <View className="flex-1 justify-center items-center px-6">
-            <View 
+            <View
               style={[
                 { backgroundColor: cardBg, borderColor: neonColor, borderWidth: 1 },
                 getNeonSubtleGlow(accentColor)
@@ -392,8 +393,8 @@ export const TwinTalkScreen = memo(() => {
               <Text className="text-white/80 text-center mb-6 leading-6 font-medium">
                 You need to pair with your twin before you can start chatting. Complete your profile and twin pairing first.
               </Text>
-              
-              <Pressable 
+
+              <Pressable
                 onPress={() => navigation.navigate('Pair')}
                 style={[
                   { backgroundColor: neonColor },
@@ -411,13 +412,8 @@ export const TwinTalkScreen = memo(() => {
   }
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? -34 : 0}
-    >
-      <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
-        <SafeAreaView className="flex-1">
+    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
         {/* Header */}
         <ChatHeader
           onBack={handleGoBack}
@@ -429,258 +425,231 @@ export const TwinTalkScreen = memo(() => {
           accentColor={accentColor}
         />
 
-        {/* Messages */}
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-          <View className="flex-1 relative">
-            {messages.length === 0 ? (
-              <View className="flex-1 justify-center items-center py-20 px-6">
-                <Ionicons name="chatbubbles-outline" size={64} color={neonColor} opacity={0.6} />
-                <Text className="text-white/70 text-lg mt-4 text-center font-medium">
-                  Start your sacred twin conversation
-                </Text>
-                <Text className="text-white/50 text-sm mt-2 text-center px-8">
-                  Your messages are private and secure between you and your twin
-                </Text>
-              </View>
-            ) : (
-              <FlatList
-                ref={flatListRef}
-                data={messages}
-                renderItem={renderMessage}
-                keyExtractor={keyExtractor}
-                getItemLayout={getItemLayout}
-                onScroll={handleScroll}
-                scrollEventThrottle={16}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                removeClippedSubviews={true}
-                maxToRenderPerBatch={10}
-                windowSize={10}
-                initialNumToRender={15}
-                contentContainerStyle={{
-                  paddingTop: 16,
-                  paddingBottom: isKeyboardVisible ? 8 : 16,
-                  paddingHorizontal: 24,
-                }}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                    tintColor={neonColor}
-                    colors={[neonColor]}
-                  />
-                }
-                ListFooterComponent={
-                  <View>
-                    {/* Twin's Typing Indicator - only show if twin is typing */}
-                    {typingIndicator && typingIndicator.userId !== userProfile?.id && (
-                      <TypingIndicator typingIndicator={typingIndicator} />
-                    )}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+        >
+          {/* Messages */}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View className="flex-1">
+              {messages.length === 0 ? (
+                <View className="flex-1 justify-center items-center py-20 px-6">
+                  <Ionicons name="chatbubbles-outline" size={64} color={neonColor} opacity={0.6} />
+                  <Text className="text-white/70 text-lg mt-4 text-center font-medium">
+                    Start your sacred twin conversation
+                  </Text>
+                  <Text className="text-white/50 text-sm mt-2 text-center px-8">
+                    Your messages are private and secure between you and your twin
+                  </Text>
+                </View>
+              ) : (
+                <FlatList
+                  ref={flatListRef}
+                  data={messages}
+                  renderItem={renderMessage}
+                  keyExtractor={keyExtractor}
+                  getItemLayout={getItemLayout}
+                  onScroll={handleScroll}
+                  scrollEventThrottle={16}
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="on-drag"
+                  showsVerticalScrollIndicator={false}
+                  removeClippedSubviews={Platform.OS === 'android'}
+                  maxToRenderPerBatch={10}
+                  windowSize={10}
+                  initialNumToRender={15}
+                  contentContainerStyle={{
+                    paddingTop: 16,
+                    paddingBottom: 16,
+                    paddingHorizontal: 24,
+                  }}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={handleRefresh}
+                      tintColor={neonColor}
+                      colors={[neonColor]}
+                    />
+                  }
+                  ListFooterComponent={
+                    <View>
+                      {/* Twin's Typing Indicator - only show if twin is typing */}
+                      {typingIndicator && typingIndicator.userId !== userProfile?.id && (
+                        <TypingIndicator typingIndicator={typingIndicator} />
+                      )}
 
-                    {/* Your own typing indicator - show on your side when you're typing */}
-                    {isUserTyping && userProfile && (
-                      <View className="items-end mb-4">
-                        <View className="flex-row items-center">
-                          <Text className="text-white/50 text-xs mr-2">You are typing</Text>
-                          <View className="flex-row space-x-1">
-                            <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" />
-                            <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                            <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                      {/* Your own typing indicator - show on your side when you're typing */}
+                      {isUserTyping && userProfile && (
+                        <View className="items-end mb-4">
+                          <View className="flex-row items-center">
+                            <Text className="text-white/50 text-xs mr-2">You are typing</Text>
+                            <View className="flex-row space-x-1">
+                              <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" />
+                              <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+                              <View className="w-2 h-2 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                            </View>
                           </View>
                         </View>
-                      </View>
-                    )}
-                  </View>
-                }
-              />
-            )}
+                      )}
+                    </View>
+                  }
+                />
+              )}
 
-            {/* Scroll to Bottom Button */}
-            {showScrollToBottom && (
+              {/* Scroll to Bottom Button */}
+              {showScrollToBottom && (
+                <Pressable
+                  onPress={scrollToBottom}
+                  style={[
+                    {
+                      backgroundColor: neonColor,
+                      position: 'absolute',
+                      bottom: 20,
+                      right: 20,
+                    },
+                    getNeonGlowEffect(accentColor)
+                  ]}
+                  className="w-12 h-12 rounded-full items-center justify-center"
+                >
+                  <Ionicons name="chevron-down" size={24} color="white" />
+                </Pressable>
+              )}
+            </View>
+          </TouchableWithoutFeedback>
+
+          {/* Message Input with Camera Button */}
+          <View
+            style={{
+              backgroundColor: cardBg,
+              borderTopColor: neonColor,
+              borderTopWidth: 1,
+              paddingBottom: Platform.OS === 'ios' ? 60 : 50,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                paddingTop: 8,
+              }}
+            >
+              {/* Camera/Gallery Button */}
               <Pressable
-                onPress={scrollToBottom}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
                 style={[
                   {
-                    backgroundColor: neonColor,
-                    position: 'absolute',
-                    bottom: 20,
-                    right: 20,
+                    backgroundColor: buttonBg,
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
                   },
-                  getNeonGlowEffect(accentColor)
+                  getNeonSubtleGlow(accentColor)
                 ]}
-                className="w-12 h-12 rounded-full items-center justify-center"
               >
-                <Ionicons name="chevron-down" size={24} color="white" />
+                <Ionicons
+                  name="camera-outline"
+                  size={20}
+                  color={neonColor}
+                />
               </Pressable>
-            )}
-          </View>
-        </TouchableWithoutFeedback>
 
-            {/* Message Input with Camera Button */}
-            <View 
-              style={[
-                {
-                  backgroundColor: isKeyboardVisible ? solidAccentColor : cardBg,
-                  paddingBottom: 0,
-                  marginBottom: 0,
-                  borderTopColor: neonColor,
-                  borderTopWidth: isKeyboardVisible ? 2 : 1,
-                },
-                isKeyboardVisible ? getNeonGlowEffect(accentColor) : {}
-              ]}
-            >
-              <View 
+              {/* Text Input Container */}
+              <Pressable
+                onPress={() => textInputRef.current?.focus()}
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  flex: 1,
+                  borderRadius: 22,
                   paddingHorizontal: 16,
-                  paddingTop: 12,
-                  paddingBottom: 12,
-                  marginBottom: 0,
+                  height: 44,
+                  justifyContent: 'center',
+                  marginRight: 12,
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.2)',
                 }}
               >
-                {/* Camera/Gallery Button */}
-                <Pressable
-                  onPress={() => {
-                    // Handle image/camera action
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                <TextInput
+                  ref={textInputRef}
+                  value={inputText}
+                  onChangeText={(text) => {
+                    setInputText(text);
+                    setIsUserTyping(text.length > 0);
                   }}
-                  style={[
-                    {
-                      backgroundColor: isKeyboardVisible ? 'rgba(255,255,255,0.3)' : buttonBg,
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginRight: 12,
-                      borderWidth: isKeyboardVisible ? 1 : 0,
-                      borderColor: isKeyboardVisible ? 'rgba(255,255,255,0.5)' : 'transparent',
-                    },
-                    !isKeyboardVisible ? getNeonSubtleGlow(accentColor) : {}
-                  ]}
-                >
-                  <Ionicons 
-                    name="camera-outline" 
-                    size={20} 
-                    color={isKeyboardVisible ? 'white' : neonColor} 
-                  />
-                </Pressable>
-                
-                {/* Text Input Container */}
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={() => textInputRef.current?.focus()}
-                  style={[
-                    {
-                      backgroundColor: isKeyboardVisible ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.6)',
-                      flex: 1,
-                      borderRadius: 22,
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                      height: 44,
-                      justifyContent: 'center',
-                      marginRight: 12,
-                      borderWidth: isKeyboardVisible ? 2 : 1,
-                      borderColor: isKeyboardVisible ? neonColor : 'rgba(255,255,255,0.2)',
-                    },
-                    !isKeyboardVisible ? getNeonSubtleGlow(accentColor) : {}
-                  ]}
-                >
-                  <TextInput
-                    ref={textInputRef}
-                    value={inputText}
-                    onChangeText={(text) => {
-                      setInputText(text);
-                      setIsUserTyping(text.length > 0);
-                    }}
-                    onFocus={() => {
-                      setIsKeyboardVisible(true);
-                      // Immediate scroll to bottom when input is focused
-                      if (messages.length > 0) {
-                        flatListRef.current?.scrollToEnd({ animated: false });
-                      }
-                    }}
-                    onBlur={() => setIsKeyboardVisible(false)}
-                    placeholder="Type your message..."
-                    placeholderTextColor={isKeyboardVisible ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)'}
-                    style={{
-                      color: isKeyboardVisible ? '#000000' : '#ffffff',
-                      fontSize: 16,
-                      fontWeight: isKeyboardVisible ? 'bold' : 'normal',
-                      height: 20,
-                      margin: 0,
-                      padding: 0,
-                    }}
-                    multiline={false}
-                    maxLength={1000}
-                    selectionColor={isKeyboardVisible ? solidAccentColor : neonColor}
-                    autoFocus={false}
-                    blurOnSubmit={true}
-                    returnKeyType="send"
-                    onSubmitEditing={() => {
-                      if (inputText.trim() && userProfile) {
-                        const messageText = inputText.trim();
-                        setInputText('');
-                        setIsUserTyping(false);
-                        
-                        chatService.sendMessage({
-                          text: messageText,
-                          senderId: userProfile.id,
-                          senderName: userProfile.name,
-                          type: 'text',
-                          accentColor: userProfile.accentColor,
-                        });
-                      }
-                    }}
-                  />
-                </TouchableOpacity>
+                  placeholder="Type your message..."
+                  placeholderTextColor="rgba(255,255,255,0.7)"
+                  style={{
+                    color: '#ffffff',
+                    fontSize: 16,
+                    height: 44,
+                  }}
+                  multiline={false}
+                  maxLength={1000}
+                  returnKeyType="send"
+                  onSubmitEditing={() => {
+                    if (inputText.trim() && userProfile) {
+                      const messageText = inputText.trim();
+                      setInputText('');
+                      setIsUserTyping(false);
 
-                {/* Send Button */}
-                <Pressable
-                  onPress={() => {
-                    if (!inputText.trim() || !userProfile) return;
-                    
-                    const messageText = inputText.trim();
-                    setInputText('');
-                    setIsUserTyping(false);
-                    
-                    chatService.sendMessage({
-                      text: messageText,
-                      senderId: userProfile.id,
-                      senderName: userProfile.name,
-                      type: 'text',
-                      accentColor: userProfile.accentColor,
-                    });
+                      chatService.sendMessage({
+                        text: messageText,
+                        senderId: userProfile.id,
+                        senderName: userProfile.name,
+                        type: 'text',
+                        accentColor: userProfile.accentColor,
+                      });
+                    }
                   }}
-                  disabled={!inputText.trim()}
-                  style={[
-                    {
-                      backgroundColor: inputText.trim() ? 
-                        (isKeyboardVisible ? 'rgba(255,255,255,0.95)' : neonColor) : 
-                        (isKeyboardVisible ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.6)'),
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderWidth: inputText.trim() && isKeyboardVisible ? 2 : 0,
-                      borderColor: inputText.trim() && isKeyboardVisible ? neonColor : 'transparent',
-                    },
-                    inputText.trim() && !isKeyboardVisible ? getNeonGlowEffect(accentColor) : {}
-                  ]}
-                >
-                  <Ionicons
-                    name="send"
-                    size={20}
-                    color={inputText.trim() && isKeyboardVisible ? solidAccentColor : 'white'}
-                  />
-                </Pressable>
-              </View>
+                />
+              </Pressable>
+
+              {/* Send Button */}
+              <Pressable
+                onPress={() => {
+                  if (!inputText.trim() || !userProfile) return;
+
+                  const messageText = inputText.trim();
+                  setInputText('');
+                  setIsUserTyping(false);
+
+                  chatService.sendMessage({
+                    text: messageText,
+                    senderId: userProfile.id,
+                    senderName: userProfile.name,
+                    type: 'text',
+                    accentColor: userProfile.accentColor,
+                  });
+                }}
+                disabled={!inputText.trim()}
+                style={[
+                  {
+                    backgroundColor: inputText.trim() ? neonColor : 'rgba(0,0,0,0.6)',
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                  inputText.trim() ? getNeonGlowEffect(accentColor) : {}
+                ]}
+              >
+                <Ionicons
+                  name="send"
+                  size={20}
+                  color="white"
+                />
+              </Pressable>
             </View>
-            
-        </SafeAreaView>
-      </ImageBackground>
-    </KeyboardAvoidingView>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 });

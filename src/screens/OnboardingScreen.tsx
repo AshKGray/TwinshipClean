@@ -42,10 +42,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     <PersonalDetailsScreen key="details" onContinue={handleNext} onBack={handleBack} />,
     <TwinTypeScreen key="twintype" onContinue={handleNext} onBack={handleBack} />,
     <ColorSelectionScreen key="color" onContinue={handleNext} onBack={handleBack} />,
-    <ProfileReviewScreen 
-      key="review" 
-      onComplete={handleComplete} 
-      onBack={handleBack} 
+    <ProfileReviewScreen
+      key="review"
+      onComplete={handleComplete}
+      onBack={handleBack}
       onEdit={handleEdit}
     />,
   ];

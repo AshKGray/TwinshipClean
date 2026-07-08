@@ -1,22 +1,32 @@
 import React, { ComponentType, lazy, Suspense } from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
+import { View, ActivityIndicator, Text, ImageBackground } from 'react-native';
 import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
 import { performanceTracker } from './performanceMeasurement';
 
-// Basic loading fallback component
+// Basic loading fallback component with galaxy background
 const LoadingFallback = () => (
-  <View className="flex-1 justify-center items-center bg-black">
-    <ActivityIndicator size="large" color="#a855f7" />
-    <Text className="text-white mt-4">Loading...</Text>
-  </View>
+  <ImageBackground
+    source={require("../../assets/galaxybackground.png")}
+    style={{ flex: 1 }}
+  >
+    <View className="flex-1 justify-center items-center">
+      <ActivityIndicator size="large" color="#a855f7" />
+      <Text className="text-white mt-4">Loading...</Text>
+    </View>
+  </ImageBackground>
 );
 
-// Enhanced loading fallback with skeleton support
-const EnhancedLoadingFallback: React.FC<{ 
+// Enhanced loading fallback with skeleton support and galaxy background
+const EnhancedLoadingFallback: React.FC<{
   type?: 'game' | 'assessment' | 'premium' | 'generic';
   message?: string;
 }> = ({ type = 'generic', message }) => (
-  <LoadingSkeleton type={type} message={message} />
+  <ImageBackground
+    source={require("../../assets/galaxybackground.png")}
+    style={{ flex: 1 }}
+  >
+    <LoadingSkeleton type={type} message={message} />
+  </ImageBackground>
 );
 
 // Enhanced lazy loading with preload capability

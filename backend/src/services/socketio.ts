@@ -1,9 +1,13 @@
 import { Server, Socket } from 'socket.io';
 import { Server as HttpServer } from 'http';
+import { createAdapter } from '@socket.io/redis-adapter';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../server';
 import { logger } from '../utils/logger';
 import { JWTPayload } from '../types/auth';
+import { redisManager, RedisConfig, RedisAdapterConfig } from '../config/redis.config';
+import { rateLimiter } from './rateLimitService';
+import { typingIndicatorService } from './typingIndicatorService';
 
 // Extended Socket interface with authenticated user data
 interface AuthenticatedSocket extends Socket {
@@ -50,6 +54,8 @@ export class SocketIOService {
   private connectedUsers = new Map<string, AuthenticatedSocket>();
   private twinPairs = new Map<string, Set<string>>(); // twinPairId -> Set of userIds
   private typingUsers = new Map<string, Map<string, NodeJS.Timeout>>(); // twinPairId -> userId -> timeout
+  private redisConnected = false;
+  private redisHealthCheckInterval?: NodeJS.Timeout;
 
   constructor(httpServer: HttpServer) {
     // Initialize Socket.io with CORS configuration
@@ -73,7 +79,134 @@ export class SocketIOService {
     this.setupNamespaces();
     this.setupConnectionHandlers();
 
+    // Setup Redis adapter asynchronously (non-blocking)
+    this.setupRedisAdapter().catch((error) => {
+      logger.error('Redis adapter initialization failed:', error);
+    });
+
     logger.info('Socket.io service initialized');
+  }
+
+  /**
+   * Setup Redis adapter for horizontal scaling
+   */
+  private async setupRedisAdapter() {
+    try {
+      // Check if Redis is enabled
+      const redisEnabled = process.env.REDIS_ENABLED !== 'false' &&
+                          (process.env.REDIS_URL || process.env.REDIS_HOST);
+
+      if (!redisEnabled) {
+        logger.info('Redis adapter disabled - running in single-server mode');
+        return;
+      }
+
+      logger.info('Initializing Redis adapter for horizontal scaling...');
+
+      // Initialize Redis clients
+      const { pubClient, subClient } = await redisManager.initializeClients();
+      const adapterConfig = redisManager.getAdapterConfig();
+
+      // Create and attach Redis adapter
+      const adapter = createAdapter(pubClient, subClient, {
+        key: adapterConfig.key,
+        requestsTimeout: adapterConfig.requestsTimeout,
+      });
+
+      this.io.adapter(adapter);
+      this.redisConnected = true;
+
+      logger.info('Redis adapter successfully configured', {
+        key: adapterConfig.key,
+        requestsTimeout: adapterConfig.requestsTimeout,
+      });
+
+      // Start health check monitoring
+      this.startRedisHealthCheck();
+
+      // Handle Redis connection events
+      pubClient.on('error', (error) => {
+        logger.error('Redis pub client error:', error);
+        this.redisConnected = false;
+      });
+
+      subClient.on('error', (error) => {
+        logger.error('Redis sub client error:', error);
+        this.redisConnected = false;
+      });
+
+      pubClient.on('connect', () => {
+        logger.info('Redis pub client reconnected');
+        this.redisConnected = true;
+      });
+
+      subClient.on('connect', () => {
+        logger.info('Redis sub client reconnected');
+        this.redisConnected = true;
+      });
+
+    } catch (error) {
+      logger.error('Failed to setup Redis adapter:', error);
+      logger.warn('Continuing in single-server mode without Redis adapter');
+      this.redisConnected = false;
+    }
+  }
+
+  /**
+   * Start Redis health check monitoring
+   */
+  private startRedisHealthCheck() {
+    // Clear any existing health check
+    if (this.redisHealthCheckInterval) {
+      clearInterval(this.redisHealthCheckInterval);
+    }
+
+    // Health check every 30 seconds
+    this.redisHealthCheckInterval = setInterval(async () => {
+      try {
+        const isHealthy = await redisManager.healthCheck();
+
+        if (!isHealthy && this.redisConnected) {
+          logger.warn('Redis health check failed - connection may be unstable');
+          this.redisConnected = false;
+        } else if (isHealthy && !this.redisConnected) {
+          logger.info('Redis health check passed - connection restored');
+          this.redisConnected = true;
+        }
+      } catch (error) {
+        logger.error('Redis health check error:', error);
+        this.redisConnected = false;
+      }
+    }, 30000);
+
+    logger.info('Redis health check monitoring started (30s interval)');
+  }
+
+  /**
+   * Get Redis adapter metrics
+   */
+  public async getRedisMetrics() {
+    try {
+      if (!this.redisConnected) {
+        return { connected: false, metrics: null };
+      }
+
+      const metrics = await redisManager.getMetrics();
+      const status = redisManager.getStatus();
+
+      return {
+        connected: this.redisConnected,
+        status,
+        metrics,
+        adapter: {
+          rooms: this.io.sockets.adapter.rooms.size,
+          sockets: this.io.sockets.adapter.sids.size,
+        },
+      };
+    } catch (error) {
+      logger.error('Failed to get Redis metrics:', error);
+      return { connected: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
 
   /**
@@ -133,26 +266,26 @@ export class SocketIOService {
       }
     });
 
-    // Rate limiting middleware
-    this.io.use((socket, next) => {
-      // Simple rate limiting: max 1000 events per minute per socket
-      const now = Date.now();
-      if (!socket.data.rateLimitWindow) {
-        socket.data.rateLimitWindow = now;
-        socket.data.eventCount = 0;
-      }
+    // Enhanced rate limiting middleware with token bucket algorithm
+    this.io.use((socket: AuthenticatedSocket, next) => {
+      // Check general rate limit for socket connection
+      if (socket.userId) {
+        const result = rateLimiter.checkLimit(socket.userId, 'general', 1);
 
-      // Reset window every minute
-      if (now - socket.data.rateLimitWindow > 60000) {
-        socket.data.rateLimitWindow = now;
-        socket.data.eventCount = 0;
-      }
+        if (!result.allowed) {
+          logger.warn(`Rate limit exceeded for socket ${socket.id} (user: ${socket.userId}), backoff: ${result.backoffTime}s`);
 
-      socket.data.eventCount++;
+          // Send rate limit info to client
+          const error: any = new Error('Rate limit exceeded');
+          error.data = {
+            retryAfter: result.resetIn,
+            backoffTime: result.backoffTime,
+          };
+          return next(error);
+        }
 
-      if (socket.data.eventCount > 1000) {
-        logger.warn(`Rate limit exceeded for socket ${socket.id} (user: ${(socket as AuthenticatedSocket).userId})`);
-        return next(new Error('Rate limit exceeded'));
+        // Store rate limit info in socket data for later use
+        socket.data.rateLimitInfo = result;
       }
 
       next();
@@ -370,12 +503,31 @@ export class SocketIOService {
   }
 
   /**
-   * Handle sending messages
+   * Handle sending messages with enhanced rate limiting
    */
   private async handleSendMessage(socket: AuthenticatedSocket, data: { twinPairId: string; message: ChatMessage }) {
     try {
       if (!socket.userId || !socket.twinPairId || socket.twinPairId !== data.twinPairId) {
         socket.emit('error', { message: 'Invalid twin pair access' });
+        return;
+      }
+
+      // Check rate limit for messages
+      const rateLimit = rateLimiter.checkLimit(socket.userId, 'message', 1);
+
+      if (!rateLimit.allowed) {
+        socket.emit('rate_limited', {
+          event: 'message',
+          remaining: rateLimit.remaining,
+          resetIn: rateLimit.resetIn,
+          backoffTime: rateLimit.backoffTime,
+          message: `Message rate limit exceeded. Please wait ${rateLimit.resetIn} seconds.`,
+        });
+
+        // Add rate limit headers to socket data
+        const headers = rateLimiter.getRateLimitHeaders(socket.userId, 'message');
+        socket.emit('rate_limit_headers', headers);
+
         return;
       }
 
@@ -388,10 +540,14 @@ export class SocketIOService {
         data: data.message,
       });
 
-      // Send delivery confirmation to sender
+      // Send delivery confirmation with rate limit info
       socket.emit('message_delivered', {
         messageId: data.message.id,
         timestamp: new Date().toISOString(),
+        rateLimit: {
+          remaining: rateLimit.remaining,
+          resetIn: rateLimit.resetIn,
+        },
       });
 
       // Check for twintuition moments
@@ -405,50 +561,73 @@ export class SocketIOService {
   }
 
   /**
-   * Handle typing indicators
+   * Handle typing indicators with enhanced debouncing and rate limiting
    */
   private handleTypingStart(socket: AuthenticatedSocket, data: { twinPairId: string; userId: string; userName: string }) {
     if (!socket.userId || !socket.twinPairId || socket.twinPairId !== data.twinPairId) {
       return;
     }
 
-    // Clear any existing typing timeout
-    this.clearTypingTimeout(data.twinPairId, data.userId);
+    // Check rate limit for typing events
+    const rateLimit = rateLimiter.checkLimit(socket.userId, 'typing', 1);
 
-    // Broadcast typing indicator to twin
-    socket.to(`twin_pair_${data.twinPairId}`).emit('typing', {
-      userId: data.userId,
-      userName: data.userName,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Set timeout to auto-clear typing indicator after 3 seconds
-    const timeout = setTimeout(() => {
-      this.handleTypingStop(socket, { twinPairId: data.twinPairId, userId: data.userId });
-    }, 3000);
-
-    // Store timeout
-    if (!this.typingUsers.has(data.twinPairId)) {
-      this.typingUsers.set(data.twinPairId, new Map());
+    if (!rateLimit.allowed) {
+      socket.emit('rate_limited', {
+        event: 'typing',
+        remaining: rateLimit.remaining,
+        resetIn: rateLimit.resetIn,
+        backoffTime: rateLimit.backoffTime,
+        message: `Typing indicator rate limit exceeded. Please wait ${rateLimit.resetIn} seconds.`,
+      });
+      return;
     }
-    this.typingUsers.get(data.twinPairId)!.set(data.userId, timeout);
+
+    // Handle typing with debouncing through the typing indicator service
+    const result = typingIndicatorService.handleTypingStart(
+      data.twinPairId,
+      data.userId,
+      data.userName,
+      (event, eventData) => {
+        // Emit to twin pair room
+        if (event === 'typing_indicator') {
+          socket.to(`twin_pair_${data.twinPairId}`).emit('typing', {
+            userId: eventData.userId,
+            userName: eventData.userName,
+            isTyping: eventData.isTyping,
+            timestamp: eventData.timestamp,
+          });
+        }
+      }
+    );
+
+    // Log debounce status
+    if (result.debounced) {
+      logger.debug(`Typing indicator debounced for user ${data.userId} in room ${data.twinPairId}`);
+    }
   }
 
   /**
-   * Handle stop typing
+   * Handle stop typing with enhanced service
    */
   private handleTypingStop(socket: AuthenticatedSocket, data: { twinPairId: string; userId: string }) {
     if (!socket.userId || !socket.twinPairId || socket.twinPairId !== data.twinPairId) {
       return;
     }
 
-    // Clear typing timeout
-    this.clearTypingTimeout(data.twinPairId, data.userId);
-
-    // Broadcast stop typing to twin
-    socket.to(`twin_pair_${data.twinPairId}`).emit('stop_typing', {
-      userId: data.userId,
-    });
+    // Handle typing stop through the service
+    typingIndicatorService.handleTypingStop(
+      data.twinPairId,
+      data.userId,
+      (event, eventData) => {
+        // Emit to twin pair room
+        if (event === 'typing_indicator') {
+          socket.to(`twin_pair_${data.twinPairId}`).emit('stop_typing', {
+            userId: eventData.userId,
+            timestamp: eventData.timestamp,
+          });
+        }
+      }
+    );
   }
 
   /**
@@ -463,12 +642,26 @@ export class SocketIOService {
   }
 
   /**
-   * Handle message reactions
+   * Handle message reactions with rate limiting
    */
   private async handleSendReaction(socket: AuthenticatedSocket, data: { twinPairId: string; messageId: string; emoji: string; userId: string; userName: string }) {
     try {
       if (!socket.userId || !socket.twinPairId || socket.twinPairId !== data.twinPairId) {
         socket.emit('error', { message: 'Invalid twin pair access' });
+        return;
+      }
+
+      // Check rate limit for reactions
+      const rateLimit = rateLimiter.checkLimit(socket.userId, 'reaction', 1);
+
+      if (!rateLimit.allowed) {
+        socket.emit('rate_limited', {
+          event: 'reaction',
+          remaining: rateLimit.remaining,
+          resetIn: rateLimit.resetIn,
+          backoffTime: rateLimit.backoffTime,
+          message: `Reaction rate limit exceeded. Please wait ${rateLimit.resetIn} seconds.`,
+        });
         return;
       }
 
@@ -632,6 +825,14 @@ export class SocketIOService {
       // Remove from connected users
       this.connectedUsers.delete(socket.userId);
 
+      // Clear typing indicators for this user across all rooms
+      typingIndicatorService.clearUserFromAllRooms(
+        socket.userId,
+        (roomId, event, data) => {
+          socket.to(`twin_pair_${roomId}`).emit(event, data);
+        }
+      );
+
       // Remove from twin pairs
       if (socket.twinPairId) {
         const pairUsers = this.twinPairs.get(socket.twinPairId);
@@ -641,9 +842,6 @@ export class SocketIOService {
             this.twinPairs.delete(socket.twinPairId);
           }
         }
-
-        // Clear any typing indicators
-        this.clearTypingTimeout(socket.twinPairId, socket.userId);
 
         // Notify twin of disconnection
         socket.to(`twin_pair_${socket.twinPairId}`).emit('twin_disconnected', {
@@ -658,15 +856,36 @@ export class SocketIOService {
   }
 
   /**
-   * Get connection statistics
+   * Get connection statistics with enhanced metrics
    */
-  public getStats() {
-    return {
+  public async getStats() {
+    const baseStats = {
       connectedUsers: this.connectedUsers.size,
       activeTwinPairs: this.twinPairs.size,
       totalRooms: this.io.sockets.adapter.rooms.size,
       totalSockets: this.io.sockets.sockets.size,
+      redisEnabled: this.redisConnected,
+      typingIndicators: typingIndicatorService.getStats(),
+      rateLimits: rateLimiter.getStats(),
     };
+
+    // Add Redis metrics if connected
+    if (this.redisConnected) {
+      try {
+        const redisMetrics = await this.getRedisMetrics();
+        return {
+          ...baseStats,
+          redis: redisMetrics,
+        };
+      } catch (error) {
+        return {
+          ...baseStats,
+          redis: { error: 'Failed to get Redis metrics' },
+        };
+      }
+    }
+
+    return baseStats;
   }
 
   /**
@@ -689,6 +908,51 @@ export class SocketIOService {
     if (userSocket) {
       userSocket.disconnect(true);
       logger.info(`User ${userId} forcibly disconnected: ${reason}`);
+    }
+  }
+
+  /**
+   * Graceful shutdown with Redis cleanup
+   */
+  public async shutdown(): Promise<void> {
+    logger.info('Starting SocketIO service shutdown...');
+
+    try {
+      // Stop Redis health check
+      if (this.redisHealthCheckInterval) {
+        clearInterval(this.redisHealthCheckInterval);
+        this.redisHealthCheckInterval = undefined;
+      }
+
+      // Shutdown typing indicator service
+      typingIndicatorService.shutdown();
+
+      // Clear typing timeouts (legacy - now handled by service)
+      for (const [twinPairId, userTimeouts] of this.typingUsers) {
+        for (const [userId, timeout] of userTimeouts) {
+          clearTimeout(timeout);
+        }
+      }
+      this.typingUsers.clear();
+
+      // Disconnect all sockets
+      this.io.sockets.disconnectSockets(true);
+
+      // Cleanup Redis connections
+      if (this.redisConnected) {
+        await redisManager.cleanup();
+        this.redisConnected = false;
+      }
+
+      // Clear local state
+      this.connectedUsers.clear();
+      this.twinPairs.clear();
+
+      logger.info('SocketIO service shutdown completed');
+    } catch (error) {
+      logger.error('Error during SocketIO service shutdown:', error);
+      // Force cleanup if graceful fails
+      await redisManager.forceDisconnect();
     }
   }
 }

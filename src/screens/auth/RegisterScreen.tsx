@@ -145,9 +145,9 @@ export const RegisterScreen = () => {
         email: formData.email.toLowerCase().trim(),
         password: formData.password,
       });
-      
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      navigation.navigate('Onboarding');
+      // Navigation is handled automatically by AppNavigator based on isAuthenticated and isOnboarded state
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
@@ -176,11 +176,11 @@ export const RegisterScreen = () => {
         >
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View className="flex-1 px-6">
+            <View className="px-6">
               {/* Header */}
               <View className="flex-row items-center justify-between py-4">
                 <Pressable
@@ -349,6 +349,13 @@ export const RegisterScreen = () => {
                     {isLoading ? 'Creating Account...' : 'Create Account'}
                   </Text>
                 </Pressable>
+
+                {/* Twinfinity Quote */}
+                <View className="items-center mt-3">
+                  <Text className="text-white/50 text-xs italic">
+                    to Twinfinity and beyond!
+                  </Text>
+                </View>
 
                 {/* Sign In Link */}
                 <View className="flex-row justify-center items-center mt-6">

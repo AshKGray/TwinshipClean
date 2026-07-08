@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { shallow } from "zustand/shallow";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSupportStore } from "./supportStore";
 
 export type TwinType = "identical" | "fraternal" | "other";
 export type ThemeColor = "neon-pink" | "neon-blue" | "neon-green" | "neon-yellow" | "neon-purple" | "neon-orange" | "neon-cyan" | "neon-red";
@@ -220,27 +221,38 @@ export const useTwinStore = create<TwinState>()(
         twinProfile: get().twinProfile ? { ...get().twinProfile!, isConnected: value } : null,
       }),
       
-      signOut: () => set({ 
-        isOnboarded: false,
-        userProfile: null,
-        twinProfile: null,
-        themeColor: "neon-purple",
-        shareCode: null,
-        paired: false,
-        pendingInvitation: null,
-        invitationToken: null,
-        invitationStatus: 'none',
-        lastInvitationSent: null,
-        invitationHistory: [],
-        twintuitionAlerts: [],
-        gameResults: [],
-        stories: [],
-        syncScore: 0,
-        researchParticipation: false,
-        notificationsEnabled: true,
-        hasActiveResearchStudies: false,
-        researchContributions: 0,
-      }),
+      signOut: () => {
+        const { reset: resetSupportStore } = useSupportStore.getState();
+        if (typeof resetSupportStore === "function") {
+          resetSupportStore();
+        }
+
+        AsyncStorage.removeItem("twin-support-store").catch((error) => {
+          console.error("Failed to clear support storage", error);
+        });
+
+        set({
+          isOnboarded: false,
+          userProfile: null,
+          twinProfile: null,
+          themeColor: "neon-purple",
+          shareCode: null,
+          paired: false,
+          pendingInvitation: null,
+          invitationToken: null,
+          invitationStatus: 'none',
+          lastInvitationSent: null,
+          invitationHistory: [],
+          twintuitionAlerts: [],
+          gameResults: [],
+          stories: [],
+          syncScore: 0,
+          researchParticipation: false,
+          notificationsEnabled: true,
+          hasActiveResearchStudies: false,
+          researchContributions: 0,
+        });
+      },
       
       addTwintuitionAlert: (alert) => {
         const newAlert: TwintuitionAlert = {

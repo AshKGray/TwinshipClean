@@ -95,7 +95,7 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
   ];
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+    <ImageBackground source={require("../../../assets/galaxybackground.png")} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="flex-1">
           {/* Header */}
@@ -109,11 +109,11 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
             </Pressable>
             
             <View className="flex-1 items-center">
-              <Text className="text-white/60 text-sm">Step 5 of 5</Text>
+              <Text className="text-white/60 text-sm">Step 6 of 6</Text>
               <View className="flex-row mt-2 space-x-1">
-                {[...Array(5)].map((_, i) => (
-                  <View 
-                    key={i} 
+                {[...Array(6)].map((_, i) => (
+                  <View
+                    key={i}
                     className="h-1 w-8 rounded-full bg-white"
                   />
                 ))}

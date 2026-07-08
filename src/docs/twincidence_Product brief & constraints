@@ -1,0 +1,32 @@
+Product brief & constraints 
+The new Twinship module is called “Twincidences.”
+Goal:
+	•	Log “twin moments” (manual + detected).
+	•	Give per-signal, per-twin controls for: Collect locally, Share with my twin, Include in anonymized research.
+	Revised Dual-Consent Rule (for Twincidences)
+		•	Consent is granted up front, the first time a user opens the Twincidences log. The app presents each detectable event type one by one with plain-language explanations, and the user chooses one of three options:
+			A. Allow anonymous collection for research only (background aggregation, never linked to identity).
+			B. Allow this event type to be recorded and shared with my twin as an alert (requires my twin’s matching consent).
+			C. Do not allow this event type to be collected, stored, or shared in any form.
+		•	At any time, a user can open Settings and change their choices (pause, revoke, or re-enable for each event type).
+		•	Dual-consent check:
+		•	If both twins select “B” for an event type, that event can generate a shared Twincidence alert.
+		•	If one selects “B” and the other selects “C,” the “C” (no consent) overrides and no data is shared or collected.
+		•	If one selects “B” and the other selects “A,” then only anonymous, aggregated data is uploaded for research; no twin-to-twin alert is created.
+		•	Summary: Sharing with a twin requires both twins’ explicit prior consent. Research data can still be collected if at least one twin opts for “A,” but twin-to-twin sharing is always blocked unless both choose “B.”
+	•	Default = everything OFF until the user opts in.
+	•	Computation on-device by default; sync minimal metadata for shared alerts.
+	•	iOS/SwiftUI; HealthKit for HR/sleep/steps (read-only, least privilege).
+	•	No ads. No sale of data. Provide Pause All, Delete All, Export JSON.
+
+Deliverables for this phase:
+	1.	Swift models & storage scaffold.
+	2.	Consent Matrix UI (toggle grid + explanations).
+	3.	Twintuition simultaneity detector (no HealthKit).
+	4.	Manual “+ Log Twincidence.”
+	5.	Push notifications pipeline honoring dual consent.
+	6.	Config-driven catalog for event types & thresholds.
+
+Make the architecture modular so future detectors (HR/sleep/media) are plug-ins.
+
+⸻

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Image, ImageBackground } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, Pressable, ScrollView, Image, ImageBackground, GestureResponderEvent, LayoutChangeEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -60,6 +60,7 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
   const [currentResponse, setCurrentResponse] = useState<Partial<EmotionalResponse>>({});
   const [startTime, setStartTime] = useState<number>(0);
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
+  const [bodyMapLayout, setBodyMapLayout] = useState<{ width: number; height: number } | null>(null);
 
   const startNewImage = () => {
     setGamePhase('viewing');
@@ -93,16 +94,37 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
     }));
   };
 
-  const handleBodyMapping = (location: { x: number, y: number }) => {
-    const area = location.y < 100 ? 'head' : 
-                 location.y < 200 ? 'chest' : 
-                 location.y < 300 ? 'stomach' : 'full';
-    
+  const handleBodyMapLayout = useCallback((event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setBodyMapLayout({ width, height });
+  }, []);
+
+  const handleBodyMapping = (event: GestureResponderEvent) => {
+    if (!bodyMapLayout) {
+      return;
+    }
+
+    const { locationX, locationY } = event.nativeEvent;
+    const boundedX = Math.min(Math.max(locationX, 0), bodyMapLayout.width);
+    const boundedY = Math.min(Math.max(locationY, 0), bodyMapLayout.height);
+
+    const headThreshold = bodyMapLayout.height * 0.25;
+    const chestThreshold = bodyMapLayout.height * 0.5;
+    const stomachThreshold = bodyMapLayout.height * 0.75;
+
+    const area = boundedY <= headThreshold
+      ? 'head'
+      : boundedY <= chestThreshold
+        ? 'chest'
+        : boundedY <= stomachThreshold
+          ? 'stomach'
+          : 'full';
+
     setCurrentResponse(prev => ({
       ...prev,
-      somaticLocation: { x: location.x, y: location.y, area }
+      somaticLocation: { x: boundedX, y: boundedY, area }
     }));
-    
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
@@ -242,10 +264,8 @@ export const EmotionalResonanceMapping = ({ navigation }: any) => {
       <View className="bg-white/10 rounded-2xl p-6 items-center">
         <Text className="text-white text-lg mb-4">Where do you feel this emotion?</Text>
         <Pressable
-          onPress={(e) => handleBodyMapping({
-            x: e.nativeEvent.locationX,
-            y: e.nativeEvent.locationY
-          })}
+          onLayout={handleBodyMapLayout}
+          onPressIn={handleBodyMapping}
           className="w-48 h-80 bg-white/20 rounded-3xl relative"
         >
           {/* Simple body outline */}

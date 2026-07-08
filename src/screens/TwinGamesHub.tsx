@@ -140,19 +140,18 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
   return (
     <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
-        <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }}
+        >
           {/* Header */}
           <Animated.View style={headerStyle} className="py-6">
             <View className="flex-row items-center justify-between mb-4">
-              <Pressable
-                onPress={() => navigation.goBack()}
-                className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
-              >
-                <Ionicons name="arrow-back" size={20} color="white" />
-              </Pressable>
-              
-              <Text className="text-white text-2xl font-bold">Psychic Games</Text>
-              
+              <View className="w-10" />
+
+              <Text className="text-white text-2xl font-bold">Synchronicity Games</Text>
+
               <Pressable
                 onPress={() => navigation.navigate('GameStats')}
                 className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
@@ -160,9 +159,9 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
                 <Ionicons name="stats-chart" size={20} color="white" />
               </Pressable>
             </View>
-            
+
             <Text className="text-white/70 text-center">
-              Test your twin synchronicity through mystical games
+              Deepen your twin connection through immersive synchronicity games
             </Text>
           </Animated.View>
           
@@ -177,7 +176,7 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
                       Connected to {twinProfile.name}
                     </Text>
                     <Text className="text-white/70 text-sm">
-                      Ready for psychic games
+                      Ready to explore synchronicity together
                     </Text>
                   </View>
                 </View>
@@ -193,7 +192,7 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
                     Twin Connection Required
                   </Text>
                   <Text className="text-white/70 text-sm">
-                    Invite your twin to play psychic games together
+                    Invite your twin to explore synchronicity games together
                   </Text>
                 </View>
               </View>
@@ -235,11 +234,12 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
           {/* Games Grid */}
           <View className="mb-6">
             <Text className="text-white text-lg font-semibold mb-4">
-              Choose Your Psychic Challenge
+              Choose Your Synchronicity Challenge
             </Text>
             
             <View className="space-y-4">
               {allGames.map((game, index) => {
+                const showDifficulty = Boolean(game.difficulty);
                 const gameStyle = useAnimatedStyle(() => {
                   return {
                     transform: [{ scale: gameScales[index].value }],
@@ -276,35 +276,41 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
                         
                         {/* Game Info */}
                         <View className="flex-1">
-                          <View className="flex-row items-center justify-between mb-2">
-                            <Text className="text-white text-xl font-semibold">
-                              {game.name}
-                            </Text>
-                            <View 
-                              className="px-3 py-1 rounded-full"
-                              style={{ backgroundColor: getDifficultyColor(game.difficulty) + '30' }}
+                          <Text className="text-white text-xl font-semibold mb-2">
+                            {game.name}
+                          </Text>
+                          {showDifficulty ? (
+                            <View
+                              className="px-3 py-1 rounded-full mb-3"
+                              style={{
+                                backgroundColor: getDifficultyColor(game.difficulty) + '30',
+                                alignSelf: 'flex-start'
+                              }}
                             >
-                              <Text 
+                              <Text
                                 className="text-xs font-semibold capitalize"
                                 style={{ color: getDifficultyColor(game.difficulty) }}
                               >
                                 {game.difficulty}
                               </Text>
                             </View>
-                          </View>
+                          ) : null}
                           
-                          <Text className="text-white/70 text-sm leading-5 mb-3">
+                          <Text
+                            className="text-white/70 text-sm leading-5 mb-3"
+                            style={{ marginTop: showDifficulty ? 0 : 12 }}
+                          >
                             {game.description}
                           </Text>
                           
                           <View className="flex-row items-center justify-between">
                             <Text className="text-white/60 text-xs">
-                              {(game.rounds ?? 1)} rounds  b b {game.timeLimit ?? 60}s per round
+                              {(game.rounds ?? 1)} rounds | {game.timeLimit ?? 60}s per round
                             </Text>
-                            <Ionicons 
-                              name="chevron-forward" 
-                              size={16} 
-                              color="rgba(255,255,255,0.6)" 
+                            <Ionicons
+                              name="chevron-forward"
+                              size={16}
+                              color="rgba(255,255,255,0.6)"
                             />
                           </View>
                         </View>
@@ -339,7 +345,7 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
                   Connecting with your twin...
                 </Text>
                 <Text className="text-white/70 text-center mt-2">
-                  Preparing the psychic channel
+                  Tuning the synchronicity channel
                 </Text>
               </View>
             </View>

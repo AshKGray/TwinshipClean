@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,14 +61,30 @@ export const SyncScoreDisplay: React.FC<SyncScoreDisplayProps> = ({
     };
   });
   
-  // Memoize sync level calculation
+  // Sync level definitions drive both the current and next level UI state
+  const syncLevels = useMemo(
+    () => [
+      { min: 80, label: 'Telepathic', color: '#10b981', icon: 'flash' as const },
+      { min: 60, label: 'Connected', color: accentColor, icon: 'link' as const },
+      { min: 40, label: 'Syncing', color: '#f59e0b', icon: 'pulse' as const },
+      { min: 20, label: 'Learning', color: '#8b5cf6', icon: 'school' as const },
+      { min: 0, label: 'Exploring', color: '#6b7280', icon: 'compass' as const }
+    ],
+    [accentColor]
+  );
+
   const syncLevel = useMemo(() => {
-    if (metrics.syncPercentage >= 80) return { label: 'Telepathic', color: '#10b981', icon: 'flash' };
-    if (metrics.syncPercentage >= 60) return { label: 'Connected', color: accentColor, icon: 'link' };
-    if (metrics.syncPercentage >= 40) return { label: 'Syncing', color: '#f59e0b', icon: 'pulse' };
-    if (metrics.syncPercentage >= 20) return { label: 'Learning', color: '#8b5cf6', icon: 'school' };
-    return { label: 'Exploring', color: '#6b7280', icon: 'compass' };
-  }, [metrics.syncPercentage, accentColor]);
+    const current = syncLevels.find(level => metrics.syncPercentage >= level.min);
+    return current ?? syncLevels[syncLevels.length - 1];
+  }, [metrics.syncPercentage, syncLevels]);
+
+  const nextSyncLevel = useMemo(() => {
+    const currentIndex = syncLevels.findIndex(level => metrics.syncPercentage >= level.min);
+    if (currentIndex <= 0) {
+      return undefined;
+    }
+    return syncLevels[currentIndex - 1];
+  }, [metrics.syncPercentage, syncLevels]);
   
   if (compact) {
     return (
@@ -220,7 +236,7 @@ export const SyncScoreDisplay: React.FC<SyncScoreDisplayProps> = ({
       {metrics.syncPercentage < 100 && (
         <View className="w-full mt-4">
           <Text className="text-white/70 text-center text-xs mb-2">
-            Next Level: {getSyncLevel().label}
+            Next Level: {nextSyncLevel ? nextSyncLevel.label : 'Full Sync'}
           </Text>
           <View className="h-2 bg-white/20 rounded-full overflow-hidden">
             <LinearGradient

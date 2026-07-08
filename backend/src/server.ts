@@ -1,102 +1,184 @@
-// Load environment variables first
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { createServer } from 'http';
 import { PrismaClient } from '@prisma/client';
-import { errorHandler } from './middleware/errorHandler';
-import { rateLimiter } from './middleware/rateLimiter';
-import authRoutes from './routes/auth.routes';
-import { logger } from './utils/logger';
-import { initializeSocketIO, getSocketIOService } from './services/socketio';
+import { messageRoutes } from './routes/messageRoutes';
+import { twinProfileRoutes } from './routes/twin-profile.routes';
+import { twincidencesRoutes } from './routes/twincidences.routes';
+import stripeRoutes from './routes/stripe.routes';
+import { initializeSocketService } from './services/socketService';
+import { cleanupService } from './services/cleanupService';
+import 'dotenv/config';
 
-// Initialize Prisma Client
-export const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-});
-
-// Initialize Express app and HTTP server
 const app = express();
 const httpServer = createServer(app);
-const PORT = process.env.PORT || 3000;
+
+// Initialize Prisma client
+export const prisma = new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error'] : ['error'],
+});
 
 // Middleware
-app.use(helmet()); // Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+}));
+
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:8081'],
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:8081', 'exp://localhost:19000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
   credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
 
-// Rate limiting
-app.use('/auth', rateLimiter);
+app.use(morgan('combined'));
 
-// Health check endpoint with Socket.io stats
+// Stripe webhook route needs raw body - must come BEFORE express.json()
+app.use('/api/stripe/webhook', stripeRoutes);
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Health check endpoint
 app.get('/health', (req, res) => {
-  const socketService = getSocketIOService();
-  const socketStats = socketService ? socketService.getStats() : null;
-
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    socketio: socketStats,
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV,
   });
 });
 
-// Routes
-app.use('/auth', authRoutes);
+// API routes
+app.use('/api/messages', messageRoutes);
+app.use('/api/twin-profile', twinProfileRoutes);
+app.use('/api/twincidences', twincidencesRoutes);
+app.use('/api/stripe', stripeRoutes);
+app.use('/api/subscriptions', stripeRoutes);
 
-// Error handling middleware (must be last)
-app.use(errorHandler);
+// Socket.io setup
+const socketService = initializeSocketService(httpServer);
 
-// Graceful shutdown
-const gracefulShutdown = async () => {
-  logger.info('Shutting down gracefully...');
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Server error:', err);
 
-  // Close Socket.io connections
-  const socketService = getSocketIOService();
-  if (socketService) {
-    socketService.broadcastToAll('Server is shutting down for maintenance', 'info');
-  }
+  const statusCode = err.statusCode || err.status || 500;
+  const message = err.message || 'Internal server error';
 
-  // Close HTTP server
-  httpServer.close(() => {
-    logger.info('HTTP server closed');
+  res.status(statusCode).json({
+    success: false,
+    error: {
+      code: err.code || 'INTERNAL_SERVER_ERROR',
+      message: process.env.NODE_ENV === 'production' ? 'An error occurred' : message,
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    },
   });
+});
 
-  await prisma.$disconnect();
-  process.exit(0);
-};
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    error: {
+      code: 'NOT_FOUND',
+      message: `Route ${req.method} ${req.originalUrl} not found`,
+    },
+  });
+});
 
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
-
-// Start server
-const startServer = async () => {
+// Database connection and server startup
+async function startServer() {
   try {
     // Test database connection
     await prisma.$connect();
-    logger.info('Database connected successfully');
+    console.log('✅ Database connected successfully');
 
-    // Initialize Socket.io
-    const socketService = initializeSocketIO(httpServer);
-    logger.info('Socket.io service initialized');
+    // Start cleanup service
+    if (process.env.ENABLE_MESSAGE_CLEANUP !== 'false') {
+      cleanupService.start();
+      console.log('✅ Message cleanup service started');
+    }
 
     // Start HTTP server
+    const PORT = process.env.PORT || 3000;
     httpServer.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-      logger.info(`Socket.io available at ws://localhost:${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📡 Socket.io server ready for connections`);
+      console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+      if (socketService) {
+        console.log('📊 Socket.io stats:', socketService.getStats());
+      }
     });
+
   } catch (error) {
-    logger.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
-};
+}
 
-startServer();
+// Graceful shutdown
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+
+async function gracefulShutdown(signal: string) {
+  console.log(`\n🔄 Received ${signal}. Starting graceful shutdown...`);
+
+  try {
+    // Stop accepting new connections
+    httpServer.close(async (err) => {
+      if (err) {
+        console.error('❌ Error closing HTTP server:', err);
+      } else {
+        console.log('✅ HTTP server closed');
+      }
+
+      try {
+        // Stop cleanup service
+        cleanupService.stop();
+        console.log('✅ Cleanup service stopped');
+
+        // Close database connection
+        await prisma.$disconnect();
+        console.log('✅ Database disconnected');
+
+        console.log('🎯 Graceful shutdown completed');
+        process.exit(0);
+      } catch (error) {
+        console.error('❌ Error during graceful shutdown:', error);
+        process.exit(1);
+      }
+    });
+
+    // Force exit after 30 seconds
+    setTimeout(() => {
+      console.error('⚠️  Forced shutdown after 30 seconds');
+      process.exit(1);
+    }, 30000);
+
+  } catch (error) {
+    console.error('❌ Error during graceful shutdown:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+if (require.main === module) {
+  startServer();
+}
+
+export { app, httpServer, socketService };

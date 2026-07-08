@@ -149,7 +149,7 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
     
     switch (type) {
       case 'game':
-        return 'Preparing psychic games...';
+        return 'Preparing synchronicity games...';
       case 'assessment':
         return 'Loading assessment...';
       case 'premium':

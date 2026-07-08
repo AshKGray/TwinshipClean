@@ -1,21 +1,21 @@
 {
   "models": {
     "main": {
-      "provider": "claude-code",
-      "modelId": "opus",
-      "maxTokens": 32000,
+      "provider": "mcp",
+      "modelId": "mcp-sampling",
+      "maxTokens": 100000,
       "temperature": 0.2
     },
     "research": {
-      "provider": "perplexity",
-      "modelId": "sonar-pro",
-      "maxTokens": 8700,
+      "provider": "mcp",
+      "modelId": "mcp-sampling",
+      "maxTokens": 100000,
       "temperature": 0.1
     },
     "fallback": {
-      "provider": "anthropic",
-      "modelId": "claude-3-7-sonnet-20250219",
-      "maxTokens": 120000,
+      "provider": "claude-code",
+      "modelId": "opus",
+      "maxTokens": 32000,
       "temperature": 0.2
     }
   },
@@ -34,5 +34,10 @@
     "azureOpenaiBaseURL": "https://your-endpoint.openai.azure.com/",
     "userId": "1234567890"
   },
-  "claudeCode": {}
+  "claudeCode": {},
+  "grokCli": {
+    "timeout": 120000,
+    "workingDirectory": null,
+    "defaultModel": "grok-4-latest"
+  }
 }

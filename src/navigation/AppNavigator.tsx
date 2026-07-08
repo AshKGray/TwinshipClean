@@ -22,31 +22,19 @@ import { OnboardingScreen } from "../screens/OnboardingScreen";
 import { HomeScreen } from "../screens/HomeScreen";
 import { TwinTalkScreen } from "../screens/chat/TwinTalkScreen";
 
-// Pairing Screen (lazy loaded)
-const PairScreen = lazyScreen(() => import("../screens/PairScreen").then(m => ({ default: m.PairScreen })));
+// Pairing Screen - Preload immediately for instant access
+import { PairScreen } from "../screens/PairScreen";
 
-// Secondary Screens (lazy loaded with enhanced skeletons)
-const TwintuitionScreen = lazyScreenWithSkeleton(
-  () => import("../screens/TwintuitionScreen").then(m => ({ default: m.TwintuitionScreen })),
-  'generic',
-  'Loading Twintuition...'
-);
+// Secondary Screens - Preload immediately for instant transitions
+import { TwintuitionScreen } from "../screens/TwintuitionScreen";
 const TwinGamesHub = lazyWithPreloadAndSkeleton(
   () => import("../screens/TwinGamesHub").then(m => ({ default: m.TwinGamesHub })),
   'game',
-  'Preparing psychic games...',
+  'Preparing synchronicity games...',
   'TwinGamesHub'
 );
-const ResearchScreen = lazyScreenWithSkeleton(
-  () => import("../screens/ResearchScreen").then(m => ({ default: m.ResearchScreen })),
-  'generic',
-  'Loading research dashboard...'
-);
-const SettingsScreen = lazyScreenWithSkeleton(
-  () => import("../screens/SettingsScreen").then(m => ({ default: m.SettingsScreen })),
-  'generic',
-  'Loading settings...'
-);
+import { ResearchScreen } from "../screens/ResearchScreen";
+import { SettingsScreen } from "../screens/SettingsScreen";
 
 // Game Screens (lazy loaded with preload)
 const CognitiveSyncMaze = lazyWithPreload(() => import("../screens/games/CognitiveSyncMaze").then(m => ({ default: m.CognitiveSyncMaze })));
@@ -267,6 +255,7 @@ const TabNavigator = () => {
           shadowOpacity: 0.3,
           shadowRadius: 8,
           elevation: 10,
+          position: 'absolute',
         },
         tabBarItemStyle: {
           paddingVertical: 4,
@@ -338,6 +327,35 @@ export const AppNavigator = () => {
   return (
     <NavigationContainer
       ref={navigationRef}
+      theme={{
+        dark: true,
+        colors: {
+          primary: '#a855f7',
+          background: 'transparent',
+          card: 'transparent',
+          text: '#ffffff',
+          border: 'rgba(255,255,255,0.1)',
+          notification: '#a855f7',
+        },
+        fonts: {
+          regular: {
+            fontFamily: 'System',
+            fontWeight: '400' as any,
+          },
+          medium: {
+            fontFamily: 'System',
+            fontWeight: '500' as any,
+          },
+          bold: {
+            fontFamily: 'System',
+            fontWeight: '700' as any,
+          },
+          heavy: {
+            fontFamily: 'System',
+            fontWeight: '900' as any,
+          },
+        },
+      }}
       onReady={() => {
         routeNameRef.current = navigationRef.current?.getCurrentRoute()?.name;
         // Mark navigation as ready for startup performance tracking
@@ -415,18 +433,68 @@ export const AppNavigator = () => {
             {(props) => (
               <OnboardingScreen
                 {...props}
-                onComplete={() => {}}
+                onComplete={() => {
+                  const { setOnboarded } = useTwinStore.getState();
+                  setOnboarded(true);
+                }}
               />
             )}
           </Stack.Screen>
         ) : (
           <>
-            <Stack.Screen name="Main" component={TabNavigator} />
-            <Stack.Screen name="TwinTalk" component={TwinTalkScreen} />
-            <Stack.Screen name="Twintuition" component={TwintuitionScreen} />
-            <Stack.Screen name="Twingames" component={TwinGamesHub} />
-            <Stack.Screen name="Twinquiry" component={ResearchScreen} />
-            <Stack.Screen name="Twinsettings" component={SettingsScreen} />
+            <Stack.Screen
+              name="Main"
+              component={TabNavigator}
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: 'transparent' }
+              }}
+            />
+            <Stack.Screen
+              name="TwinTalk"
+              component={TwinTalkScreen}
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: 'transparent' },
+                presentation: 'card'
+              }}
+            />
+            <Stack.Screen
+              name="Twintuition"
+              component={TwintuitionScreen}
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: 'transparent' },
+                presentation: 'card'
+              }}
+            />
+            <Stack.Screen
+              name="Twingames"
+              component={TwinGamesHub}
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: 'transparent' },
+                presentation: 'card'
+              }}
+            />
+            <Stack.Screen
+              name="Twinquiry"
+              component={ResearchScreen}
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: 'transparent' },
+                presentation: 'card'
+              }}
+            />
+            <Stack.Screen
+              name="Twinsettings"
+              component={SettingsScreen}
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: 'transparent' },
+                presentation: 'card'
+              }}
+            />
             {/* Story screens removed - functionality integrated into Twincidence Log */}
             <Stack.Screen name="Twinvitation" component={require("../screens/PairScreen").PairScreen} />
             {/* New invitation screens */}

@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, Alert, Animated } from "react-native";
-import { ImageBackground, Image } from "expo-image";
+import { View, Text, Pressable, Alert, Animated, ImageBackground, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -136,10 +135,7 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
   ];
 
   return (
-    <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}
-      contentFit="cover"
-      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-      transition={200}>
+    <ImageBackground source={require("../../../assets/galaxybackground.png")} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="flex-1 px-8">
           {/* Header */}
@@ -152,14 +148,14 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
             </Pressable>
             
             <View className="flex-1 items-center">
-              <Text className="text-white/60 text-sm">Step 1 of 5</Text>
+              <Text className="text-white/60 text-sm">Step 2 of 6</Text>
               <View className="flex-row mt-2 space-x-1">
-                {[...Array(5)].map((_, i) => (
-                  <View 
-                    key={i} 
+                {[...Array(6)].map((_, i) => (
+                  <View
+                    key={i}
                     className={`h-1 w-8 rounded-full ${
-                      i === 0 ? 'bg-white' : 'bg-black/80'
-                    }`} 
+                      i === 1 ? 'bg-white' : 'bg-black/80'
+                    }`}
                   />
                 ))}
               </View>
@@ -201,7 +197,7 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
                   <Image
                     source={{ uri: selectedImage }}
                     style={{ width: 128, height: 128, borderRadius: 64 }}
-                    contentFit="cover"
+                    resizeMode="cover"
                   />
                   <View className="absolute -inset-1 w-34 h-34 rounded-full border-2 border-white/50" />
                   <View className="absolute -inset-2 w-36 h-36 rounded-full border border-white/20" />
@@ -254,28 +250,18 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
           <View className="pb-8">
             <Pressable
               onPress={handleContinue}
-              disabled={!selectedImage}
-              className={`rounded-full py-4 items-center border ${
-                selectedImage 
-                  ? 'bg-black/80 border-white/30' 
-                  : 'bg-black/70 border-white/10'
-              }`}
+              className="bg-black/80 border-white/30 rounded-full py-4 items-center border"
               style={({ pressed }) => ({
                 opacity: pressed ? 0.8 : 1,
                 transform: [{ scale: pressed ? 0.98 : 1 }],
               })}
             >
               <LinearGradient
-                colors={selectedImage 
-                  ? ['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']
-                  : ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']
-                }
+                colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.1)']}
                 className="absolute inset-0 rounded-full"
               />
-              <Text className={`text-lg font-semibold ${
-                selectedImage ? 'text-white' : 'text-white/40'
-              }`}>
-                {selectedImage ? 'Continue' : 'Choose Photo to Continue'}
+              <Text className="text-lg font-semibold text-white">
+                Continue
               </Text>
             </Pressable>
           </View>
