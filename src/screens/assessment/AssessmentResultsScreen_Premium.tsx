@@ -192,7 +192,7 @@ export const AssessmentResultsScreen = () => {
     if (!requireCoachingPlans(() => navigateToUpgrade('coaching_plans', 'recommendations_button'))) {
       return;
     }
-    navigation.navigate('AssessmentRecommendations', { sessionId });
+    navigation.navigate('AssessmentRecommendations', { sessionId, results });
   };
 
   const detailedResultsFeature = PREMIUM_FEATURES.find(f => f.id === 'detailed_results')!;

@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTwinStore } from "../../state/twinStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useAssessmentStore } from "../../state/assessmentStore";
 import { RecommendationCard } from "../../components/assessment/RecommendationCard";
 import { MicroExperimentCard } from "../../components/assessment/MicroExperimentCard";
 import Animated, {
@@ -133,8 +134,89 @@ export const AssessmentRecommendationsScreen = () => {
   const route = useRoute<any>();
   const [selectedTab, setSelectedTab] = useState<'plan' | 'exercises' | 'tips'>('plan');
   const [completedExperiments, setCompletedExperiments] = useState<number[]>([]);
-  
-  const results: AssessmentResults = route.params?.results;
+
+  const getResultsById = useAssessmentStore((state) => state.getResultsById);
+  const latestStoredResult = useAssessmentStore((state) => {
+    const { results } = state;
+    return results.length > 0 ? results[results.length - 1] : undefined;
+  });
+
+  const routeParams = route.params as { results?: any; sessionId?: string } | undefined;
+
+  const resolvedResults = React.useMemo(() => {
+    if (routeParams?.results) {
+      return routeParams.results;
+    }
+    if (routeParams?.sessionId) {
+      return getResultsById(routeParams.sessionId);
+    }
+    return latestStoredResult;
+  }, [routeParams?.results, routeParams?.sessionId, getResultsById, latestStoredResult]);
+
+  const results: AssessmentResults | undefined = React.useMemo(() => {
+    if (!resolvedResults) return undefined;
+
+    const recommendationStrings = Array.isArray(resolvedResults.recommendations)
+      ? resolvedResults.recommendations
+          .map((item: any) => {
+            if (typeof item === 'string') return item;
+            if (item?.description) return item.description;
+            if (item?.title) return item.title;
+            return null;
+          })
+          .filter((text: string | null): text is string => !!text)
+      : [];
+
+    const normalizeLevel = (): AssessmentResults['level'] => {
+      const rawLevel = (resolvedResults.level || resolvedResults.connectionLevel || '').toString().toLowerCase();
+      if (rawLevel.includes('extra')) return 'Extraordinary';
+      if (rawLevel.includes('strong')) return 'Strong';
+      if (rawLevel.includes('moderate')) return 'Moderate';
+      if (rawLevel.includes('develop')) return 'Developing';
+      if (rawLevel.includes('high')) return 'Strong';
+      if (rawLevel.includes('low')) return 'Developing';
+      return recommendationStrings.length > 0 ? 'Moderate' : 'Developing';
+    };
+
+    const baseCategoryScores = resolvedResults.categoryScores || {};
+    const categoryScores: AssessmentResults['categoryScores'] = {
+      emotionalConnection: Math.round(
+        baseCategoryScores.emotionalConnection ?? baseCategoryScores.emotional_connection ?? 0
+      ),
+      telepathicExperiences: Math.round(
+        baseCategoryScores.telepathicExperiences ?? baseCategoryScores.telepathic_experiences ?? 0
+      ),
+      behavioralSynchrony: Math.round(
+        baseCategoryScores.behavioralSynchrony ?? baseCategoryScores.behavioral_synchrony ?? 0
+      ),
+      sharedExperiences: Math.round(
+        baseCategoryScores.sharedExperiences ?? baseCategoryScores.shared_experiences ?? 0
+      ),
+      physicalSensations: Math.round(
+        baseCategoryScores.physicalSensations ?? baseCategoryScores.physical_sensations ?? 0
+      ),
+    };
+
+    const overallScore = Number.isFinite(resolvedResults.overallScore)
+      ? Math.round(resolvedResults.overallScore)
+      : (() => {
+          const values = Object.values(categoryScores);
+          if (!values.length) return 0;
+          const total = values.reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0);
+          return Math.round(total / values.length);
+        })();
+
+    return {
+      overallScore,
+      categoryScores,
+      level: normalizeLevel(),
+      insights: Array.isArray(resolvedResults.insights) && resolvedResults.insights.length > 0
+        ? resolvedResults.insights
+        : recommendationStrings.slice(0, 3),
+      recommendations: recommendationStrings,
+    };
+  }, [resolvedResults]);
+
   const themeColor = userProfile?.accentColor || "neon-purple";
   
   const getAccentColor = () => {
@@ -152,7 +234,31 @@ export const AssessmentRecommendationsScreen = () => {
   };
 
   const accentColor = getAccentColor();
-  const coachingPlan = COACHING_PLANS[results?.level];
+
+  if (!results) {
+    return (
+      <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
+        <SafeAreaView className="flex-1 items-center justify-center px-6">
+          <Ionicons name="sparkles" size={48} color={accentColor} />
+          <Text className="text-white text-xl font-semibold mt-4 text-center">
+            Complete an assessment to see your recommendations
+          </Text>
+          <Text className="text-white/70 text-center mt-2">
+            Once you finish the Twin Assessment, we'll craft a personalized action plan for you and your twin.
+          </Text>
+          <Pressable
+            onPress={() => navigation.navigate('AssessmentIntro')}
+            className="mt-6 rounded-xl px-6 py-3"
+            style={{ backgroundColor: accentColor }}
+          >
+            <Text className="text-white font-semibold">Start Assessment</Text>
+          </Pressable>
+        </SafeAreaView>
+      </ImageBackground>
+    );
+  }
+
+  const coachingPlan = COACHING_PLANS[results.level];
   
   // Animation
   const fadeIn = useSharedValue(0);
