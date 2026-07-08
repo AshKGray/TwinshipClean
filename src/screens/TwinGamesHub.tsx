@@ -30,7 +30,7 @@ export const TwinGamesHub: React.FC<TwinGamesHubProps> = ({ navigation }) => {
   
   // Memoize theme calculations
   const themeConfig = useMemo(() => {
-    const themeColor = userProfile?.accentColor || 'neon-purple';
+    const themeColor = userProfile?.accentColor || 'celestial-indigo';
     const accentColor = getNeonAccentColor(themeColor);
     return { themeColor, accentColor };
   }, [userProfile?.accentColor]);

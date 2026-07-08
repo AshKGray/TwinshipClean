@@ -41,7 +41,7 @@ export const SettingsScreen = () => {
   
   const [isRestoringPurchases, setIsRestoringPurchases] = useState(false);
   
-  const themeColor = userProfile?.accentColor || "neon-purple";
+  const themeColor = userProfile?.accentColor || "celestial-indigo";
   const neonColor = getNeonAccentColor(themeColor);
 
   const handleSignOut = () => {

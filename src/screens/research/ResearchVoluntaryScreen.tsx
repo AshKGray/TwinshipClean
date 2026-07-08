@@ -17,7 +17,7 @@ export const ResearchVoluntaryScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const userProfile = useTwinStore((state) => state.userProfile);
   const [agreedToVoluntary, setAgreedToVoluntary] = useState(false);
-  const accentColor = userProfile?.accentColor || "neon-purple";
+  const accentColor = userProfile?.accentColor || "celestial-indigo";
   const neonColor = getNeonAccentColor(accentColor);
 
   const handleLearnMore = () => {

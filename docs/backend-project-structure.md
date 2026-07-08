@@ -420,8 +420,8 @@ export default function authRoutes(prisma: PrismaClient, redis: Redis): Router {
     birthDate: Joi.date().required(),
     twinType: Joi.string().valid('identical', 'fraternal', 'other').required(),
     accentColor: Joi.string().valid(
-      'neon-pink', 'neon-blue', 'neon-green', 'neon-yellow',
-      'neon-purple', 'neon-orange', 'neon-cyan', 'neon-red'
+      'nebula-rose', 'stellar-blue', 'orbit-sage', 'solar-amber',
+      'celestial-indigo', 'comet-coral', 'aurora-teal', 'meteor-copper'
     ).required()
   });
 

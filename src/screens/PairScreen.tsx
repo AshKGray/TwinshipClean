@@ -46,7 +46,7 @@ export const PairScreen = () => {
         gender: "Non-binary",
         twinType: "identical" as TwinType,
         birthDate: new Date().toISOString(),
-        accentColor: "neon-purple" as ThemeColor,
+        accentColor: "celestial-indigo" as ThemeColor,
         isConnected: true,
       };
       state.setUserProfile(devUser);
@@ -64,12 +64,12 @@ export const PairScreen = () => {
       gender: myGender,
       twinType: "identical" as TwinType,
       birthDate: new Date().toISOString(),
-      accentColor: "neon-purple" as ThemeColor,
+      accentColor: "celestial-indigo" as ThemeColor,
       isConnected: true,
     };
     state.setUserProfile(me);
 
-    const accent: ThemeColor = (meName === "Alex" ? "neon-pink" : "neon-purple") as ThemeColor;
+    const accent: ThemeColor = (meName === "Alex" ? "nebula-rose" : "celestial-indigo") as ThemeColor;
     const mockTwin: TwinProfile = {
       id: "test-twin-" + Date.now(),
       name: twinName,
@@ -133,7 +133,7 @@ export const PairScreen = () => {
       gender: userProfile?.gender === "Male" ? "Female" : userProfile?.gender === "Female" ? "Male" : "Non-binary",
       twinType: (userProfile?.twinType || "identical") as TwinType,
       birthDate: userProfile?.birthDate || new Date().toISOString(),
-      accentColor: (userProfile?.accentColor === "neon-purple" ? "neon-pink" : "neon-purple") as ThemeColor,
+      accentColor: (userProfile?.accentColor === "celestial-indigo" ? "nebula-rose" : "celestial-indigo") as ThemeColor,
       isConnected: true,
       lastSeen: new Date().toISOString()
     };

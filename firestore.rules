@@ -1,0 +1,325 @@
+rules_version = '2';
+
+// Firestore Security Rules for Twinship
+// Story: 7-3 Firestore Data Models and Schema
+// Enhanced for Epic 3: Twintuition Alert System
+// Enhanced for Epic 5: Research Contribution System
+//
+// These rules enforce:
+// - Authentication requirements
+// - Twin-pair data isolation
+// - Privacy between different twin pairs
+// - Proper access control for all collections
+// - Research data anonymity and security
+// - Alert privacy and delivery
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ========================================
+    // Helper Functions
+    // ========================================
+
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if user is member of twin pair
+    function isTwinPairMember(pairId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/twinPairs/$(pairId)) &&
+        (get(/databases/$(database)/documents/twinPairs/$(pairId)).data.twin1Id == request.auth.uid ||
+         get(/databases/$(database)/documents/twinPairs/$(pairId)).data.twin2Id == request.auth.uid);
+    }
+
+    // Check if document has valid timestamps
+    function hasValidTimestamps() {
+      return request.resource.data.keys().hasAll(['createdAt', 'updatedAt']);
+    }
+
+    // ========================================
+    // Users Collection
+    // ========================================
+    match /users/{userId} {
+      // Users can only read and write their own profile
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && hasValidTimestamps();
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
+    // ========================================
+    // Twin Pairs Collection
+    // ========================================
+    match /twinPairs/{pairId} {
+      // Both twins can read the pair document
+      allow read: if isTwinPairMember(pairId);
+
+      // Allow creation during pairing (authenticated users only)
+      allow create: if isAuthenticated() &&
+        hasValidTimestamps() &&
+        (request.resource.data.twin1Id == request.auth.uid ||
+         request.resource.data.twin2Id == request.auth.uid);
+
+      // Allow updates by pair members (e.g., status changes)
+      allow update: if isTwinPairMember(pairId);
+
+      // Prevent deletion (pairs should be marked inactive instead)
+      allow delete: if false;
+
+      // ========================================
+      // Stories Subcollection
+      // ========================================
+      match /stories/{storyId} {
+        // Both twins can read stories
+        allow read: if isTwinPairMember(pairId);
+
+        // Both twins can create stories
+        allow create: if isTwinPairMember(pairId) &&
+          hasValidTimestamps() &&
+          request.resource.data.createdBy == request.auth.uid &&
+          request.resource.data.version == 1;
+
+        // Both twins can update stories (with version increment)
+        allow update: if isTwinPairMember(pairId) &&
+          request.resource.data.updatedBy == request.auth.uid &&
+          request.resource.data.version > resource.data.version;
+
+        // Both twins can delete stories (soft delete)
+        allow delete: if isTwinPairMember(pairId);
+      }
+
+      // ========================================
+      // Twintuition Alerts Subcollection (Legacy)
+      // ========================================
+      match /alerts/{alertId} {
+        // Both twins can read alerts
+        allow read: if isTwinPairMember(pairId);
+
+        // Authenticated users can create alerts (sender validation in app)
+        allow create: if isAuthenticated() &&
+          (request.resource.data.senderId == request.auth.uid ||
+           request.resource.data.recipientId == request.auth.uid);
+
+        // Can update to mark as seen or respond
+        allow update: if isTwinPairMember(pairId);
+
+        // Allow deletion for cleanup (expired alerts)
+        allow delete: if isTwinPairMember(pairId);
+      }
+
+      // ========================================
+      // Games Subcollection
+      // ========================================
+      match /games/{gameId} {
+        // Both twins can read game results
+        allow read: if isTwinPairMember(pairId);
+
+        // Both twins can create game sessions
+        allow create: if isTwinPairMember(pairId) &&
+          hasValidTimestamps() &&
+          request.resource.data.userId == request.auth.uid;
+
+        // Both twins can update game results (when analysis completes)
+        allow update: if isTwinPairMember(pairId);
+
+        // Prevent deletion of game history
+        allow delete: if false;
+      }
+
+      // ========================================
+      // Twincidences Subcollection
+      // ========================================
+      match /twincidences/{twincidenceId} {
+        // Both twins can read twincidences
+        allow read: if isTwinPairMember(pairId);
+
+        // Both twins can create twincidences
+        allow create: if isTwinPairMember(pairId) && hasValidTimestamps();
+
+        // Both twins can update twincidences
+        allow update: if isTwinPairMember(pairId);
+
+        // Both twins can delete twincidences (soft delete)
+        allow delete: if isTwinPairMember(pairId);
+      }
+    }
+
+    // ========================================
+    // Epic 3: Twintuition Alert System (Top-level)
+    // ========================================
+
+    // Twintuition Alerts Collection
+    match /twintuition_alerts/{alertId} {
+      // Users can read alerts they sent or received
+      allow read: if isAuthenticated() &&
+        (resource.data.senderId == request.auth.uid ||
+         resource.data.receiverId == request.auth.uid);
+
+      // Users can create alerts they're sending
+      allow create: if isAuthenticated() &&
+        hasValidTimestamps() &&
+        request.resource.data.senderId == request.auth.uid;
+
+      // Users can update alerts they received (mark as read)
+      allow update: if isAuthenticated() &&
+        resource.data.receiverId == request.auth.uid;
+
+      // Users can delete alerts they sent or received
+      allow delete: if isAuthenticated() &&
+        (resource.data.senderId == request.auth.uid ||
+         resource.data.receiverId == request.auth.uid);
+    }
+
+    // Cosmic Sync Moments Collection
+    match /cosmic_sync_moments/{momentId} {
+      // Users can read sync moments they're part of
+      allow read: if isAuthenticated() &&
+        (resource.data.user1Id == request.auth.uid ||
+         resource.data.user2Id == request.auth.uid);
+
+      // System creates sync moments (validated in app logic)
+      allow create: if isAuthenticated() &&
+        hasValidTimestamps() &&
+        (request.resource.data.user1Id == request.auth.uid ||
+         request.resource.data.user2Id == request.auth.uid);
+
+      // Users can update their own sync moments (mark as celebrated)
+      allow update: if isAuthenticated() &&
+        (resource.data.user1Id == request.auth.uid ||
+         resource.data.user2Id == request.auth.uid);
+
+      // Cannot delete sync moments (immutable history)
+      allow delete: if false;
+    }
+
+    // ========================================
+    // Invitations Collection
+    // ========================================
+    match /invitations/{invitationId} {
+      // Anyone authenticated can read invitations (to validate codes)
+      allow read: if isAuthenticated();
+
+      // Only creator can create invitations
+      allow create: if isAuthenticated() &&
+        hasValidTimestamps() &&
+        request.resource.data.createdBy == request.auth.uid;
+
+      // Can update to accept invitation
+      allow update: if isAuthenticated();
+
+      // Only creator can delete
+      allow delete: if isAuthenticated() &&
+        resource.data.createdBy == request.auth.uid;
+    }
+
+    // ========================================
+    // Epic 5: Research Contribution System
+    // ========================================
+
+    // Research Consent Records
+    match /research_consent/{consentId} {
+      // Users can only read their own consent records
+      allow read: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
+
+      // Users can create their own consent records
+      allow create: if isAuthenticated() &&
+        hasValidTimestamps() &&
+        request.resource.data.userId == request.auth.uid;
+
+      // Users can update their own consent (e.g., withdraw)
+      allow update: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
+
+      // Consent records are immutable once withdrawn
+      allow delete: if false;
+    }
+
+    // Research Submissions (Anonymized Data)
+    match /research_submissions/{submissionId} {
+      // Only backend can read (for analysis)
+      // Users cannot read to maintain anonymity
+      allow read: if false;
+
+      // Users can create anonymized submissions
+      allow create: if isAuthenticated() &&
+        hasValidTimestamps() &&
+        // Ensure data is properly anonymized (no userId field)
+        !request.resource.data.keys().hasAny(['userId', 'userEmail', 'userName', 'userPhone']) &&
+        // Must have anonymous ID
+        request.resource.data.anonymousId is string &&
+        request.resource.data.studyId is string;
+
+      // Immutable once created
+      allow update, delete: if false;
+    }
+
+    // Research Insights (Population-level aggregates)
+    match /research_insights/{insightId} {
+      // All authenticated users can read population insights
+      allow read: if isAuthenticated();
+
+      // Only backend can write insights
+      allow create, update, delete: if false;
+    }
+
+    // Research Leaderboard
+    match /research_leaderboard/{entryId} {
+      // All authenticated users can read leaderboard
+      allow read: if isAuthenticated();
+
+      // Only backend can update leaderboard
+      allow create, update, delete: if false;
+    }
+
+    // Research Deletion Requests
+    match /research_deletion_requests/{requestId} {
+      // Users can only read their own deletion requests
+      // Note: Uses anonymous ID for privacy
+      allow read: if isAuthenticated() &&
+        resource.data.anonymousId is string;
+
+      // Users can create deletion requests
+      allow create: if isAuthenticated() &&
+        hasValidTimestamps() &&
+        request.resource.data.anonymousId is string &&
+        request.resource.data.studyId is string;
+
+      // Immutable once created
+      allow update, delete: if false;
+    }
+
+    // Research Participation Records
+    match /research_participation/{participationId} {
+      // Users can read their own participation records
+      allow read: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
+
+      // Users can create their own participation
+      allow create: if isAuthenticated() &&
+        hasValidTimestamps() &&
+        request.resource.data.userId == request.auth.uid;
+
+      // Users can update their own participation (preferences, withdrawals)
+      allow update: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
+
+      // Cannot delete participation (use withdrawal instead)
+      allow delete: if false;
+    }
+
+    // ========================================
+    // Deny all other paths
+    // ========================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

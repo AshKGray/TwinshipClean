@@ -16,7 +16,7 @@ export const ConnectionStatusBar: React.FC<ConnectionStatusBarProps> = ({
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(-50)).current;
 
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const neonColor = getNeonAccentColor(accentColor);
 
   useEffect(() => {

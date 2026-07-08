@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTwinStore } from "../../state/twinStore";
-import { getNeonAccentColor } from "../../utils/neonColors";
+import { getAccentDisplayName, getNeonAccentColor } from "../../utils/neonColors";
 
 interface ProfileReviewScreenProps {
   onComplete: () => void;
@@ -12,12 +12,12 @@ interface ProfileReviewScreenProps {
   onEdit: (step: number) => void;
 }
 
-export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({ 
-  onComplete, 
+export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
+  onComplete,
   onBack,
-  onEdit 
+  onEdit
 }) => {
-  const { userProfile, setOnboarded } = useTwinStore();
+  const { userProfile } = useTwinStore();
   const [isCompleting, setIsCompleting] = useState(false);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -55,7 +55,7 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setOnboarded(true);
+      // Complete onboarding - parent component will handle navigation
       onComplete();
     });
   };
@@ -87,8 +87,7 @@ export const ProfileReviewScreen: React.FC<ProfileReviewScreenProps> = ({
     },
     {
       title: "Theme Color",
-      value: userProfile.accentColor.replace('neon-', '').charAt(0).toUpperCase() + 
-             userProfile.accentColor.replace('neon-', '').slice(1),
+      value: getAccentDisplayName(userProfile.accentColor),
       editStep: 4,
       icon: "color-palette" as const,
     },

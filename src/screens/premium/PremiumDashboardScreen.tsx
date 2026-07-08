@@ -141,7 +141,7 @@ export const PremiumDashboardScreen: React.FC = () => {
   
   const [selectedTimeframe, setSelectedTimeframe] = useState<'week' | 'month' | 'all'>('month');
   
-  const themeColor = userProfile?.accentColor || 'neon-purple';
+  const themeColor = userProfile?.accentColor || 'celestial-indigo';
   const neonColor = getNeonAccentColor(themeColor);
   const [gradientStart, gradientMid] = getNeonGradientColors(themeColor);
   

@@ -5,28 +5,22 @@ import {
   TextInput,
   Pressable,
   ImageBackground,
+  Image,
   Alert,
   Platform,
   KeyboardAvoidingView,
-  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import { useAuth, useBiometricAuth } from '../../state/authStore';
+import { useFirebaseAuth } from '../../state/firebaseAuthStore';
+import { firebaseAuthService } from '../../services/firebase/auth';
 
 export const LoginScreen = () => {
   const navigation = useNavigation<any>();
-  const { login, isLoading, error, clearError } = useAuth();
-  const {
-    biometricAvailable,
-    biometricEnabled,
-    biometricType,
-    loginWithBiometrics,
-    checkBiometricAvailability,
-  } = useBiometricAuth();
+  const { isLoading, error, clearError } = useFirebaseAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,9 +28,9 @@ export const LoginScreen = () => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  useEffect(() => {
-    checkBiometricAvailability();
-  }, []);
+  // Biometric auth - disabled for now (Story 7-2)
+  const biometricAvailable = false;
+  const biometricEnabled = false;
 
   useEffect(() => {
     // Clear any existing errors when component mounts
@@ -83,43 +77,28 @@ export const LoginScreen = () => {
     }
 
     try {
-      await login({ email: email.toLowerCase().trim(), password });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      navigation.navigate('Home');
-    } catch (error: any) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    }
-  };
-
-  const handleBiometricLogin = async () => {
-    if (!biometricAvailable || !biometricEnabled) {
-      Alert.alert(
-        'Biometric Authentication Unavailable',
-        'Please set up biometric authentication in your account settings.'
+      const result = await firebaseAuthService.signIn(
+        email.toLowerCase().trim(),
+        password
       );
-      return;
-    }
 
-    try {
-      await loginWithBiometrics();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      navigation.navigate('Home');
+      if (result.success) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        navigation.navigate('Home');
+      } else {
+        Alert.alert('Login Failed', result.error || 'Please check your credentials');
+      }
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert('Authentication Failed', error.message);
     }
   };
 
-  const getBiometricButtonText = (): string => {
-    if (biometricType.includes('Face ID')) return 'Continue with Face ID';
-    if (biometricType.includes('Touch ID')) return 'Continue with Touch ID';
-    return 'Continue with Biometrics';
-  };
-
-  const getBiometricIcon = (): string => {
-    if (biometricType.includes('Face ID')) return 'face-outline';
-    if (biometricType.includes('Touch ID')) return 'finger-print';
-    return 'shield-checkmark';
+  // Biometric auth removed for Story 7-2 - will be added in future story
+  const handleBiometricLogin = async () => {
+    Alert.alert(
+      'Coming Soon',
+      'Biometric authentication will be available in a future update.'
+    );
   };
 
   return (
@@ -129,18 +108,18 @@ export const LoginScreen = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{ flexGrow: 1 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View className="flex-1 px-6">
-              {/* Logo - Centered in upper area */}
-              <View className="items-center mt-16 mb-12">
-                <View className="bg-white rounded-2xl p-4 mb-6">
-                  <Text className="text-2xl">👥</Text>
-                </View>
-                <Text className="text-white text-4xl font-bold">Twinship</Text>
+          <View className="flex-1 justify-center px-6">
+              {/* Logo - Centered */}
+              <View className="items-center mb-8">
+                <Image 
+                  source={require('../../../assets/twinshipAppIcon.png')}
+                  style={{ 
+                    width: 125, 
+                    height: 125, 
+                    borderRadius: 25,
+                  }}
+                  resizeMode="cover"
+                />
               </View>
 
               {/* Error Message */}
@@ -162,7 +141,7 @@ export const LoginScreen = () => {
                     }}
                     placeholder="Email"
                     placeholderTextColor="rgba(255,255,255,0.6)"
-                    className="bg-white/15 rounded-xl px-4 py-4 text-white text-base"
+                    className="bg-white/15 rounded-xl px-4 py-4 text-white text-lg"
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -184,7 +163,7 @@ export const LoginScreen = () => {
                       }}
                       placeholder="Password"
                       placeholderTextColor="rgba(255,255,255,0.6)"
-                      className="bg-white/15 rounded-xl px-4 py-4 text-white text-base pr-12"
+                      className="bg-white/15 rounded-xl px-4 py-4 text-white text-lg pr-12"
                       secureTextEntry={!showPassword}
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -287,7 +266,6 @@ export const LoginScreen = () => {
                 )}
               </View>
             </View>
-          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </ImageBackground>

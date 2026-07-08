@@ -3,8 +3,7 @@ import {
   View, 
   Text, 
   Pressable, 
-  Alert, 
-  TextInput, 
+  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +11,7 @@ import {
   Animated,
   ImageBackground,
 } from "react-native";
+import { CustomTextInput as TextInput } from "../components/CustomTextInput";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -27,7 +27,11 @@ import {
   usePendingInvitationToken,
 } from "../state/invitationStore";
 import { useDeepLinkHandler } from "../utils/deepLinking";
-import { getNeonAccentColor, getNeonAccentColorWithOpacity } from "../utils/neonColors";
+import {
+  getAccentDisplayName,
+  getNeonAccentColor,
+  getNeonAccentColorWithOpacity
+} from "../utils/neonColors";
 import { Invitation } from "../services/invitationService";
 
 type InvitationMode = 'send' | 'receive' | 'manual';
@@ -80,7 +84,7 @@ export const InvitationScreen: React.FC<InvitationScreenProps> = ({
   
   const [animatedValue] = useState(new Animated.Value(0));
   
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const themeColor = getNeonAccentColor(accentColor);
   const themeColorWithOpacity = getNeonAccentColorWithOpacity(accentColor, 0.3);
 
@@ -181,6 +185,10 @@ export const InvitationScreen: React.FC<InvitationScreenProps> = ({
 
         setTwinProfile(twinProfile);
         setPaired(true);
+        
+        // IMPORTANT: Mark onboarding as complete now that twin invitation is accepted
+        const { setOnboarded } = useTwinStore.getState();
+        setOnboarded(true);
         
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         
@@ -522,8 +530,8 @@ export const InvitationScreen: React.FC<InvitationScreenProps> = ({
             
             <View className="flex-row items-center mb-4">
               <Ionicons name="color-palette" size={24} color={getNeonAccentColor(currentInvitation.accentColor)} />
-              <Text className="text-white text-lg ml-3 capitalize">
-                {currentInvitation.accentColor.replace('neon-', '')} Theme
+              <Text className="text-white text-lg ml-3">
+                {getAccentDisplayName(currentInvitation.accentColor)} Theme
               </Text>
             </View>
             

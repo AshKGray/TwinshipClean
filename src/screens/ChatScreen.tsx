@@ -7,7 +7,7 @@ import { TwinTalkScreen } from './chat/TwinTalkScreen';
 // Legacy ChatScreen - now redirects to TwinTalkScreen
 export const ChatScreen = () => {
   const userProfile = useTwinStore((state) => state.userProfile);
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
 
   // Simply render the new TwinTalkScreen
   return <TwinTalkScreen />;

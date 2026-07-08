@@ -22,7 +22,7 @@ export const PremiumStatusIndicator: React.FC<PremiumStatusIndicatorProps> = ({
   const subscriptionInfo = useSubscriptionStore((state) => state.subscriptionInfo);
   const { navigateToUpgrade } = usePremiumFeatures();
   
-  const accentColor = userProfile?.accentColor || "neon-purple";
+  const accentColor = userProfile?.accentColor || "celestial-indigo";
   const neonColor = getNeonAccentColor(accentColor);
 
   const handleUpgradePress = () => {

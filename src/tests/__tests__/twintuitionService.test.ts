@@ -20,7 +20,7 @@ const mockUserProfile = {
   gender: 'female',
   twinType: 'identical' as const,
   birthDate: '1998-01-01',
-  accentColor: 'neon-pink' as const,
+  accentColor: 'nebula-rose' as const,
   isConnected: true
 };
 
@@ -31,7 +31,7 @@ const mockTwinProfile = {
   gender: 'female',
   twinType: 'identical' as const,
   birthDate: '1998-01-01',
-  accentColor: 'neon-blue' as const,
+  accentColor: 'stellar-blue' as const,
   isConnected: true
 };
 

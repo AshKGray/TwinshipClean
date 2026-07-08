@@ -173,20 +173,15 @@ export class FontOptimizer {
     // Define your app's font configuration
     const fontConfig: FontLoadingConfig = {
       fonts: {
-        // Add your app's fonts here
+        // Add your app's fonts here when you find one you like
         // Example:
-        // 'Inter-Regular': require('../../assets/fonts/Inter-Regular.ttf'),
-        // 'Inter-Bold': require('../../assets/fonts/Inter-Bold.ttf'),
-        // 'SpaceMono-Regular': require('../../assets/fonts/SpaceMono-Regular.ttf'),
+        // 'CustomFont': require('../../assets/fonts/CustomFont.otf'),
       },
       preloadCritical: [
         // Fonts needed immediately for first render
-        // 'Inter-Regular',
       ],
       deferNonCritical: [
         // Fonts that can be loaded later
-        // 'Inter-Bold',
-        // 'SpaceMono-Regular',
       ],
     };
 

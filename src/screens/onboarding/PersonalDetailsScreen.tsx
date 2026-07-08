@@ -71,7 +71,7 @@ export const PersonalDetailsScreen: React.FC<PersonalDetailsScreenProps> = ({
       placeOfBirth: formData.placeOfBirth || undefined,
       timeOfBirth: formData.timeOfBirth || undefined,
       profilePicture: userProfile?.profilePicture,
-      accentColor: userProfile?.accentColor || "neon-purple",
+      accentColor: userProfile?.accentColor || "celestial-indigo",
       isConnected: false,
     };
 

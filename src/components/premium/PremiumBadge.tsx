@@ -24,7 +24,7 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
   const hasAccessTo = useSubscriptionStore((state) => state.hasAccessTo);
   const trackConversionEvent = useSubscriptionStore((state) => state.trackConversionEvent);
   
-  const accentColor = userProfile?.accentColor || "neon-purple";
+  const accentColor = userProfile?.accentColor || "celestial-indigo";
   const neonColor = getNeonAccentColor(accentColor);
   const hasAccess = hasAccessTo(featureId);
 
@@ -145,7 +145,7 @@ export const PremiumUpgradeButton: React.FC<{
 }) => {
   const userProfile = useTwinStore((state) => state.userProfile);
   const hasAccessTo = useSubscriptionStore((state) => state.hasAccessTo);
-  const accentColor = userProfile?.accentColor || "neon-purple";
+  const accentColor = userProfile?.accentColor || "celestial-indigo";
   const neonColor = getNeonAccentColor(accentColor);
 
   if (hasAccessTo(featureId)) {

@@ -5,7 +5,15 @@ import { shallow } from "zustand/shallow";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type TwinType = "identical" | "fraternal" | "other";
-export type ThemeColor = "neon-pink" | "neon-blue" | "neon-green" | "neon-yellow" | "neon-purple" | "neon-orange" | "neon-cyan" | "neon-red";
+export type ThemeColor =
+  | "stellar-blue"
+  | "aurora-teal"
+  | "celestial-indigo"
+  | "nebula-rose"
+  | "solar-amber"
+  | "comet-coral"
+  | "orbit-sage"
+  | "meteor-copper";
 
 export interface TwinProfile {
   id: string;
@@ -149,7 +157,7 @@ export const useTwinStore = create<TwinState>()(
       isOnboarded: false,
       userProfile: null,
       twinProfile: null,
-      themeColor: "neon-purple",
+      themeColor: "celestial-indigo",
       twintuitionAlerts: [],
       gameResults: [],
       stories: [],
@@ -182,7 +190,7 @@ export const useTwinStore = create<TwinState>()(
         }
         set({ 
           userProfile: profile,
-          themeColor: profile.accentColor || "neon-purple"
+          themeColor: profile.accentColor || "celestial-indigo"
         });
       },
       
@@ -224,7 +232,7 @@ export const useTwinStore = create<TwinState>()(
         isOnboarded: false,
         userProfile: null,
         twinProfile: null,
-        themeColor: "neon-purple",
+        themeColor: "celestial-indigo",
         shareCode: null,
         paired: false,
         pendingInvitation: null,

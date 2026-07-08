@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { useTwinStore } from '../../state/twinStore';
+import { useGamesStore, MazeData, MazeMove } from '../../state/gamesStore';
+import { mazeAnalysisService } from '../../services/games/mazeAnalysis';
 import * as Haptics from 'expo-haptics';
 
 interface TouchPoint {
@@ -29,7 +31,8 @@ const MAZE_SIZE = width * 0.85;
 const CELL_SIZE = MAZE_SIZE / 10;
 
 export const CognitiveSyncMaze = ({ navigation }: any) => {
-  const { themeColor, twinProfile, addGameResult } = useTwinStore();
+  const { themeColor, twinProfile, addGameResult, userProfile } = useTwinStore();
+  const { startGameSession, completeGameSession, currentSessionId } = useGamesStore();
   const [gamePhase, setGamePhase] = useState<'intro' | 'playing' | 'analyzing' | 'result'>('intro');
   const [touchPath, setTouchPath] = useState<TouchPoint[]>([]);
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -37,7 +40,8 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
   const [mistakes, setMistakes] = useState<MazeError[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 });
-  
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
   // Simple maze layout (0 = wall, 1 = path)
   const maze = [
     [1,1,1,0,0,0,1,1,1,0],
@@ -51,7 +55,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
     [1,0,0,0,0,0,0,0,0,1],
     [1,1,1,1,1,1,1,1,1,1],
   ];
-  
+
   const startPoint = { x: 0, y: 0 };
   const endPoint = { x: 9, y: 9 };
 
@@ -65,7 +69,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
         y: touch.locationY,
         timestamp: Date.now()
       };
-      
+
       // Check if starting at the correct position
       if (isNearStart(point) && gamePhase === 'playing') {
         setIsDrawing(true);
@@ -76,23 +80,23 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
     },
     onPanResponderMove: (evt) => {
       if (!isDrawing || gamePhase !== 'playing') return;
-      
+
       const touch = evt.nativeEvent;
       const point = {
         x: touch.locationX,
         y: touch.locationY,
         timestamp: Date.now()
       };
-      
+
       setCurrentPosition(point);
       setTouchPath(prev => [...prev, point]);
-      
+
       // Check if on valid path
       if (!isValidPath(point)) {
         recordMistake(point);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
-      
+
       // Check if reached end
       if (isNearEnd(point)) {
         completeMaze();
@@ -124,7 +128,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
   const isValidPath = (point: TouchPoint) => {
     const cellX = Math.floor(point.x / CELL_SIZE);
     const cellY = Math.floor(point.y / CELL_SIZE);
-    
+
     if (cellX < 0 || cellX >= 10 || cellY < 0 || cellY >= 10) return false;
     return maze[cellY][cellX] === 1;
   };
@@ -132,7 +136,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
   const recordMistake = (point: TouchPoint) => {
     const lastMistake = mistakes[mistakes.length - 1];
     const timeSinceLastMistake = lastMistake ? Date.now() - lastMistake.position.timestamp : Infinity;
-    
+
     setMistakes(prev => [...prev, {
       position: point,
       correctionTime: timeSinceLastMistake,
@@ -145,7 +149,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
     setIsDrawing(false);
     setGamePhase('analyzing');
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    
+
     // Analyze the cognitive patterns
     setTimeout(() => {
       const insights = analyzeCognitivePath();
@@ -156,61 +160,104 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
   const analyzeCognitivePath = (): CognitiveInsight[] => {
     const insights: CognitiveInsight[] = [];
     const totalTime = (endTime! - startTime!) / 1000;
-    
+
     // Analyze directional preferences
     let rightTurns = 0;
     let leftTurns = 0;
-    
+
     for (let i = 2; i < touchPath.length; i++) {
       const prev = touchPath[i - 2];
       const curr = touchPath[i - 1];
       const next = touchPath[i];
-      
+
       const angle1 = Math.atan2(curr.y - prev.y, curr.x - prev.x);
       const angle2 = Math.atan2(next.y - curr.y, next.x - curr.x);
       let turnAngle = angle2 - angle1;
-      
+
       if (turnAngle > Math.PI) turnAngle -= 2 * Math.PI;
       if (turnAngle < -Math.PI) turnAngle += 2 * Math.PI;
-      
+
       if (turnAngle > 0.1) rightTurns++;
       else if (turnAngle < -0.1) leftTurns++;
     }
-    
+
     const totalTurns = rightTurns + leftTurns;
     const rightTurnPercentage = totalTurns > 0 ? (rightTurns / totalTurns) * 100 : 50;
-    
+
     insights.push({
       type: 'directional_bias',
       message: `You favor ${rightTurnPercentage > 55 ? 'right' : rightTurnPercentage < 45 ? 'left' : 'balanced'} turns (${Math.round(rightTurnPercentage)}% right)`,
       data: { rightTurns, leftTurns, percentage: rightTurnPercentage }
     });
-    
+
     // Analyze error correction style
     const immediateCorrectionRate = mistakes.filter(m => m.correctionType === 'immediate').length / mistakes.length;
-    
+
     insights.push({
       type: 'correction_style',
       message: `Your error correction is ${immediateCorrectionRate > 0.7 ? 'immediate' : 'deliberate'} (${Math.round(immediateCorrectionRate * 100)}% instant corrections)`,
       data: { immediateCorrectionRate, totalMistakes: mistakes.length }
     });
-    
+
     // Analyze solving speed
     const optimalTime = 15; // seconds
     const speedRatio = totalTime / optimalTime;
-    
+
     insights.push({
       type: 'solving_speed',
       message: `Completion time: ${totalTime.toFixed(1)}s (${speedRatio < 0.8 ? 'fast' : speedRatio < 1.2 ? 'moderate' : 'methodical'} solver)`,
       data: { totalTime, speedRatio }
     });
-    
+
     return insights;
   };
 
   const saveResults = (insights: CognitiveInsight[]) => {
     const score = calculateScore();
-    
+
+    // Convert touch path to maze moves for the gamesStore format
+    const moves: MazeMove[] = [];
+    for (let i = 1; i < touchPath.length; i += 10) { // Sample moves to reduce data size
+      const prev = touchPath[i - 1];
+      const curr = touchPath[i];
+      const dx = curr.x - prev.x;
+      const dy = curr.y - prev.y;
+
+      // Determine direction based on largest component
+      let direction: 'up' | 'down' | 'left' | 'right';
+      if (Math.abs(dx) > Math.abs(dy)) {
+        direction = dx > 0 ? 'right' : 'left';
+      } else {
+        direction = dy > 0 ? 'down' : 'up';
+      }
+
+      const wasError = !isValidPath(curr);
+      moves.push({
+        direction,
+        timestamp: curr.timestamp,
+        wasError,
+        corrected: wasError && i < touchPath.length - 1 && isValidPath(touchPath[i + 1])
+      });
+    }
+
+    const mazeData: MazeData = {
+      moves,
+      completionTime: endTime! - startTime!,
+      errorCount: mistakes.length,
+      correctionsCount: mistakes.filter(m => m.correctionType === 'immediate').length,
+      mazeId: 'default_maze_1'
+    };
+
+    // Complete the game session in gamesStore
+    if (sessionId) {
+      try {
+        completeGameSession(sessionId, mazeData);
+      } catch (error) {
+        console.error('Error completing game session:', error);
+      }
+    }
+
+    // Also save to legacy twinStore format for backward compatibility
     addGameResult({
       gameType: 'cognitive_sync_maze',
       score,
@@ -223,7 +270,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
         rightTurnBias: insights[0].data.percentage
       }
     });
-    
+
     setGamePhase('result');
   };
 
@@ -233,11 +280,27 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
     return Math.round((timeScore + accuracyScore) / 2);
   };
 
+  const handleStartGame = () => {
+    setGamePhase('playing');
+
+    // Start a new game session in gamesStore
+    try {
+      const newSessionId = startGameSession(
+        'maze',
+        userProfile?.id || 'unknown',
+        twinProfile?.id
+      );
+      setSessionId(newSessionId);
+    } catch (error) {
+      console.error('Error starting game session:', error);
+    }
+  };
+
   const renderMaze = () => {
     return (
       <Svg width={MAZE_SIZE} height={MAZE_SIZE}>
         {/* Draw maze cells */}
-        {maze.map((row, y) => 
+        {maze.map((row, y) =>
           row.map((cell, x) => (
             <View key={`${x}-${y}`}>
               {cell === 0 && (
@@ -251,7 +314,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
             </View>
           ))
         )}
-        
+
         {/* Start point */}
         <Circle
           cx={startPoint.x * CELL_SIZE + CELL_SIZE / 2}
@@ -259,7 +322,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
           r={CELL_SIZE / 3}
           fill="#10b981"
         />
-        
+
         {/* End point */}
         <Circle
           cx={endPoint.x * CELL_SIZE + CELL_SIZE / 2}
@@ -267,7 +330,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
           r={CELL_SIZE / 3}
           fill="#f59e0b"
         />
-        
+
         {/* Draw path */}
         {touchPath.length > 1 && (
           <Path
@@ -304,7 +367,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
               Draw a path from the green start to the orange end. We'll analyze your cognitive patterns and compare them with {twinProfile?.name}.
             </Text>
             <Pressable
-              onPress={() => setGamePhase('playing')}
+              onPress={handleStartGame}
               className="bg-purple-500 px-8 py-4 rounded-xl"
             >
               <Text className="text-white text-lg font-semibold">Start Maze</Text>
@@ -317,7 +380,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
 
   if (gamePhase === 'result') {
     const insights = analyzeCognitivePath();
-    
+
     return (
       <ImageBackground source={require("../../assets/galaxybackground.png")} style={{ flex: 1 }}>
         <SafeAreaView className="flex-1">
@@ -325,7 +388,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
             <Text className="text-white text-2xl font-bold text-center mb-6">
               Cognitive Analysis Complete
             </Text>
-            
+
             <View className="bg-white/10 rounded-2xl p-6 mb-6">
               <Text className="text-white text-xl font-semibold mb-4">Your Cognitive Patterns</Text>
               {insights.map((insight, index) => (
@@ -339,13 +402,13 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
                 </View>
               ))}
             </View>
-            
+
             <View className="bg-yellow-500/20 rounded-xl p-4 mb-6">
               <Text className="text-white text-center">
                 Waiting for {twinProfile?.name} to complete their maze for comparison...
               </Text>
             </View>
-            
+
             <View className="flex-row space-x-4">
               <Pressable
                 onPress={() => navigation.goBack()}
@@ -358,6 +421,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
                   setGamePhase('intro');
                   setTouchPath([]);
                   setMistakes([]);
+                  setSessionId(null);
                 }}
                 className="flex-1 bg-purple-500 py-3 rounded-xl"
               >
@@ -384,7 +448,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
             </Text>
             <View className="w-6" />
           </View>
-          
+
           {/* Game Area */}
           <View className="flex-1 justify-center items-center">
             {gamePhase === 'analyzing' ? (
@@ -393,7 +457,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
                 <Text className="text-white text-xl mt-6">Analyzing your cognitive patterns...</Text>
               </View>
             ) : (
-              <View 
+              <View
                 className="bg-white/10 rounded-2xl p-4"
                 {...panResponder.panHandlers}
               >
@@ -401,7 +465,7 @@ export const CognitiveSyncMaze = ({ navigation }: any) => {
               </View>
             )}
           </View>
-          
+
           {/* Instructions */}
           {gamePhase === 'playing' && (
             <View className="bg-white/10 rounded-xl p-4">

@@ -86,7 +86,7 @@ export const usePushNotifications = () => {
         name: 'Twinship',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#8a2be2',
+        lightColor: '#5D63C7',
       });
 
       await Notifications.setNotificationChannelAsync('twintuition', {
@@ -94,7 +94,7 @@ export const usePushNotifications = () => {
         description: 'Sacred twin connection moments',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 500, 200, 500],
-        lightColor: '#ff1493',
+        lightColor: '#C66BC4',
         sound: 'twintuition_sound.wav', // Custom sound file
       });
     }

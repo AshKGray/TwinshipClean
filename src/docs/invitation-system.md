@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Twinship Invitation System is a comprehensive, secure, and user-friendly solution for connecting twins through email and SMS invitations. This system was designed to match the app's neon-themed galaxy aesthetic while providing enterprise-level security and reliability.
+The Twinship Invitation System is a comprehensive, secure, and user-friendly solution for connecting twins through email and SMS invitations. This system was designed to match the app's accent-rich galaxy aesthetic while providing enterprise-level security and reliability.
 
 ## Architecture
 
@@ -231,7 +231,7 @@ Errors are displayed in user-friendly format with suggested actions.
 
 ### Theming
 
-The invitation system respects the user's selected neon theme:
+The invitation system respects the user's selected accent theme:
 
 ```typescript
 const themeColor = getNeonAccentColor(userProfile.accentColor);

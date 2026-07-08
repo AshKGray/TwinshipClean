@@ -6,8 +6,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTwinStore } from "../state/twinStore";
 import { useAuthStore } from "../state/authStore";
 import { deepLinkService } from "../services/deepLinkService";
-import { BMadNavigationTracker } from "../../.bmad-mobile-app/navigation-tracker";
-import { MobilePerformanceAgent } from "../../.bmad-mobile-app/mobile-performance.agent";
+// BMAD performance tracking temporarily disabled - files removed
+// import { BMadNavigationTracker } from "../../.bmad-mobile-app/navigation-tracker";
+// import { MobilePerformanceAgent } from "../../.bmad-mobile-app/mobile-performance.agent";
 import { preloadManager } from "../utils/preloadManager";
 import { performanceTracker as startupPerformanceTracker } from "../utils/performanceTracker";
 import { performanceTracker } from "../utils/performanceMeasurement";
@@ -24,6 +25,10 @@ import { TwinTalkScreen } from "../screens/chat/TwinTalkScreen";
 
 // Pairing Screen (lazy loaded)
 const PairScreen = lazyScreen(() => import("../screens/PairScreen").then(m => ({ default: m.PairScreen })));
+
+// Onboarding Screens (lazy loaded)
+const InvitationScreen = lazyScreen(() => import("../screens/onboarding/InvitationScreen").then(m => ({ default: m.InvitationScreen })));
+const TutorialScreen = lazyScreen(() => import("../screens/onboarding/TutorialScreen").then(m => ({ default: m.TutorialScreen })));
 
 // Secondary Screens (lazy loaded with enhanced skeletons)
 const TwintuitionScreen = lazyScreenWithSkeleton(
@@ -49,10 +54,67 @@ const SettingsScreen = lazyScreenWithSkeleton(
 );
 
 // Game Screens (lazy loaded with preload)
+const PsychicGamesHub = lazyWithPreloadAndSkeleton(
+  () => import("../screens/games/PsychicGamesHub").then(m => ({ default: m.PsychicGamesHub })),
+  'game',
+  'Loading psychic games hub...',
+  'PsychicGamesHub'
+);
+const ResultsDashboard = lazyScreenWithSkeleton(
+  () => import("../screens/games/ResultsDashboard").then(m => ({ default: m.ResultsDashboard })),
+  'generic',
+  'Loading results...'
+);
 const CognitiveSyncMaze = lazyWithPreload(() => import("../screens/games/CognitiveSyncMaze").then(m => ({ default: m.CognitiveSyncMaze })));
 const EmotionalResonanceMapping = lazyWithPreload(() => import("../screens/games/EmotionalResonanceMapping").then(m => ({ default: m.EmotionalResonanceMapping })));
 const IconicDuoMatcher = lazyWithPreload(() => import("../screens/games/IconicDuoMatcher").then(m => ({ default: m.IconicDuoMatcher })));
 const TemporalDecisionSync = lazyWithPreload(() => import("../screens/games/TemporalDecisionSync").then(m => ({ default: m.TemporalDecisionSync })));
+
+// Game Result Screens (lazy loaded)
+const MazeResults = lazyScreenWithSkeleton(
+  () => import("../screens/games/results/MazeResults").then(m => ({ default: m.MazeResults })),
+  'generic',
+  'Loading maze results...'
+);
+const EmotionResults = lazyScreenWithSkeleton(
+  () => import("../screens/games/results/EmotionResults").then(m => ({ default: m.EmotionResults })),
+  'generic',
+  'Loading emotion results...'
+);
+const DecisionResults = lazyScreenWithSkeleton(
+  () => import("../screens/games/results/DecisionResults").then(m => ({ default: m.DecisionResults })),
+  'generic',
+  'Loading decision results...'
+);
+const DuoResults = lazyScreenWithSkeleton(
+  () => import("../screens/games/results/DuoResults").then(m => ({ default: m.DuoResults })),
+  'generic',
+  'Loading duo results...'
+);
+
+// Epic 3: Twintuition Alert Screens (lazy loaded)
+const SendAlertScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twintuition/SendAlertScreen"),
+  'generic',
+  'Loading alert composer...'
+);
+const AlertHistoryScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twintuition/AlertHistoryScreen"),
+  'generic',
+  'Loading alert history...'
+);
+const PatternsScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twintuition/PatternsScreen"),
+  'generic',
+  'Loading pattern analysis...'
+);
+
+// Epic 4: Twincidences Screens (lazy loaded)
+const InsightsDashboard = lazyScreenWithSkeleton(
+  () => import("../screens/twincidences/InsightsDashboard").then(m => ({ default: m.InsightsDashboard })),
+  'generic',
+  'Loading insights...'
+);
 
 // Authentication Screens (keep non-lazy for fast auth flow)
 import { LoginScreen } from "../screens/auth/LoginScreen";
@@ -93,6 +155,28 @@ const PairComparisonScreen = lazyScreenWithSkeleton(
 
 // Story Screens removed - integrated into Twincidence Log
 
+// Twincidence Screens (lazy loaded)
+const TwincidencesScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twincidences/TwincidencesScreen").then(m => ({ default: m.TwincidencesScreen })),
+  'generic',
+  'Loading twincidences...'
+);
+const CreateTwincidenceScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twincidences/CreateTwincidenceScreen").then(m => ({ default: m.CreateTwincidenceScreen })),
+  'generic',
+  'Preparing to create...'
+);
+const TwincidenceDetailScreen = lazyScreenWithSkeleton(
+  () => import("../screens/twincidences/TwincidenceDetailScreen").then(m => ({ default: m.TwincidenceDetailScreen })),
+  'generic',
+  'Loading details...'
+);
+const TwincidencePrivacyScreen = lazyScreenWithSkeleton(
+  () => import("../screens/settings/TwincidencePrivacyScreen").then(m => ({ default: m.TwincidencePrivacyScreen })),
+  'generic',
+  'Loading privacy settings...'
+);
+
 // Premium Screen (lazy loaded with premium skeleton)  
 const PremiumScreen = lazyScreenWithSkeleton(
   () => import("../screens/premium/PremiumScreen").then(m => ({ default: m.PremiumScreen })),
@@ -122,6 +206,23 @@ const ResearchVoluntaryScreen = lazyScreenWithSkeleton(
   'Loading research information...'
 );
 
+// Epic 5: Research Contribution Screens (lazy loaded)
+const ContributionTrackingScreen = lazyScreenWithSkeleton(
+  () => import("../screens/research/ContributionTrackingScreen").then(m => ({ default: m.ContributionTrackingScreen })),
+  'generic',
+  'Loading contribution tracking...'
+);
+const PopulationInsightsScreen = lazyScreenWithSkeleton(
+  () => import("../screens/research/PopulationInsightsScreen").then(m => ({ default: m.PopulationInsightsScreen })),
+  'generic',
+  'Loading population insights...'
+);
+const LeaderboardScreen = lazyScreenWithSkeleton(
+  () => import("../screens/research/LeaderboardScreen").then(m => ({ default: m.LeaderboardScreen })),
+  'generic',
+  'Loading leaderboard...'
+);
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -131,6 +232,11 @@ type RootStackParamList = {
   Register: undefined;
   ForgotPassword: undefined;
   
+  
+  // Epic 1 Onboarding Flow
+  Invitation: undefined;
+  Tutorial: undefined;
+  Pair: undefined;
   Onboarding: undefined;
   Main: undefined;
   Twindex: undefined;
@@ -158,6 +264,13 @@ type RootStackParamList = {
   Premium: { feature?: string; source?: 'assessment' | 'settings' | 'dashboard' | 'onboarding' };
   PremiumFeatures: undefined;
   // Story screens removed - integrated into Twincidence Log
+  // Twincidence screens
+  Twincidences: undefined;
+  CreateTwincidence: undefined;
+  TwincidenceDetail: { twincidenceId: string };
+  EditTwincidence: { twincidenceId: string };
+  TwincidencePrivacy: undefined;
+  TwincidenceAnalytics: undefined;
   // Missing routes identified in navigation calls
   GameStats: undefined;
   Home: undefined;
@@ -168,21 +281,38 @@ type RootStackParamList = {
   ConsentScreen: { studyId?: string };
   ResearchParticipationScreen: undefined;
   ResearchDashboardScreen: undefined;
+  ContributionTrackingScreen: undefined;
+  PopulationInsightsScreen: undefined;
+  LeaderboardScreen: undefined;
+
   ResearchVoluntary: undefined;
   ResearchParticipation: undefined;
-  // Pair route
-  Pair: undefined;
+  // Epic 2: Psychic Games Hub
+  PsychicGamesHub: undefined;
+  ResultsDashboard: { gameType?: string };
+  MazeResults: { sessionId: string };
+  EmotionResults: { sessionId: string };
+  DecisionResults: { sessionId: string };
+  DuoResults: { sessionId: string };
+  // Epic 3: Twintuition Alert System
+  SendAlert: undefined;
+  AlertHistory: undefined;
+  AlertPatterns: undefined;
+  // Epic 4: Twincidences
+  InsightsDashboard: undefined;
 };
 
 const TabNavigator = () => {
   const userProfile = useTwinStore((state) => state.userProfile);
-  const themeColor = userProfile?.accentColor || "neon-purple";
+  const themeColor = userProfile?.accentColor || "celestial-indigo";
   
   // Preload heavy screens when tab navigator mounts
   useEffect(() => {
     // Preload game screens using preload manager
     const preloadGameScreens = async () => {
       const componentsToPreload = [
+        { name: 'PsychicGamesHub', component: PsychicGamesHub as any },
+        { name: 'ResultsDashboard', component: ResultsDashboard as any },
         { name: 'TwinGamesHub', component: TwinGamesHub as any },
         { name: 'CognitiveSyncMaze', component: CognitiveSyncMaze as any },
         { name: 'EmotionalResonanceMapping', component: EmotionalResonanceMapping as any },
@@ -210,24 +340,24 @@ const TabNavigator = () => {
   
   const getTabBarColors = () => {
     switch (themeColor) {
-      case "neon-pink":
-        return { active: "#ff1493", inactive: "#9ca3af", background: "rgba(26, 10, 26, 0.95)" };
-      case "neon-blue":
-        return { active: "#00bfff", inactive: "#9ca3af", background: "rgba(10, 26, 46, 0.95)" };
-      case "neon-green":
-        return { active: "#00ff7f", inactive: "#9ca3af", background: "rgba(10, 26, 10, 0.95)" };
-      case "neon-yellow":
-        return { active: "#ffff00", inactive: "#9ca3af", background: "rgba(26, 26, 10, 0.95)" };
-      case "neon-purple":
-        return { active: "#8a2be2", inactive: "#9ca3af", background: "rgba(26, 10, 26, 0.95)" };
-      case "neon-orange":
-        return { active: "#ff4500", inactive: "#9ca3af", background: "rgba(26, 10, 10, 0.95)" };
-      case "neon-cyan":
-        return { active: "#00ffff", inactive: "#9ca3af", background: "rgba(10, 26, 26, 0.95)" };
-      case "neon-red":
-        return { active: "#ff0000", inactive: "#9ca3af", background: "rgba(26, 10, 10, 0.95)" };
+      case "nebula-rose":
+        return { active: "#C66BC4", inactive: "#9ca3af", background: "rgba(40, 18, 36, 0.95)" };
+      case "stellar-blue":
+        return { active: "#2F6BB5", inactive: "#9ca3af", background: "rgba(20, 36, 58, 0.95)" };
+      case "orbit-sage":
+        return { active: "#6FBF92", inactive: "#9ca3af", background: "rgba(16, 30, 24, 0.95)" };
+      case "solar-amber":
+        return { active: "#F4C16E", inactive: "#9ca3af", background: "rgba(42, 32, 14, 0.95)" };
+      case "celestial-indigo":
+        return { active: "#5D63C7", inactive: "#9ca3af", background: "rgba(30, 24, 54, 0.95)" };
+      case "comet-coral":
+        return { active: "#E8846B", inactive: "#9ca3af", background: "rgba(42, 22, 18, 0.95)" };
+      case "aurora-teal":
+        return { active: "#2BB5A0", inactive: "#9ca3af", background: "rgba(16, 36, 36, 0.95)" };
+      case "meteor-copper":
+        return { active: "#B9825A", inactive: "#9ca3af", background: "rgba(44, 26, 18, 0.95)" };
       default:
-        return { active: "#8a2be2", inactive: "#9ca3af", background: "rgba(26, 10, 26, 0.95)" };
+        return { active: "#5D63C7", inactive: "#9ca3af", background: "rgba(30, 24, 54, 0.95)" };
     }
   };
 
@@ -312,8 +442,9 @@ export const AppNavigator = () => {
   const { isAuthenticated, isLoading, initializeAuth } = useAuthStore();
   const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
   const routeNameRef = useRef<string | undefined>(undefined);
-  const bmadTracker = useRef(new BMadNavigationTracker());
-  const performanceAgent = useRef(new MobilePerformanceAgent());
+  // BMAD tracking disabled - files removed
+  // const bmadTracker = useRef(new BMadNavigationTracker());
+  // const performanceAgent = useRef(new MobilePerformanceAgent());
 
   // Initialize authentication and deep links
   useEffect(() => {
@@ -321,19 +452,19 @@ export const AppNavigator = () => {
     deepLinkService.initialize();
   }, []);
 
-  // BMAD Navigation Tracking
-  useEffect(() => {
-    // Performance monitoring interval
-    const interval = setInterval(() => {
-      // Measure current performance metrics
-      const memoryUsage = (performance as any).memory?.usedJSHeapSize / 1048576; // MB
-      if (memoryUsage) {
-        performanceAgent.current.measure('memory', memoryUsage);
-      }
-    }, 5000);
+  // BMAD Navigation Tracking - DISABLED
+  // useEffect(() => {
+  //   // Performance monitoring interval
+  //   const interval = setInterval(() => {
+  //     // Measure current performance metrics
+  //     const memoryUsage = (performance as any).memory?.usedJSHeapSize / 1048576; // MB
+  //     if (memoryUsage) {
+  //       performanceAgent.current.measure('memory', memoryUsage);
+  //     }
+  //   }, 5000);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   return (
     <NavigationContainer
@@ -350,52 +481,52 @@ export const AppNavigator = () => {
         const currentRoute = navigationRef.current?.getCurrentRoute();
 
         if (previousRouteName !== currentRouteName && currentRouteName) {
-          // Track screen view with BMAD
-          bmadTracker.current.trackScreenView(currentRouteName, currentRoute?.params);
-          
-          // Track navigation timing
-          if (previousRouteName) {
-            const navStartTime = Date.now();
-            requestAnimationFrame(() => {
-              const navEndTime = Date.now();
-              const duration = navEndTime - navStartTime;
-              bmadTracker.current.trackNavigationTime(previousRouteName, currentRouteName, duration);
-              performanceAgent.current.measure('renderTime', duration);
-            });
-          }
+          // Track screen view with BMAD - DISABLED
+          // bmadTracker.current.trackScreenView(currentRouteName, currentRoute?.params);
+
+          // Track navigation timing - DISABLED
+          // if (previousRouteName) {
+          //   const navStartTime = Date.now();
+          //   requestAnimationFrame(() => {
+          //     const navEndTime = Date.now();
+          //     const duration = navEndTime - navStartTime;
+          //     bmadTracker.current.trackNavigationTime(previousRouteName, currentRouteName, duration);
+          //     performanceAgent.current.measure('renderTime', duration);
+          //   });
+          // }
 
           // Log analytics (can be sent to backend)
-          console.log('[BMAD] Screen View:', currentRouteName);
-          
-          // Export metrics periodically
-          if (Math.random() < 0.1) { // 10% chance to export
-            const analytics = bmadTracker.current.getNavigationAnalytics();
-            const perfAnalysis = performanceAgent.current.analyze();
-            const startupMetrics = startupPerformanceTracker.exportForBMAD();
+          console.log('[Navigation] Screen View:', currentRouteName);
 
-            console.log('[BMAD] Navigation Analytics:', analytics);
-            console.log('[BMAD] Performance Analysis:', perfAnalysis);
-            console.log('[BMAD] Startup Metrics:', startupMetrics);
+          // Export metrics periodically - DISABLED
+          // if (Math.random() < 0.1) { // 10% chance to export
+          //   const analytics = bmadTracker.current.getNavigationAnalytics();
+          //   const perfAnalysis = performanceAgent.current.analyze();
+          //   const startupMetrics = startupPerformanceTracker.exportForBMAD();
 
-            // Export performance dashboard data
-            const dashboardData = performanceDashboard.exportDashboardData();
-            console.log('[BMAD] Performance Dashboard:', dashboardData);
-
-            // Log React Profiler metrics in development
-            if (__DEV__) {
-              PerformanceUtils.logReport();
-
-              // Log comprehensive startup report
-              const startupReport = startupPerformanceTracker.generateStartupReport();
-              console.log('[BMAD] Startup Performance Report:', startupReport);
-
-              // Generate performance alerts
-              const alerts = performanceDashboard.generateAlerts();
-              if (alerts.length > 0) {
-                console.warn('[BMAD] Performance Alerts:', alerts);
-              }
-            }
-          }
+          //   console.log('[BMAD] Navigation Analytics:', analytics);
+          //   console.log('[BMAD] Performance Analysis:', perfAnalysis);
+          //   console.log('[BMAD] Startup Metrics:', startupMetrics);
+          //
+          //   // Export performance dashboard data
+          //   const dashboardData = performanceDashboard.exportDashboardData();
+          //   console.log('[BMAD] Performance Dashboard:', dashboardData);
+          //
+          //   // Log React Profiler metrics in development
+          //   if (__DEV__) {
+          //     PerformanceUtils.logReport();
+          //
+          //     // Log comprehensive startup report
+          //     const startupReport = startupPerformanceTracker.generateStartupReport();
+          //     console.log('[BMAD] Startup Performance Report:', startupReport);
+          //
+          //     // Generate performance alerts
+          //     const alerts = performanceDashboard.generateAlerts();
+          //     if (alerts.length > 0) {
+          //       console.warn('[BMAD] Performance Alerts:', alerts);
+          //     }
+          //   }
+          // }
         }
 
         // Save the current route name for comparison next time
@@ -412,22 +543,35 @@ export const AppNavigator = () => {
         ) : !isOnboarded ? (
           // Onboarding Flow  
           <Stack.Screen name="Onboarding">
-            {(props) => (
+            {({ navigation }) => (
               <OnboardingScreen
-                {...props}
-                onComplete={() => {}}
+                onComplete={() => {
+                  // Mark user as onboarded
+                  useTwinStore.getState().setOnboarded(true);
+                  // Navigate to Twinvitation (pairing) screen
+                  navigation.navigate('Twinvitation' as never);
+                }}
               />
             )}
           </Stack.Screen>
         ) : (
           <>
             <Stack.Screen name="Main" component={TabNavigator} />
+            {/* Onboarding Flow Routes - Accessible after registration */}
+            <Stack.Screen name="Invitation" component={InvitationScreen} />
+            <Stack.Screen name="Tutorial" component={TutorialScreen} />
+            <Stack.Screen name="Pair" component={PairScreen} />
             <Stack.Screen name="TwinTalk" component={TwinTalkScreen} />
             <Stack.Screen name="Twintuition" component={TwintuitionScreen} />
             <Stack.Screen name="Twingames" component={TwinGamesHub} />
             <Stack.Screen name="Twinquiry" component={ResearchScreen} />
             <Stack.Screen name="Twinsettings" component={SettingsScreen} />
             {/* Story screens removed - functionality integrated into Twincidence Log */}
+            {/* Twincidence Screens */}
+            <Stack.Screen name="Twincidences" component={TwincidencesScreen} />
+            <Stack.Screen name="CreateTwincidence" component={CreateTwincidenceScreen} />
+            <Stack.Screen name="TwincidenceDetail" component={TwincidenceDetailScreen} />
+            <Stack.Screen name="TwincidencePrivacy" component={TwincidencePrivacyScreen} />
             <Stack.Screen name="Twinvitation" component={require("../screens/PairScreen").PairScreen} />
             {/* New invitation screens */}
             <Stack.Screen 
@@ -461,6 +605,8 @@ export const AppNavigator = () => {
               component={PremiumScreen}
             />
             {/* Twin Connection Game Screens */}
+            <Stack.Screen name="PsychicGamesHub" component={PsychicGamesHub} />
+            <Stack.Screen name="ResultsDashboard" component={ResultsDashboard} />
             <Stack.Screen name="TwinGamesHub" component={TwinGamesHub} />
             <Stack.Screen name="CognitiveSyncMaze" component={CognitiveSyncMaze} />
             <Stack.Screen name="EmotionalResonanceMapping" component={EmotionalResonanceMapping} />
@@ -470,19 +616,33 @@ export const AppNavigator = () => {
             <Stack.Screen name="emotional_resonance" component={EmotionalResonanceMapping} />
             <Stack.Screen name="temporal_decision" component={TemporalDecisionSync} />
             <Stack.Screen name="iconic_duo" component={IconicDuoMatcher} />
+            {/* Game Result Screens */}
+            <Stack.Screen name="MazeResults" component={MazeResults} />
+            <Stack.Screen name="EmotionResults" component={EmotionResults} />
+            <Stack.Screen name="DecisionResults" component={DecisionResults} />
+            <Stack.Screen name="DuoResults" component={DuoResults} />
+            {/* Epic 3: Twintuition Alert Screens */}
+            <Stack.Screen name="SendAlert" component={SendAlertScreen} />
+            <Stack.Screen name="AlertHistory" component={AlertHistoryScreen} />
+            <Stack.Screen name="AlertPatterns" component={PatternsScreen} />
+            {/* Epic 4: Twincidences Insights */}
+            <Stack.Screen name="InsightsDashboard" component={InsightsDashboard} />
             {/* Research Screens */}
             <Stack.Screen name="ConsentScreen" component={ConsentScreen} />
             <Stack.Screen name="ResearchParticipationScreen" component={ResearchParticipationScreen} />
+            <Stack.Screen name="ContributionTrackingScreen" component={ContributionTrackingScreen} />
+            <Stack.Screen name="PopulationInsightsScreen" component={PopulationInsightsScreen} />
+            <Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} />
             <Stack.Screen name="ResearchDashboardScreen" component={ResearchDashboardScreen} />
             <Stack.Screen name="ResearchVoluntary" component={ResearchVoluntaryScreen} />
             <Stack.Screen name="ResearchParticipation" component={ResearchParticipationScreen} />
+
             {/* Missing route placeholders - redirect to proper screens */}
             <Stack.Screen name="GameStats" component={TwinGamesHub} />
             <Stack.Screen name="Home" component={TabNavigator} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Recommendations" component={AssessmentRecommendationsScreen} />
             <Stack.Screen name="AssessmentDetails" component={AssessmentResultsScreen} />
-            <Stack.Screen name="Pair" component={require("../screens/PairScreen").PairScreen} />
           </>
         )}
       </Stack.Navigator>

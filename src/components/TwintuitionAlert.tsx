@@ -106,7 +106,7 @@ export const TwintuitionAlert: React.FC<TwintuitionAlertProps> = ({
     return null;
   }
 
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const primaryColor = getNeonAccentColor(accentColor);
   const [color1, color2, color3] = getNeonGradientColors(accentColor);
 

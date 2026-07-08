@@ -18,7 +18,7 @@ export const PremiumFeatureList: React.FC<PremiumFeatureListProps> = ({
 }) => {
   const userProfile = useTwinStore((state) => state.userProfile);
   const hasAccessTo = useSubscriptionStore((state) => state.hasAccessTo);
-  const accentColor = userProfile?.accentColor || "neon-purple";
+  const accentColor = userProfile?.accentColor || "celestial-indigo";
   const neonColor = getNeonAccentColor(accentColor);
 
   const getFeatureIcon = (iconName: string) => {

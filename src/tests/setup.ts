@@ -9,20 +9,21 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   getAllKeys: jest.fn(() => Promise.resolve([])),
 }));
 
-// Mock react-native modules
-jest.mock('react-native', () => ({
-  Platform: {
-    OS: 'ios',
-    select: (config: any) => config.ios || config.default,
-  },
-  Dimensions: {
-    get: () => ({ width: 375, height: 812 }),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-  },
-  Alert: {
-    alert: jest.fn(),
-  },
+// Mock AccessibilityInfo - must be done before react-native import
+jest.mock('react-native/Libraries/Components/AccessibilityInfo/AccessibilityInfo', () => ({
+  isReduceMotionEnabled: jest.fn(() => Promise.resolve(false)),
+  addEventListener: jest.fn((eventName: string, handler: Function) => ({
+    remove: jest.fn(),
+  })),
+  removeEventListener: jest.fn(),
+  announceForAccessibility: jest.fn(),
+  isScreenReaderEnabled: jest.fn(() => Promise.resolve(false)),
+}));
+
+// Mock Appearance
+jest.mock('react-native/Libraries/Utilities/Appearance', () => ({
+  getColorScheme: jest.fn(() => 'light'),
+  addChangeListener: jest.fn(() => ({ remove: jest.fn() })),
 }));
 
 // Mock zustand persist

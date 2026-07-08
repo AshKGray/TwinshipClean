@@ -12,23 +12,28 @@ module.exports = {
     // NOTE to AI: You can extend the theme with custom colors or styles here.
     extend: {
       colors: {
-        // Neon accent colors for twin themes
-        "neon-pink": "#ff1493",
-        "neon-blue": "#00bfff",
-        "neon-green": "#00ff7f",
-        "neon-yellow": "#ffff00",
-        "neon-purple": "#8a2be2",
-        "neon-orange": "#ff4500",
-        "neon-cyan": "#00ffff",
-        "neon-red": "#ff0000",
-        // Assessment specific colors
-        "assessment": {
-          "emotional": "#ff1493",
-          "telepathic": "#8a2be2", 
-          "behavioral": "#00bfff",
-          "shared": "#00ff7f",
-          "physical": "#ff4500"
-        }
+        // Galaxy accent colors (user-selectable) - Story 6.1
+        'nebula-rose': '#FF6B9D',
+        'stellar-blue': '#00D4FF',
+        'orbit-sage': '#8FD14F',
+        'solar-amber': '#FFB347',
+        'celestial-indigo': '#7073FE',  // Adjusted for WCAG AA compliance
+        'comet-coral': '#FF7F50',
+        'aurora-teal': '#00CED1',
+        'meteor-copper': '#D4AF37',
+
+        // Base UI colors - Story 6.1
+        'deep-space': '#0B0B1E',
+        'cosmic-void': '#060612',
+        'stardust': '#E5E7EB',
+        'moonlight': '#9CA3AF',
+        'nebula-mist': '#374151',
+
+        // Semantic colors - Story 6.1
+        'success': '#10B981',
+        'error': '#EF4444',
+        'warning': '#F59E0B',
+        'info': '#3B82F6',
       },
       fontSize: {
         xs: "10px",

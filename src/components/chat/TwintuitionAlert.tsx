@@ -21,7 +21,7 @@ export const TwintuitionAlert: React.FC<TwintuitionAlertProps> = ({
   const slideAnim = useRef(new Animated.Value(-100)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const neonColor = getNeonAccentColor(accentColor);
 
   useEffect(() => {

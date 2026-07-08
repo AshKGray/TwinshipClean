@@ -48,7 +48,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onTyp
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scaleValue = new Animated.Value(1);
 
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const neonColor = getNeonAccentColor(accentColor);
 
   // App state monitoring

@@ -6,7 +6,11 @@ import { ColorPicker } from "../../components/onboarding/ColorPicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTwinStore, ThemeColor } from "../../state/twinStore";
-import { getNeonAccentColor, getNeonGradientColors } from "../../utils/neonColors";
+import {
+  ACCENT_THEME_DETAILS,
+  getNeonAccentColor,
+  getNeonGradientColors
+} from "../../utils/neonColors";
 
 interface ColorSelectionScreenProps {
   onContinue: () => void;
@@ -21,7 +25,7 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
 }) => {
   const { userProfile, setUserProfile } = useTwinStore();
   const [selectedColor, setSelectedColor] = useState<ThemeColor>(
-    userProfile?.accentColor || "neon-purple"
+    userProfile?.accentColor || "celestial-indigo"
   );
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -72,16 +76,24 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
     onContinue();
   };
 
-  const neonColors: { color: ThemeColor; name: string; description: string }[] = [
-    { color: "neon-pink", name: "Hot Pink", description: "Intuitive & Emotional" },
-    { color: "neon-blue", name: "Electric Blue", description: "Calm & Analytical" },
-    { color: "neon-green", name: "Bright Green", description: "Balanced & Growth" },
-    { color: "neon-yellow", name: "Neon Yellow", description: "Energetic & Creative" },
-    { color: "neon-purple", name: "Vibrant Purple", description: "Creative & Wise" },
-    { color: "neon-orange", name: "Bright Orange", description: "Bold & Passionate" },
-    { color: "neon-cyan", name: "Electric Cyan", description: "Clear & Focused" },
-    { color: "neon-red", name: "Bright Red", description: "Strong & Determined" },
+  const accentOrder: ThemeColor[] = [
+    "stellar-blue",
+    "aurora-teal",
+    "celestial-indigo",
+    "nebula-rose",
+    "solar-amber",
+    "comet-coral",
+    "orbit-sage",
+    "meteor-copper",
   ];
+
+  const accentOptions: { color: ThemeColor; name: string; description: string }[] = accentOrder.map(
+    (color) => ({
+      color,
+      name: ACCENT_THEME_DETAILS[color].name,
+      description: ACCENT_THEME_DETAILS[color].description,
+    })
+  );
 
   const renderPreviewElements = () => {
     const accentColor = getNeonAccentColor(selectedColor);
@@ -196,7 +208,7 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
               </Text>
               
               <Text className="text-white/70 text-base text-center mb-12 leading-6">
-                Choose a neon color you like. This will personalize your chat bubbles, buttons, and accents throughout the app.
+                Choose an accent color inspired by our galaxy backdrop. This will personalize your chat bubbles, buttons, and accents throughout the app.
               </Text>
 
               {/* Live Preview */}
@@ -212,7 +224,7 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
 
               {/* Color Palette */}
               <ColorPicker
-                colors={neonColors}
+                colors={accentOptions}
                 selectedColor={selectedColor}
                 onColorSelect={setSelectedColor}
               />
@@ -225,11 +237,11 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
                     style={{ backgroundColor: getNeonAccentColor(selectedColor) }}
                   />
                   <Text className="text-white text-lg font-semibold">
-                    {neonColors.find(c => c.color === selectedColor)?.name}
+                    {accentOptions.find(c => c.color === selectedColor)?.name}
                   </Text>
                 </View>
                 <Text className="text-white/70 text-base">
-                  {neonColors.find(c => c.color === selectedColor)?.description}
+                  {accentOptions.find(c => c.color === selectedColor)?.description}
                 </Text>
               </View>
 
@@ -272,7 +284,7 @@ export const ColorSelectionScreen: React.FC<ColorSelectionScreenProps> = ({
                 className="absolute inset-0 rounded-full"
               />
               <Text className="text-white text-lg font-semibold">
-                Continue with {neonColors.find(c => c.color === selectedColor)?.name}
+                Continue with {accentOptions.find(c => c.color === selectedColor)?.name}
               </Text>
             </Pressable>
           </View>

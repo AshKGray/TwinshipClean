@@ -1,25 +1,66 @@
 import { ThemeColor } from "../state/twinStore";
 
+export const ACCENT_THEME_DETAILS: Record<ThemeColor, { name: string; description: string }> = {
+  "stellar-blue": {
+    name: "Stellar Blue",
+    description: "Focused & Perceptive",
+  },
+  "aurora-teal": {
+    name: "Aurora Teal",
+    description: "Calm & Connected",
+  },
+  "celestial-indigo": {
+    name: "Celestial Indigo",
+    description: "Thoughtful & Visionary",
+  },
+  "nebula-rose": {
+    name: "Nebula Rose",
+    description: "Warm & Empathetic",
+  },
+  "solar-amber": {
+    name: "Solar Amber",
+    description: "Bright & Encouraging",
+  },
+  "comet-coral": {
+    name: "Comet Coral",
+    description: "Adventurous & Expressive",
+  },
+  "orbit-sage": {
+    name: "Orbit Sage",
+    description: "Grounded & Supportive",
+  },
+  "meteor-copper": {
+    name: "Meteor Copper",
+    description: "Confident & Bold",
+  },
+};
+
+export const getAccentDisplayName = (theme: ThemeColor): string =>
+  ACCENT_THEME_DETAILS[theme]?.name ?? "";
+
+export const getAccentDescription = (theme: ThemeColor): string =>
+  ACCENT_THEME_DETAILS[theme]?.description ?? "";
+
 export const getNeonAccentColor = (theme: ThemeColor): string => {
   switch (theme) {
-    case "neon-pink":
-      return "#ff1493";
-    case "neon-blue":
-      return "#00bfff";
-    case "neon-green":
-      return "#00ff7f";
-    case "neon-yellow":
-      return "#ffff00";
-    case "neon-purple":
-      return "#8a2be2";
-    case "neon-orange":
-      return "#ff4500";
-    case "neon-cyan":
-      return "#00ffff";
-    case "neon-red":
-      return "#ff0000";
+    case "stellar-blue":
+      return "#2F6BB5";
+    case "aurora-teal":
+      return "#2BB5A0";
+    case "celestial-indigo":
+      return "#5D63C7";
+    case "nebula-rose":
+      return "#C66BC4";
+    case "solar-amber":
+      return "#F4C16E";
+    case "comet-coral":
+      return "#E8846B";
+    case "orbit-sage":
+      return "#6FBF92";
+    case "meteor-copper":
+      return "#B9825A";
     default:
-      return "#8a2be2";
+      return "#5D63C7";
   }
 };
 
@@ -33,17 +74,14 @@ export const getNeonAccentColorWithOpacity = (theme: ThemeColor, opacity: number
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
 
-// Get contrasting text color for readability on neon backgrounds
+// Get contrasting text color for readability on accent backgrounds
 export const getNeonContrastingTextColor = (theme: ThemeColor): string => {
   switch (theme) {
-    case "neon-yellow":
-      return "#000000"; // Black text on bright yellow
-    case "neon-cyan":
-      return "#000000"; // Black text on bright cyan
-    case "neon-green":
-      return "#000000"; // Black text on bright green
+    case "stellar-blue":
+    case "celestial-indigo":
+      return "#ffffff";
     default:
-      return "#ffffff"; // White text for most neon colors
+      return "#000000";
   }
 };
 
@@ -98,23 +136,23 @@ export const getNeonBorderColor = (theme: ThemeColor): string => {
 
 export const getNeonGradientColors = (theme: ThemeColor): [string, string, string] => {
   switch (theme) {
-    case "neon-pink":
-      return ["#ff1493", "#ff69b4", "#ffb6c1"];
-    case "neon-blue":
-      return ["#00bfff", "#1e90ff", "#87cefa"];
-    case "neon-green":
-      return ["#00ff7f", "#32cd32", "#90ee90"];
-    case "neon-yellow":
-      return ["#ffff00", "#ffd700", "#ffffe0"];
-    case "neon-purple":
-      return ["#8a2be2", "#9370db", "#dda0dd"];
-    case "neon-orange":
-      return ["#ff4500", "#ff8c00", "#ffa500"];
-    case "neon-cyan":
-      return ["#00ffff", "#40e0d0", "#afeeee"];
-    case "neon-red":
-      return ["#ff0000", "#dc143c", "#ffa07a"];
+    case "stellar-blue":
+      return ["#2F6BB5", "#3A7BD5", "#6FA8FF"];
+    case "aurora-teal":
+      return ["#2BB5A0", "#3FC2AE", "#7EDFCC"];
+    case "celestial-indigo":
+      return ["#5D63C7", "#7A7EE0", "#A7A8F1"];
+    case "nebula-rose":
+      return ["#C66BC4", "#D98FD0", "#F3C0E3"];
+    case "solar-amber":
+      return ["#F4C16E", "#F7D38F", "#FBE9C0"];
+    case "comet-coral":
+      return ["#E8846B", "#F09B85", "#F7C2AF"];
+    case "orbit-sage":
+      return ["#6FBF92", "#86CFA5", "#B8E5C8"];
+    case "meteor-copper":
+      return ["#B9825A", "#C9936A", "#E2C0A0"];
     default:
-      return ["#8a2be2", "#9370db", "#dda0dd"];
+      return ["#5D63C7", "#7A7EE0", "#A7A8F1"];
   }
 };

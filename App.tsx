@@ -11,6 +11,7 @@ import ImageService from "./src/services/imageService";
 import * as SplashScreen from 'expo-splash-screen';
 import { performanceTracker } from "./src/utils/performanceTracker";
 import { FontOptimizer } from "./src/utils/fontOptimization";
+import { firebaseAuthService } from "./src/services/firebase/auth";
 
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
@@ -80,6 +81,11 @@ export default function App() {
     try {
       // Load critical fonts first (non-blocking for startup)
       await FontOptimizer.optimizedFontPreload();
+
+      // Initialize Firebase auth listener (critical for auth state)
+      // TEMPORARILY DISABLED: Firebase Auth has Expo Go compatibility issues
+      // Will re-enable when moving to development build
+      // firebaseAuthService.initAuthListener();
 
       // Essential services that block UI
       await deepLinkManager.initialize();

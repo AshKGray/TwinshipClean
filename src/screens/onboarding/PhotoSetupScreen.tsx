@@ -112,7 +112,7 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
         gender: "",
         twinType: "identical",
         birthDate: new Date().toISOString(),
-        accentColor: "neon-purple",
+        accentColor: "celestial-indigo",
         isConnected: false,
       };
       setUserProfile(tempProfile);
@@ -144,27 +144,23 @@ export const PhotoSetupScreen: React.FC<PhotoSetupScreenProps> = ({
         <View className="flex-1 px-8">
           {/* Header */}
           <View className="flex-row items-center justify-between pt-4 pb-8">
-            <Pressable
-              onPress={onBack}
-              className="w-10 h-10 rounded-full bg-black/80 items-center justify-center"
-            >
-              <Ionicons name="chevron-back" size={20} color="white" />
-            </Pressable>
-            
+            {/* Empty space for balance since this is first screen */}
+            <View className="w-10" />
+
             <View className="flex-1 items-center">
               <Text className="text-white/60 text-sm">Step 1 of 5</Text>
               <View className="flex-row mt-2 space-x-1">
                 {[...Array(5)].map((_, i) => (
-                  <View 
-                    key={i} 
+                  <View
+                    key={i}
                     className={`h-1 w-8 rounded-full ${
                       i === 0 ? 'bg-white' : 'bg-black/80'
-                    }`} 
+                    }`}
                   />
                 ))}
               </View>
             </View>
-            
+
             <View className="w-10" />
           </View>
 

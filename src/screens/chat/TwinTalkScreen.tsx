@@ -175,7 +175,7 @@ export const TwinTalkScreen = memo(() => {
     setSelectedMessage,
   } = useChatStore();
 
-  const accentColor = userProfile?.accentColor || 'neon-purple';
+  const accentColor = userProfile?.accentColor || 'celestial-indigo';
   const neonColor = getNeonAccentColor(accentColor);
   const cardBg = getNeonCardBackground(accentColor);
   const buttonBg = getNeonButtonBackground(accentColor);

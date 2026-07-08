@@ -7,7 +7,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Custom enums
 CREATE TYPE twin_type AS ENUM ('identical', 'fraternal', 'other');
-CREATE TYPE theme_color AS ENUM ('neon-pink', 'neon-blue', 'neon-green', 'neon-yellow', 'neon-purple', 'neon-orange', 'neon-cyan', 'neon-red');
+CREATE TYPE theme_color AS ENUM ('nebula-rose', 'stellar-blue', 'orbit-sage', 'solar-amber', 'celestial-indigo', 'comet-coral', 'aurora-teal', 'meteor-copper');
 CREATE TYPE message_type AS ENUM ('text', 'image', 'emoji', 'reaction', 'twintuition');
 CREATE TYPE invitation_status AS ENUM ('pending', 'sent', 'delivered', 'accepted', 'declined', 'expired');
 CREATE TYPE assessment_category AS ENUM (
@@ -42,7 +42,7 @@ CREATE TABLE users (
     place_of_birth VARCHAR(255),
     time_of_birth TIME,
     profile_picture_url TEXT,
-    accent_color theme_color NOT NULL DEFAULT 'neon-purple',
+    accent_color theme_color NOT NULL DEFAULT 'celestial-indigo',
     is_connected BOOLEAN DEFAULT FALSE,
     last_seen TIMESTAMP WITH TIME ZONE,
     email_verified BOOLEAN DEFAULT FALSE,
